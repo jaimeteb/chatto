@@ -13,17 +13,6 @@ func hello(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "hello\n")
 }
 
-// func endpoint(w http.ResponseWriter, req *http.Request) {
-// 	decoder := json.NewDecoder(req.Body)
-// 	var mess models.Message
-
-// 	err := decoder.Decode(&mess)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	log.Println(mess.Sender, mess.Text)
-// }
-
 type botHandler struct {
 	Bot *models.Bot
 }
@@ -38,12 +27,16 @@ func (bh *botHandler) handler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println(mess.Sender, mess.Text)
 
-	bh.Bot.History.Messages = append(bh.Bot.History.Messages, mess)
-	bh.Bot.History.Print()
+	// ans := bh.Bot.Answer(mess)
+	bh.Bot.Answer(mess)
+
+	// bh.Bot.History.Messages[mess.Sender] = append(bh.Bot.History.Messages[mess.Sender], mess)
+	// bh.Bot.History.Print(mess.Sender)
 }
 
 // ServeBot function
 func ServeBot(bot *models.Bot) {
+	bot.History.Messages = make(map[string][]models.Message)
 	myBot := &botHandler{Bot: bot}
 
 	http.HandleFunc("/hello", hello)
