@@ -23,15 +23,21 @@ func (bh *botHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&mess)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	log.Println(mess.Sender, mess.Text)
 
-	// ans := bh.Bot.Answer(mess)
-	bh.Bot.Answer(mess)
+	ans := bh.Bot.Answer(mess)
 
-	// bh.Bot.History.Messages[mess.Sender] = append(bh.Bot.History.Messages[mess.Sender], mess)
-	// bh.Bot.History.Print(mess.Sender)
+	js, err := json.Marshal(ans)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
 
 // ServeBot function

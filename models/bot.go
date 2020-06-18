@@ -9,7 +9,7 @@ type Bot struct {
 
 // Answer :
 // Process input from user and produce output
-func (b Bot) Answer(mess Message) {
+func (b Bot) Answer(mess Message) Message {
 	b.History.Messages[mess.Sender] = append(b.History.Messages[mess.Sender], mess)
 
 	var resp Message
@@ -27,5 +27,5 @@ func (b Bot) Answer(mess Message) {
 
 	b.History.Messages[mess.Sender] = append(b.History.Messages[mess.Sender], resp)
 	b.History.Print(mess.Sender)
-	// return resp
+	return resp
 }
