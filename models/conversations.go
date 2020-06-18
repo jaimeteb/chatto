@@ -2,5 +2,6 @@ package models
 
 // Conversation struct
 type Conversation struct {
-	Paths []string
+	Name string
+	Path []Message
 }

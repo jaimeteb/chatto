@@ -7,6 +7,7 @@ import (
 
 func main() {
 	bot := core.LoadYAML()
+	core.LoadConv()
 
 	server.ServeBot(&bot)
 }

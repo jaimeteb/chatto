@@ -1,7 +1,10 @@
 package core
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/jaimeteb/chatto/models"
 	"github.com/spf13/viper"
@@ -27,7 +30,39 @@ func LoadYAML() models.Bot {
 	return bot
 }
 
-// LoadConv loads conversations.md and parses Conversations
-func LoadConv() {
+// LoadConv loads conversations.md as Conversations
+func LoadConv() (convs []models.Conversation) {
+	content, err := ioutil.ReadFile("./config/conversations.md")
+	if err != nil {
+		panic(err)
+	}
+	lines := strings.Split(string(content), "\n")
 
+	for _, line := range lines {
+		trimmed := strings.TrimLeft(line, " ")
+
+		switch {
+		case strings.HasPrefix(trimmed, "##"):
+			trimmed = strings.TrimPrefix(trimmed, "##")
+			newConv := models.Conversation{Name: trimmed}
+			convs = append(convs, newConv)
+		case strings.HasPrefix(trimmed, "*"):
+			trimmed = strings.TrimPrefix(trimmed, "*")
+			mewMess := models.Message{
+				Sender: "usr",
+				Text:   trimmed,
+			}
+			convs[len(convs)-1].Path = append(convs[len(convs)-1].Path, mewMess)
+		case strings.HasPrefix(trimmed, "-"):
+			trimmed = strings.TrimPrefix(trimmed, "-")
+			mewMess := models.Message{
+				Sender: "bot",
+				Text:   trimmed,
+			}
+			convs[len(convs)-1].Path = append(convs[len(convs)-1].Path, mewMess)
+		}
+	}
+
+	fmt.Println(convs)
+	return
 }
