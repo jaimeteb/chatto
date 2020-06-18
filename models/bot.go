@@ -7,6 +7,10 @@ type Bot struct {
 	History History
 }
 
+// func reslice(s []int, index int) []int {
+// 	return append(s[:index], s[index+1:]...)
+// }
+
 // Answer :
 // Process input from user and produce output
 func (b Bot) Answer(mess Message) Message {
