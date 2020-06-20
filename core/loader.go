@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -42,19 +41,19 @@ func LoadConv() (convs []models.Conversation) {
 		trimmed := strings.TrimLeft(line, " ")
 
 		switch {
-		case strings.HasPrefix(trimmed, "##"):
-			trimmed = strings.TrimPrefix(trimmed, "##")
+		case strings.HasPrefix(trimmed, "## "):
+			trimmed = strings.TrimPrefix(trimmed, "## ")
 			newConv := models.Conversation{Name: trimmed}
 			convs = append(convs, newConv)
-		case strings.HasPrefix(trimmed, "*"):
-			trimmed = strings.TrimPrefix(trimmed, "*")
+		case strings.HasPrefix(trimmed, "* "):
+			trimmed = strings.TrimPrefix(trimmed, "* ")
 			mewMess := models.Message{
 				Sender: "usr",
 				Text:   trimmed,
 			}
 			convs[len(convs)-1].Path = append(convs[len(convs)-1].Path, mewMess)
-		case strings.HasPrefix(trimmed, "-"):
-			trimmed = strings.TrimPrefix(trimmed, "-")
+		case strings.HasPrefix(trimmed, "- "):
+			trimmed = strings.TrimPrefix(trimmed, "- ")
 			mewMess := models.Message{
 				Sender: "bot",
 				Text:   trimmed,
@@ -63,6 +62,6 @@ func LoadConv() (convs []models.Conversation) {
 		}
 	}
 
-	fmt.Println(convs)
+	// fmt.Println(convs)
 	return
 }
