@@ -2,9 +2,10 @@ package models
 
 // Bot struct
 type Bot struct {
-	ID      int
-	Name    string
-	History History
+	ID        int
+	Name      string
+	PrefixLen int
+	History   History
 }
 
 // func reslice(s []int, index int) []int {

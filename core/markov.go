@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"math/rand"
+	"strings"
 
 	"github.com/jaimeteb/chatto/models"
 )
@@ -34,9 +36,12 @@ func (p Prefix) shift(token string) {
 	p[len(p)-1] = token
 }
 
+func (p Prefix) string() string {
+	return strings.Join(p, " ")
+}
+
 // Build builds a Markov Chain
 // based on the conversations
-// func (c *Chain) Build(convs []models.Conversation) {
 func (c *Chain) Build(convs []models.Conversation) {
 	// p := make(Prefix, c.prefixLen)
 	for _, conv := range convs {
@@ -44,12 +49,28 @@ func (c *Chain) Build(convs []models.Conversation) {
 
 		p := make(Prefix, c.prefixLen)
 		for _, mess := range conv.Path {
-			messKey := fmt.Sprintf("%v:%v", mess.Sender, mess.Text)
-			fmt.Printf("%v -> %v\n", p, messKey)
+			messCode := fmt.Sprintf("%v:%v", mess.Sender, mess.Text)
+			fmt.Printf("%v -> %v\n", p, messCode)
 
-			p.shift(messKey)
-
-			// c.chain[key] = append(c.chain[key])
+			key := p.string()
+			c.chain[key] = append(c.chain[key], messCode)
+			p.shift(messCode)
 		}
 	}
+}
+
+// Generate returns a string of at most n words generated from Chain.
+func (c *Chain) Generate(n int) string {
+	p := make(Prefix, c.prefixLen)
+	var words []string
+	for i := 0; i < n; i++ {
+		choices := c.chain[p.string()]
+		if len(choices) == 0 {
+			break
+		}
+		next := choices[rand.Intn(len(choices))]
+		words = append(words, next)
+		p.shift(next)
+	}
+	return strings.Join(words, " ")
 }
