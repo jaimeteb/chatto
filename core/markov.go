@@ -8,46 +8,37 @@ import (
 	"github.com/jaimeteb/chatto/models"
 )
 
-// MarkovDecision takes a decision
-// based on a Markov Chain.
-func MarkovDecision(bot *models.Bot) {
-	return
-}
-
-// Chain contains a map ("chain") of prefixes to a list of suffixes.
-// A prefix is a slice of prefixLen messages.
-// A suffix is a message.
-// A prefix can have multiple suffixes.
+// Chain maps states as strings to messages as strings.
+// The strings are formed with the name of the message sender ("usr" or "bot").
 type Chain struct {
 	chain     map[string][]string
-	prefixLen int
+	stateSize int
 }
 
-// NewChain returns a new Chain with prefixes of prefixLen words.
-func NewChain(prefixLen int) *Chain {
-	return &Chain{make(map[string][]string), prefixLen}
+// NewChain returns a new Chain with states of size stateSize.
+func NewChain(stateSize int) *Chain {
+	return &Chain{make(map[string][]string), stateSize}
 }
 
-// Prefix is a Markov chain prefix of one or more messages.
-type Prefix []string
+// State is a Markov chain state of one or more messages.
+type State []string
 
-func (p Prefix) shift(token string) {
+func (p State) shift(token string) {
 	copy(p, p[1:])
 	p[len(p)-1] = token
 }
 
-func (p Prefix) string() string {
+func (p State) string() string {
 	return strings.Join(p, " ")
 }
 
-// Build builds a Markov Chain
-// based on the conversations
+// Build builds a Markov Chain based on the conversations
 func (c *Chain) Build(convs []models.Conversation) {
-	// p := make(Prefix, c.prefixLen)
+	// p := make(State, c.stateSize)
 	for _, conv := range convs {
 		fmt.Printf("## %v\n", conv.Name)
 
-		p := make(Prefix, c.prefixLen)
+		p := make(State, c.stateSize)
 		for _, mess := range conv.Path {
 			messCode := fmt.Sprintf("%v:%v", mess.Sender, mess.Text)
 			fmt.Printf("%v -> %v\n", p, messCode)
@@ -59,9 +50,9 @@ func (c *Chain) Build(convs []models.Conversation) {
 	}
 }
 
-// Generate returns a string of at most n words generated from Chain.
+// Generate returns up to n messages from a chain.
 func (c *Chain) Generate(n int) string {
-	p := make(Prefix, c.prefixLen)
+	p := make(State, c.stateSize)
 	var words []string
 	for i := 0; i < n; i++ {
 		choices := c.chain[p.string()]
@@ -74,3 +65,14 @@ func (c *Chain) Generate(n int) string {
 	}
 	return strings.Join(words, " ")
 }
+
+// Predict takes the current state of the conversation to predict the next step.
+// func (c *Chain) Predict(curr *[]models.Message) string {
+// 	for _, mess := range *curr {
+// 		messCode := fmt.Sprintf("%v:%v", mess.Sender, mess.Text)
+
+// 		key := p.string()
+// 		c.chain[key] = append(c.chain[key], messCode)
+// 		p.shift(messCode)
+// 	}
+// }

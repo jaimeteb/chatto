@@ -26,6 +26,7 @@ func LoadYAML() models.Bot {
 		log.Fatalf(err.Error())
 	}
 
+	bot.History.MaxHist = bot.MaxHist
 	return bot
 }
 

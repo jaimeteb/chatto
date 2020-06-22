@@ -1,3 +1,4 @@
 name: "botto"
 id: 0
-prefixLen: 2
+stateSize: 2
+maxHist: 8

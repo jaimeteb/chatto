@@ -5,17 +5,14 @@ type Bot struct {
 	ID        int
 	Name      string
 	PrefixLen int
+	MaxHist   int
 	History   History
 }
 
-// func reslice(s []int, index int) []int {
-// 	return append(s[:index], s[index+1:]...)
-// }
-
-// Answer :
-// Process input from user and produce output
+// Answer processes input from user and produce output
 func (b Bot) Answer(mess Message) Message {
-	b.History.Messages[mess.Sender] = append(b.History.Messages[mess.Sender], mess)
+	id := mess.Sender
+	b.History.Append(id, mess)
 
 	var resp Message
 	switch b.History.Messages[mess.Sender][len(b.History.Messages[mess.Sender])-1].Text {
@@ -30,7 +27,7 @@ func (b Bot) Answer(mess Message) Message {
 		resp.Text = "..."
 	}
 
-	b.History.Messages[mess.Sender] = append(b.History.Messages[mess.Sender], resp)
-	b.History.Print(mess.Sender)
+	b.History.Append(id, resp)
+	b.History.Print(id)
 	return resp
 }
