@@ -1,10 +1,10 @@
-package models
+package pkg
 
 // Bot struct
 type Bot struct {
 	ID        int
 	Name      string
-	PrefixLen int
+	StateSize int
 	MaxHist   int
 	History   History
 }

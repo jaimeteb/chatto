@@ -1,11 +1,9 @@
-package core
+package pkg
 
 import (
 	"fmt"
 	"math/rand"
 	"strings"
-
-	"github.com/jaimeteb/chatto/models"
 )
 
 // Chain maps states as strings to messages as strings.
@@ -33,14 +31,14 @@ func (p State) string() string {
 }
 
 // Build builds a Markov Chain based on the conversations
-func (c *Chain) Build(convs []models.Conversation) {
+func (c *Chain) Build(convs []Conversation) {
 	// p := make(State, c.stateSize)
 	for _, conv := range convs {
 		fmt.Printf("## %v\n", conv.Name)
 
 		p := make(State, c.stateSize)
 		for _, mess := range conv.Path {
-			messCode := fmt.Sprintf("%v:%v", mess.Sender, mess.Text)
+			messCode := mess.Text // messCode := fmt.Sprintf("%v:%v", mess.Sender, mess.Text)
 			fmt.Printf("%v -> %v\n", p, messCode)
 
 			key := p.string()
@@ -67,12 +65,17 @@ func (c *Chain) Generate(n int) string {
 }
 
 // Predict takes the current state of the conversation to predict the next step.
-// func (c *Chain) Predict(curr *[]models.Message) string {
-// 	for _, mess := range *curr {
-// 		messCode := fmt.Sprintf("%v:%v", mess.Sender, mess.Text)
+func (c *Chain) Predict(curr *[]Message) {
+	p := make(State, c.stateSize)
 
-// 		key := p.string()
-// 		c.chain[key] = append(c.chain[key], messCode)
-// 		p.shift(messCode)
-// 	}
-// }
+	l := len(*curr)
+	states := (*curr)[l-c.stateSize : l]
+
+	for _, mess := range states {
+		messCode := mess.Text
+
+		p.shift(messCode)
+	}
+
+	fmt.Println("prefix ", p)
+}

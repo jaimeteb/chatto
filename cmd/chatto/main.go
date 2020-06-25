@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/jaimeteb/chatto/core"
+	"github.com/jaimeteb/chatto/pkg"
 	"github.com/jaimeteb/chatto/server"
 )
 
 func main() {
-	bot := core.LoadYAML()
-	// convs := core.LoadConv()
+	bot := pkg.LoadYAML()
 
-	// chain := core.NewChain(bot.PrefixLen)
-	// chain.Build(convs)
+	convs := pkg.LoadConv()
+
+	chain := pkg.NewChain(bot.StateSize)
+	chain.Build(convs)
 
 	// gen := chain.Generate(5)
 	// fmt.Println(gen)

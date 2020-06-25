@@ -1,4 +1,4 @@
-package models
+package pkg
 
 // Message struct
 type Message struct {

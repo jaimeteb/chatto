@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jaimeteb/chatto/models"
+	"github.com/jaimeteb/chatto/pkg"
 )
 
 func hello(w http.ResponseWriter, req *http.Request) {
@@ -14,12 +14,12 @@ func hello(w http.ResponseWriter, req *http.Request) {
 }
 
 type botHandler struct {
-	Bot *models.Bot
+	Bot *pkg.Bot
 }
 
 func (bh *botHandler) handler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var mess models.Message
+	var mess pkg.Message
 
 	err := decoder.Decode(&mess)
 	if err != nil {
@@ -41,8 +41,8 @@ func (bh *botHandler) handler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeBot function
-func ServeBot(bot *models.Bot) {
-	bot.History.Messages = make(map[string][]models.Message)
+func ServeBot(bot *pkg.Bot) {
+	bot.History.Messages = make(map[string][]pkg.Message)
 	myBot := &botHandler{Bot: bot}
 
 	http.HandleFunc("/hello", hello)

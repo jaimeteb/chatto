@@ -1,16 +1,15 @@
-package core
+package pkg
 
 import (
 	"io/ioutil"
 	"log"
 	"strings"
 
-	"github.com/jaimeteb/chatto/models"
 	"github.com/spf13/viper"
 )
 
 // LoadYAML function
-func LoadYAML() models.Bot {
+func LoadYAML() Bot {
 	config := viper.New()
 	config.AddConfigPath("./config")
 	config.AddConfigPath(".")
@@ -20,7 +19,7 @@ func LoadYAML() models.Bot {
 		log.Fatalf("Fatal error config file: %s \n", err)
 	}
 
-	var bot models.Bot
+	var bot Bot
 	err = config.Unmarshal(&bot)
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -31,7 +30,7 @@ func LoadYAML() models.Bot {
 }
 
 // LoadConv loads conversations.md as Conversations
-func LoadConv() (convs []models.Conversation) {
+func LoadConv() (convs []Conversation) {
 	content, err := ioutil.ReadFile("./config/conversations.md")
 	if err != nil {
 		panic(err)
@@ -44,22 +43,22 @@ func LoadConv() (convs []models.Conversation) {
 		switch {
 		case strings.HasPrefix(trimmed, "## "):
 			trimmed = strings.TrimPrefix(trimmed, "## ")
-			newConv := models.Conversation{Name: trimmed}
+			newConv := Conversation{Name: trimmed}
 			convs = append(convs, newConv)
 		case strings.HasPrefix(trimmed, "* "):
 			trimmed = strings.TrimPrefix(trimmed, "* ")
-			mewMess := models.Message{
+			newMess := Message{
 				Sender: "usr",
 				Text:   trimmed,
 			}
-			convs[len(convs)-1].Path = append(convs[len(convs)-1].Path, mewMess)
+			convs[len(convs)-1].Path = append(convs[len(convs)-1].Path, newMess)
 		case strings.HasPrefix(trimmed, "- "):
 			trimmed = strings.TrimPrefix(trimmed, "- ")
-			mewMess := models.Message{
+			newMess := Message{
 				Sender: "bot",
 				Text:   trimmed,
 			}
-			convs[len(convs)-1].Path = append(convs[len(convs)-1].Path, mewMess)
+			convs[len(convs)-1].Path = append(convs[len(convs)-1].Path, newMess)
 		}
 	}
 

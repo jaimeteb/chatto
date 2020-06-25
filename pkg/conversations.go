@@ -1,6 +1,12 @@
-package models
+package pkg
 
 import "fmt"
+
+// Conversation struct
+type Conversation struct {
+	Name string
+	Path []Message
+}
 
 // History struct
 type History struct {
