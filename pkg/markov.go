@@ -64,18 +64,27 @@ func (c *Chain) Generate(n int) string {
 	return strings.Join(words, " ")
 }
 
+func fillState(s []Message, n int) []Message {
+	l := len(s)
+	if l < n {
+		return append(make([]Message, n-l), s...)
+	}
+	return s[l-n : l]
+}
+
 // Predict takes the current state of the conversation to predict the next step.
-func (c *Chain) Predict(curr *[]Message) {
+func (c *Chain) Predict(curr []Message) string {
 	p := make(State, c.stateSize)
 
-	l := len(*curr)
-	states := (*curr)[l-c.stateSize : l]
-
+	states := fillState(curr, c.stateSize)
 	for _, mess := range states {
 		messCode := mess.Text
-
 		p.shift(messCode)
 	}
 
-	fmt.Println("prefix ", p)
+	choices := c.chain[p.string()]
+	pred := choices[rand.Intn(len(choices))]
+
+	// fmt.Println("prediction: ", pred)
+	return pred
 }

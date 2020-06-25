@@ -12,6 +12,7 @@ func main() {
 
 	chain := pkg.NewChain(bot.StateSize)
 	chain.Build(convs)
+	bot.Chain = *chain
 
 	// gen := chain.Generate(5)
 	// fmt.Println(gen)
