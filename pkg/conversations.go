@@ -1,32 +1,37 @@
 package pkg
 
-import "fmt"
+import "log"
 
-// Conversation struct
-type Conversation struct {
-	Name string
-	Path []Message
+// Message struct
+type Message struct {
+	Sender string
+	Text   string
 }
 
-// History struct
-type History struct {
-	Messages map[string][]Message
-	MaxHist  int
-}
+// History type maps user IDs to their message histories
+type History map[string][]Message
 
-// Print show all history
-func (h *History) Print(id string) {
-	for ix, mess := range h.Messages[id] {
-		fmt.Printf("%v:\t%v\n\t%v\n", ix, mess.Sender, mess.Text)
-	}
-}
+// UserFSM type maps user IDs to their FSMs
+type UserFSM map[string]FSM
 
-// Append adds a new message to the history of id
-func (h *History) Append(id string, mess Message) {
-	if len(h.Messages[id]) >= h.MaxHist {
-		copy(h.Messages[id], h.Messages[id][1:])
-		h.Messages[id][len(h.Messages[id])-1] = mess
+// Answer processes input from user and produce output
+func (u UserFSM) Answer(mess Message) Message {
+	// id := mess.Sender
+
+	log.Println(u)
+
+	if userMachine, ok := u[mess.Sender]; !ok {
+		userMachine := &FSM{State: Initial}
+		userMachine.ExecuteCmd(mess.Text)
 	} else {
-		h.Messages[id] = append(h.Messages[id], mess)
+		userMachine.ExecuteCmd(mess.Text)
 	}
+
+	resp := Message{
+		Sender: "foo",
+		Text:   "bar",
+	}
+
+	// b.History.Print(id)
+	return resp
 }
