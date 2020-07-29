@@ -4,8 +4,8 @@ import "log"
 
 // Message struct
 type Message struct {
-	Sender string
-	Text   string
+	Sender string `json:"sender"`
+	Text   string `json:"text"`
 }
 
 // History type maps user IDs to their message histories
