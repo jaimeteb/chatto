@@ -8,6 +8,7 @@ import (
 
 type botHandler struct {
 	Machines map[string]FSM
+	Domain   Domain
 }
 
 func (bh botHandler) handler(w http.ResponseWriter, r *http.Request) {
@@ -23,12 +24,12 @@ func (bh botHandler) handler(w http.ResponseWriter, r *http.Request) {
 
 	/////////////////////////////////////////////////////////////////////
 	if _, ok := bh.Machines[mess.Sender]; !ok {
-		bh.Machines[mess.Sender] = FSM{State: Initial}
+		bh.Machines[mess.Sender] = FSM{State: 0}
 	}
 
-	x := bh.Machines[mess.Sender]
-	resp := x.ExecuteCmd(mess.Text)
-	bh.Machines[mess.Sender] = x
+	machine := bh.Machines[mess.Sender]
+	resp := machine.ExecuteCmd(mess.Text, &bh.Domain)
+	bh.Machines[mess.Sender] = machine
 
 	ans := Message{Sender: "botto", Text: resp}
 	log.Println(bh.Machines)
@@ -48,9 +49,10 @@ func (bh botHandler) handler(w http.ResponseWriter, r *http.Request) {
 func ServeBot() {
 	// bot.History = make(map[string][]pkg.Message)
 	// myBot := &botHandler{Bot: bot}
+	domain := LoadDomain()
 
 	machines := make(map[string]FSM)
-	bot := botHandler{Machines: machines}
+	bot := botHandler{machines, domain}
 
 	http.HandleFunc("/endpoint", bot.handler)
 	log.Fatal(http.ListenAndServe(":4770", nil))

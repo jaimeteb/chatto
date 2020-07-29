@@ -4,5 +4,5 @@ package pkg
 type Bot struct {
 	Name    string `yaml:"name"`
 	MaxHist int    `yaml:"maxHist"`
-	History History
+	// History History
 }
