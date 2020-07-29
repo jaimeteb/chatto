@@ -11,9 +11,10 @@ import (
 )
 
 type Config struct {
-	States    []string   `yaml:"states"`
-	Commands  []string   `yaml:"commands"`
-	Functions []Function `yaml:"functions"`
+	States    []string          `yaml:"states"`
+	Commands  []string          `yaml:"commands"`
+	Functions []Function        `yaml:"functions"`
+	Defaults  map[string]string `yaml:"defaults"`
 }
 
 type Function struct {
@@ -31,7 +32,7 @@ type Domain struct {
 	StateTable      map[string]int
 	CommandList     []string
 	TransitionTable map[CmdStateTupple]TransitionFunc
-	DefaultMessage  string
+	DefaultMessages map[string]string
 }
 
 type CmdStateTupple struct {
@@ -56,7 +57,7 @@ func (m *FSM) ExecuteCmd(cmd string, dom *Domain) string {
 	tupple := CmdStateTupple{strings.TrimSpace(cmd), m.State}
 	trans := dom.TransitionTable[tupple]
 	if trans == (TransitionFunc{}) {
-		return dom.DefaultMessage
+		return dom.DefaultMessages["unknown"]
 	}
 	m.State = trans.Next
 	return trans.Message
@@ -81,46 +82,29 @@ func LoadConfig() Config {
 
 func main() {
 	config := LoadConfig()
+	var domain Domain
 
 	stateTable := make(map[string]int)
 	for i, state := range config.States {
 		stateTable[state] = i
 	}
 
-	commandList := make([]string, 0)
-	for _, command := range config.Commands {
-		commandList = append(commandList, command)
-	}
-
 	transitionTable := make(map[CmdStateTupple]TransitionFunc)
-	var defaultMessage string
 	for _, function := range config.Functions {
-		if function.Transition != "" {
-			tupple := CmdStateTupple{
-				Cmd:   function.Tuple.Command,
-				State: stateTable[function.Tuple.State],
-			}
-			transitionTable[tupple] = TransitionFunc{
-				stateTable[function.Transition],
-				function.Message,
-			}
-		} else {
-			defaultMessage = function.Message
+		tupple := CmdStateTupple{
+			Cmd:   function.Tuple.Command,
+			State: stateTable[function.Tuple.State],
+		}
+		transitionTable[tupple] = TransitionFunc{
+			stateTable[function.Transition],
+			function.Message,
 		}
 	}
 
-	fmt.Println("Config:")
-	fmt.Println(stateTable)
-	fmt.Println(commandList)
-	fmt.Println(transitionTable)
-	fmt.Println(defaultMessage)
-
-	domain := Domain{
-		StateTable:      stateTable,
-		CommandList:     commandList,
-		TransitionTable: transitionTable,
-		DefaultMessage:  defaultMessage,
-	}
+	domain.StateTable = stateTable
+	domain.CommandList = config.Commands
+	domain.TransitionTable = transitionTable
+	domain.DefaultMessages = config.Defaults
 
 	machine := FSM{State: 0}
 	reader := bufio.NewReader(os.Stdin)

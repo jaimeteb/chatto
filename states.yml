@@ -43,6 +43,6 @@ functions:
     transition: "initial"
     message: "Oh I'm sorry"
 
-  - message: "Unknown command, try again please."
-
-
+defaults:
+  unknown: "Unknown command, try again please."
+  unsure: "Not sure I understood, try again please."
