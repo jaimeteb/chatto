@@ -1,0 +1,48 @@
+states:
+  - "initial"
+  - "ask_mood"
+  - "say_good"
+  - "say_bad"
+  - "say_bye"
+
+commands:
+  - "greet"
+  - "good"
+  - "bad"
+  - "yes"
+  - "no"
+
+functions:
+  - tuple:
+      command: "greet"
+      state: "initial"
+    transition: "ask_mood"
+    message: "Hello! How are you?"
+
+  - tuple:
+      command: "good"
+      state: "ask_mood"
+    transition: "initial"
+    message: "Great! :)"
+
+  - tuple:
+      command: "bad"
+      state: "ask_mood"
+    transition: "say_bad"
+    message: "Oh don't be sad :(\nDid that help?"
+
+  - tuple:
+      command: "yes"
+      state: "say_bad"
+    transition: "initial"
+    message: "I'm glad! :)"
+
+  - tuple:
+      command: "no"
+      state: "say_bad"
+    transition: "initial"
+    message: "Oh I'm sorry"
+
+  - message: "Unknown command, try again please."
+
+
