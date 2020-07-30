@@ -1,8 +1,6 @@
 package pkg
 
 import (
-	"strings"
-
 	"github.com/spf13/viper"
 )
 
@@ -56,9 +54,10 @@ type FSM struct {
 }
 
 // ExecuteCmd executes a command in FSM
-func (m *FSM) ExecuteCmd(cmd string, dom *Domain) string {
-	// get function from transition table
-	tupple := CmdStateTupple{strings.TrimSpace(cmd), m.State}
+func (m *FSM) ExecuteCmd(cmd string, dom *Domain, clf *Classifier) string {
+	command, _ := clf.Predict(cmd) // Predict command from text using classifier
+
+	tupple := CmdStateTupple{command, m.State}
 	trans := dom.TransitionTable[tupple]
 	if trans == (TransitionFunc{}) {
 		return dom.DefaultMessages["unknown"]
@@ -72,6 +71,7 @@ func LoadConfig() Config {
 	config := viper.New()
 	config.SetConfigName("states")
 	config.AddConfigPath(".")
+	config.AddConfigPath("config")
 
 	if err := config.ReadInConfig(); err != nil {
 		panic(err)
