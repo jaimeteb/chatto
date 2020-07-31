@@ -19,7 +19,7 @@ func (b Bot) handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(mess.Sender, mess.Text)
+	// log.Println(mess.Sender, mess.Text)
 	resp := b.Answer(mess)
 	ans := Message{Sender: "botto", Text: resp}
 

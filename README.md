@@ -4,6 +4,10 @@
 ---
 # chatto
 
+<p align="center">
+<img src="https://user-images.githubusercontent.com/17936011/89082867-e3c0d300-d354-11ea-9def-008c403a4497.png" alt="botto" width="150"/>
+</p>
+
 Simple chatbot framework written in Go, with configurations in YAML. The aim of this project is to create very simple text-based chatbots using a few configuration files. 
 
 The inspiration for this project came from [Flottbot](https://github.com/target/flottbot), and my experience using [Rasa](https://github.com/RasaHQ/rasa).
@@ -89,6 +93,10 @@ The bot will respond as such:
     "text": "some answer"
 }
 ```
+
+## CLI
+
+Alternatively, run chatto on a command line interface using ```chatto -cli```.
 
 ## Examples
 
