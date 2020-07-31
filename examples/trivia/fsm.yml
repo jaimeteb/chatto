@@ -1,0 +1,56 @@
+states:
+  - "initial"
+  - "question_1"
+  - "question_2"
+  - "question_3"
+
+commands:
+  - "start"
+  - "1"
+  - "2"
+  - "3"
+
+functions:
+  - tuple:
+      command: "start"
+      state: "initial"
+    transition: "question_1"
+    message: "Welcome to the trivia!\n\
+      Question 1:\n\
+      How many squares are there on a chessboard?\n\
+      1. 48\n\
+      2. 64\n\
+      3. 100"
+
+  - tuple:
+      command: "2"
+      state: "question_1"
+    transition: "question_2"
+    message: "Good!\n\
+      Question 2:\n\
+      What is the capital of the state of Utah?\n\
+      1. Salt Lake City\n\
+      2. Jefferson City\n\
+      3. Cheyenne"
+
+  - tuple:
+      command: "1"
+      state: "question_2"
+    transition: "question_3"
+    message: "Nice!\n\
+      Question 3:\n\
+      Who painted Starry Night?\n\
+      1. Pablo Picasso\n\
+      2. Claude Monet\n\
+      3. Vincent Van Gogh"
+
+  - tuple:
+      command: "3"
+      state: "question_3"
+    transition: "initial"
+    message: "Awesome!\n\
+      You did great! Type *start* to begin again"
+
+defaults:
+  unknown: "Wrong answer, try again please."
+  unsure: "Not sure I understood, try again please."

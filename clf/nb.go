@@ -10,7 +10,7 @@ import (
 // Load loads classification configuration from yaml
 func Load() Classification {
 	config := viper.New()
-	config.SetConfigName("classification")
+	config.SetConfigName("clf")
 	config.AddConfigPath(".")
 	config.AddConfigPath("config")
 

@@ -7,7 +7,7 @@ import (
 // Load loads configuration from yaml
 func Load() Config {
 	config := viper.New()
-	config.SetConfigName("states")
+	config.SetConfigName("fsm")
 	config.AddConfigPath(".")
 	config.AddConfigPath("config")
 
