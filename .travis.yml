@@ -1,7 +1,7 @@
 language: go
 
 script:
- - go test ./bot ./fsm ./clf -cover
+ - go test ./bot ./fsm ./clf -cover -coverprofile=coverage.txt
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
