@@ -1,7 +1,9 @@
 package main
 
-import "github.com/jaimeteb/chatto/pkg"
+import (
+	"github.com/jaimeteb/chatto/bot"
+)
 
 func main() {
-	pkg.ServeBot()
+	bot.ServeBot()
 }
