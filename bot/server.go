@@ -41,6 +41,9 @@ func ServeBot(path *string) {
 	machines := make(map[string]*fsm.FSM)
 	bot := Bot{machines, domain, classifier}
 
+	log.Println("\n" + LOGO)
+	log.Println("Server started")
+
 	http.HandleFunc("/endpoint", bot.handler)
 	log.Fatal(http.ListenAndServe(":4770", nil))
 }
