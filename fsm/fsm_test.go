@@ -59,7 +59,8 @@ func TestFSM(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	domain := Create()
+	here := "."
+	domain := Create(&here)
 	commandList := []string{"turn_on", "turn_off"}
 	if !testEq(domain.CommandList, commandList) {
 		t.Errorf("domain.CommandList is incorrect, got: %v, want: %v.", domain.CommandList, commandList)

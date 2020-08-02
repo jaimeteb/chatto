@@ -5,11 +5,10 @@ import (
 )
 
 // Load loads configuration from yaml
-func Load() Config {
+func Load(path *string) Config {
 	config := viper.New()
 	config.SetConfigName("fsm")
-	config.AddConfigPath(".")
-	config.AddConfigPath("config")
+	config.AddConfigPath(*path)
 
 	if err := config.ReadInConfig(); err != nil {
 		panic(err)
@@ -24,8 +23,8 @@ func Load() Config {
 }
 
 // Create loads a domain struct from loaded configuration
-func Create() Domain {
-	config := Load()
+func Create(path *string) Domain {
+	config := Load(path)
 	var domain Domain
 
 	stateTable := make(map[string]int)

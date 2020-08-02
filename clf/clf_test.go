@@ -51,7 +51,8 @@ func TestClf(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	classif := Create()
+	here := "."
+	classif := Create(&here)
 	classes := []bayesian.Class{"turn_on", "turn_off"}
 	if !testEq(classes, classif.Classes) {
 		t.Errorf("classes is incorrect, got: %v, want: %v.", classes, classif.Classes)

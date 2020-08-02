@@ -8,11 +8,10 @@ import (
 )
 
 // Load loads classification configuration from yaml
-func Load() Classification {
+func Load(path *string) Classification {
 	config := viper.New()
 	config.SetConfigName("clf")
-	config.AddConfigPath(".")
-	config.AddConfigPath("config")
+	config.AddConfigPath(*path)
 
 	if err := config.ReadInConfig(); err != nil {
 		panic(err)
@@ -27,8 +26,8 @@ func Load() Classification {
 }
 
 // Create returns a trained Classifier
-func Create() Classifier {
-	classification := Load()
+func Create(path *string) Classifier {
+	classification := Load(path)
 
 	// classes := make([]bayesian.Class, 0)
 	var classes []bayesian.Class

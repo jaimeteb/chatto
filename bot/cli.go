@@ -10,9 +10,9 @@ import (
 )
 
 // CLI runs a bot in a command line interface
-func CLI() {
-	domain := fsm.Create()
-	classifier := clf.Create()
+func CLI(path *string) {
+	domain := fsm.Create(path)
+	classifier := clf.Create(path)
 	machines := make(map[string]*fsm.FSM)
 	machines["cli"] = &fsm.FSM{State: 0}
 	bot := Bot{machines, domain, classifier}

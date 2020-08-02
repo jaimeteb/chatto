@@ -34,9 +34,9 @@ func (b Bot) handler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeBot function
-func ServeBot() {
-	domain := fsm.Create()
-	classifier := clf.Create()
+func ServeBot(path *string) {
+	domain := fsm.Create(path)
+	classifier := clf.Create(path)
 
 	machines := make(map[string]*fsm.FSM)
 	bot := Bot{machines, domain, classifier}
