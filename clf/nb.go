@@ -2,7 +2,6 @@ package clf
 
 import (
 	"log"
-	"strings"
 
 	"github.com/navossoc/bayesian"
 	"github.com/spf13/viper"
@@ -40,8 +39,7 @@ func Create(path *string) Classifier {
 
 	for _, cls := range classification.Classification {
 		for _, txt := range cls.Texts {
-			tokens := strings.Split(txt, " ")
-			classifier.Learn(tokens, bayesian.Class(cls.Command))
+			classifier.Learn(Clean(&txt), bayesian.Class(cls.Command))
 		}
 	}
 

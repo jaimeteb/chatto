@@ -1,8 +1,6 @@
 package clf
 
 import (
-	"strings"
-
 	"github.com/navossoc/bayesian"
 )
 
@@ -25,7 +23,7 @@ type Classifier struct {
 
 // Predict predict a class for a given text
 func (c *Classifier) Predict(text string) (string, float64) {
-	probs, likely, _ := c.Model.ProbScores(strings.Split(text, " "))
+	probs, likely, _ := c.Model.ProbScores(Clean(&text))
 	class := string(c.Classes[likely])
 	prob := probs[likely]
 	// log.Printf("CLF\t| \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)

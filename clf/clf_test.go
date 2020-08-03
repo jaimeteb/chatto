@@ -37,6 +37,22 @@ func testEq(a, b []bayesian.Class) bool {
 	return true
 }
 
+func testEqStr(a, b []string) bool {
+	// If one is nil, the other must also be nil.
+	if (a == nil) != (b == nil) {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func writeDummyFile() error {
 	clfFile := []byte(clfYaml)
 	return ioutil.WriteFile("clf.yml", clfFile, 0644)
@@ -65,5 +81,15 @@ func TestClf(t *testing.T) {
 
 	if err := removeDummyFile(); err != nil {
 		t.Errorf(err.Error())
+	}
+}
+
+func TestPreprocess(t *testing.T) {
+	testString := "fOo BaR"
+	resultString := Clean(&testString)
+	expectedResult := []string{"foo", "bar"}
+
+	if !testEqStr(resultString, expectedResult) {
+		t.Errorf("resultString is incorrect, got: %v, want: %v.", resultString, expectedResult)
 	}
 }
