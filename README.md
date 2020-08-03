@@ -14,7 +14,7 @@ The inspiration for this project came from [Flottbot](https://github.com/target/
 
 ## Installation
 
-Run ```go get -u github.com/jaimeteb/chatto/cmd/chatto```.
+Run ```go get -u github.com/jaimeteb/chatto```.
 
 ## How does it work?
 
