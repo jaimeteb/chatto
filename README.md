@@ -74,7 +74,7 @@ Under **functions** you can list the transitions available for the FSM. The obje
 
 ## HTTP Endpoint
 
-To enable the HTTP endpoint, simply run ```chatto``` on the same directory as your **clf.yml** and **fsm.yml** files. A service will run on port 4770 of your localhost.
+To enable the HTTP endpoint, simply run ```chatto``` on the same directory as your **clf.yml** and **fsm.yml** files, or specify a path to them with the ```--path``` flag. A service will run on port 4770 of your localhost.
 
 Send a *POST* request to */endpoint* with the following body structure:
 
@@ -96,11 +96,11 @@ The bot will respond as such:
 
 ## CLI
 
-Alternatively, run chatto on a command line interface using ```chatto -cli```.
+Alternatively, run chatto on a command line interface using the ```--cli``` flag.
 
 ## Examples
 
-I have provided some config files unnder *examples*. Navigate to the directory of your desired example and run ```chatto```.
+I have provided some config files unnder *examples*. Run ```chatto``` with the ```--path``` of your desired example to test them out.
 
 1. [**Mood Bot**](/examples/moodbot) - Greet the bot to start the conversation.
 2. [**Engineering Flowchart**](/examples/repair) - Tell the bot you want to repair something.
