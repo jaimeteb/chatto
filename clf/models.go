@@ -27,5 +27,8 @@ func (c *Classifier) Predict(text string) (string, float64) {
 	class := string(c.Classes[likely])
 	prob := probs[likely]
 	// log.Printf("CLF\t| \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)
+	// if prob < 0.75/float64(len(probs)) {
+	// 	return "", -1.0
+	// }
 	return class, prob
 }

@@ -51,6 +51,9 @@ type FSM struct {
 
 // ExecuteCmd executes a command in FSM
 func (m *FSM) ExecuteCmd(cmd string, dom Domain) string {
+	// if cmd == "" {
+	// 	return dom.DefaultMessages["unsure"]
+	// }
 	tupple := CmdStateTupple{cmd, m.State}
 	trans := dom.TransitionTable[tupple]
 	if trans == (TransitionFunc{}) {
