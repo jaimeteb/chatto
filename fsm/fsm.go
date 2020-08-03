@@ -1,6 +1,8 @@
 package fsm
 
 import (
+	"log"
+
 	"github.com/spf13/viper"
 )
 
@@ -48,6 +50,11 @@ func Create(path *string) Domain {
 	domain.CommandList = config.Commands
 	domain.TransitionTable = transitionTable
 	domain.DefaultMessages = config.Defaults
+
+	log.Println("Loaded states:")
+	for state, i := range stateTable {
+		log.Printf("%v\t%v\n", i, state)
+	}
 
 	return domain
 }

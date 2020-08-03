@@ -7,8 +7,12 @@ import (
 )
 
 func main() {
-	// cli := flag.Bool("cli", false, "Run in CLI mode.")
+	cli := flag.Bool("cli", false, "Run in CLI mode.")
 	path := flag.String("path", ".", "Path to YAML files.")
 	flag.Parse()
-	bot.ServeBot(path)
+	if *cli {
+		bot.CLI(path)
+	} else {
+		bot.ServeBot(path)
+	}
 }

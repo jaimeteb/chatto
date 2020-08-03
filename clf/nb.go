@@ -1,6 +1,7 @@
 package clf
 
 import (
+	"log"
 	"strings"
 
 	"github.com/navossoc/bayesian"
@@ -42,6 +43,11 @@ func Create(path *string) Classifier {
 			tokens := strings.Split(txt, " ")
 			classifier.Learn(tokens, bayesian.Class(cls.Command))
 		}
+	}
+
+	log.Println("Loaded commands for classifier:")
+	for i, c := range classes {
+		log.Printf("%v\t%v\n", i, c)
 	}
 
 	return Classifier{*classifier, classes}

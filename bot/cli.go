@@ -3,7 +3,9 @@ package bot
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
@@ -13,11 +15,11 @@ import (
 func CLI(path *string) {
 	domain := fsm.Create(path)
 	classifier := clf.Create(path)
+
 	machines := make(map[string]*fsm.FSM)
-	machines["cli"] = &fsm.FSM{State: 0}
 	bot := Bot{machines, domain, classifier}
 
-	fmt.Println("CLI started")
+	log.Println("CLI started")
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -28,7 +30,7 @@ func CLI(path *string) {
 		}
 
 		fmt.Print("botto:\t| ")
-		resp := bot.Answer(Message{"cli", cmd})
+		resp := bot.Answer(Message{"cli", strings.TrimSuffix(cmd, "\n")})
 		fmt.Println(resp)
 	}
 }
