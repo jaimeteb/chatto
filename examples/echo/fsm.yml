@@ -1,0 +1,35 @@
+states:
+  - "initial"
+  - "ask_name"
+  - "ask_age"
+  - "final"
+
+commands:
+  - "greet"
+  - "say_name"
+  - "say_age"
+
+functions:
+  - tuple:
+      command: "greet"
+      state: "initial"
+    transition: "ask_name"
+    message: "What's your name?"
+
+  - tuple:
+      command: "say_name"
+      state: "ask_name"
+      slot: "name"  # Save the slot
+    transition: "ask_age"
+    message: "How old are you?"
+
+  - tuple:
+      command: "say_age"
+      state: "ask_age"
+      slot: "age" # Save the slot
+    transition: "final"
+    message: "OK."
+
+defaults:
+  unknown: "Unknown command, try again please."
+  unsure: "Not sure I understood, try again please."

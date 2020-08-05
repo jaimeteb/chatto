@@ -35,6 +35,7 @@ func Create(path *string) Domain {
 	}
 
 	transitionTable := make(map[CmdStateTupple]TransitionFunc)
+	slotTable := make(map[CmdStateTupple]string)
 	for _, function := range config.Functions {
 		tupple := CmdStateTupple{
 			Cmd:   function.Tuple.Command,
@@ -44,12 +45,16 @@ func Create(path *string) Domain {
 			stateTable[function.Transition],
 			function.Message,
 		}
+		if function.Tuple.Slot != "" {
+			slotTable[tupple] = function.Tuple.Slot
+		}
 	}
 
 	domain.StateTable = stateTable
 	domain.CommandList = config.Commands
 	domain.TransitionTable = transitionTable
 	domain.DefaultMessages = config.Defaults
+	domain.SlotTable = slotTable
 
 	log.Println("Loaded states:")
 	for state, i := range stateTable {

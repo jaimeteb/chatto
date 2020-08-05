@@ -1,0 +1,34 @@
+classification:
+  - command: "greet"
+    texts:
+      - "hey"
+      - "hello"
+      - "hi"
+      - "hello there"
+      - "good morning"
+      - "good evening"
+      - "moin"
+      - "hey there"
+      - "let's go"
+      - "hey dude"
+      - "goodmorning"
+      - "goodevening"
+      - "good afternoon"
+
+  - command: "say_name"
+    texts:
+      - "I'm Oliver"
+      - "My name is James"
+      - "Andrea"
+      - "it is Mike"
+      - "call me Aaron"
+      - "anna"
+
+  - command: "say_age"
+    texts:
+      - "I'm 26"
+      - "25"
+      - "70 years old"
+      - "19"
+      - "my age is 44"
+      - "50 yo"

@@ -21,7 +21,7 @@ type Bot struct {
 // Answer takes a user input and executes a transition on the FSM if possible
 func (b Bot) Answer(mess Message) string {
 	if _, ok := b.Machines[mess.Sender]; !ok {
-		b.Machines[mess.Sender] = &fsm.FSM{State: 0}
+		b.Machines[mess.Sender] = &fsm.FSM{State: 0, Slots: make(map[string]interface{})}
 	}
 
 	cmd, _ := b.Classifier.Predict(mess.Text) // Predict command from text using classifier
