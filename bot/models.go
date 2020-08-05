@@ -18,6 +18,12 @@ type Bot struct {
 	Classifier clf.Classifier
 }
 
+// Prediction models a classifier prediction and its orignal string
+// type Prediction struct {
+// 	Original  string
+// 	Predicted string
+// }
+
 // Answer takes a user input and executes a transition on the FSM if possible
 func (b Bot) Answer(mess Message) string {
 	if _, ok := b.Machines[mess.Sender]; !ok {
@@ -25,7 +31,7 @@ func (b Bot) Answer(mess Message) string {
 	}
 
 	cmd, _ := b.Classifier.Predict(mess.Text) // Predict command from text using classifier
-	return b.Machines[mess.Sender].ExecuteCmd(cmd, b.Domain)
+	return b.Machines[mess.Sender].ExecuteCmd(cmd, mess.Text, b.Domain)
 }
 
 // LOGO for Chatto

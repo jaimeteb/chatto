@@ -60,12 +60,10 @@ type FSM struct {
 // }
 
 // ExecuteCmd executes a command in FSM
-func (m *FSM) ExecuteCmd(cmd string, dom Domain) string {
+func (m *FSM) ExecuteCmd(cmd, org string, dom Domain) string {
 	// if cmd == "" {
 	// 	return dom.DefaultMessages["unsure"]
 	// }
-
-	// cmd := cmder.Original()
 
 	tupple := CmdStateTupple{cmd, m.State}
 	trans := dom.TransitionTable[tupple]
@@ -75,7 +73,7 @@ func (m *FSM) ExecuteCmd(cmd string, dom Domain) string {
 
 	slot := dom.SlotTable[tupple]
 	if slot != "" {
-		m.Slots[slot] = cmd
+		m.Slots[slot] = org
 	}
 	log.Println(m.Slots)
 
