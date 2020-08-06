@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jaimeteb/chatto/clf"
+	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
@@ -74,8 +75,9 @@ func TestBot(t *testing.T) {
 	here := "."
 	domain := fsm.Create(&here)
 	classifier := clf.Create(&here)
+	extension := ext.Create(&here)
 	machines := make(map[string]*fsm.FSM)
-	bot := Bot{machines, domain, classifier}
+	bot := Bot{machines, domain, classifier, extension}
 
 	resp1 := bot.Answer(Message{"foo", "on"})
 	if resp1 != "Turning on." {

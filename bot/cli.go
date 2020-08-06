@@ -2,24 +2,44 @@ package bot
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
-
-	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/fsm"
+	"time"
 )
 
+const localEndpoint = "http://localhost:4770/endpoint"
+
+// SendAndReceive send a message to localhost endpoint and receives an answer
+func SendAndReceive(mess *Message) *Message {
+	jsonMess, _ := json.Marshal(mess)
+
+	req, err := http.NewRequest("POST", localEndpoint, bytes.NewBuffer(jsonMess))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println(err.Error())
+		return &Message{}
+	}
+	defer resp.Body.Close()
+
+	ans := &Message{}
+	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
+		log.Println(err.Error())
+		return &Message{}
+	}
+	return ans
+}
+
 // CLI runs a bot in a command line interface
-func CLI(path *string) {
-	domain := fsm.Create(path)
-	classifier := clf.Create(path)
-
-	machines := make(map[string]*fsm.FSM)
-	bot := Bot{machines, domain, classifier}
-
-	log.Println("CLI started")
+func CLI() {
+	time.Sleep(time.Second * 10)
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -30,7 +50,9 @@ func CLI(path *string) {
 		}
 
 		fmt.Print("botto:\t| ")
-		resp := bot.Answer(Message{"cli", strings.TrimSuffix(cmd, "\n")})
-		fmt.Println(resp)
+
+		// resp := bot.Answer(Message{"cli", strings.TrimSuffix(cmd, "\n")})
+		respMess := SendAndReceive(&Message{"cli", strings.TrimSuffix(cmd, "\n")})
+		fmt.Println(respMess.Text)
 	}
 }
