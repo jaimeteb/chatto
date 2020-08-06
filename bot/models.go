@@ -2,6 +2,7 @@ package bot
 
 import (
 	"github.com/jaimeteb/chatto/clf"
+	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
@@ -16,6 +17,7 @@ type Bot struct {
 	Machines   map[string]*fsm.FSM
 	Domain     fsm.Domain
 	Classifier clf.Classifier
+	Extension  ext.Extension
 }
 
 // Prediction models a classifier prediction and its orignal string

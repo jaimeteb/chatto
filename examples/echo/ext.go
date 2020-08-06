@@ -2,22 +2,30 @@ package main
 
 import "fmt"
 
-// Extension type
-type Extension string
+// FuncMap maps function names to functions
+type FuncMap map[string]func()
+
+func greetFunc() {
+	fmt.Println("Hello Universe")
+}
+
+func goodbyeFunc() {
+	fmt.Println("Goodbye Universe")
+}
+
+// Echo is exported
+var Echo = FuncMap{
+	"greet":   greetFunc,
+	"goodbye": goodbyeFunc,
+}
 
 // Run executes an action
-func (e Extension) Run(action string) {
-	switch action {
-	case "greet":
-		fmt.Println("Hello Universe")
-	case "goodbye":
-		fmt.Println("Goodbye Universe")
-	default:
+func (fm FuncMap) Run(action string) {
+	if _, ok := fm[action]; ok {
+		fm[action]()
+	} else {
 		fmt.Println("...")
 	}
 }
 
-// Echo is exported
-var Echo Extension
-
-// package echo
+func main() {}
