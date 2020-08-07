@@ -5,11 +5,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"plugin"
+
+	"github.com/jaimeteb/chatto/fsm"
 )
 
 // Extension interface
 type Extension interface {
-	Run(string)
+	GetFunc(string) func(*fsm.FSM)
 }
 
 // BuildPlugin builds the extension code as a plugin
@@ -47,7 +49,7 @@ func Create(path *string) Extension {
 		return nil
 	}
 
-	echo, err := plug.Lookup("Echo")
+	echo, err := plug.Lookup("Ext")
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -59,6 +61,13 @@ func Create(path *string) Extension {
 		log.Println("unexpected type from module symbol")
 		return nil
 	}
+
+	// greetFunc := extension.GetFunc("greet")
+	// greetFunc(&fsm.FSM{})
+	// goodbyeFunc := extension.GetFunc("goodbye")
+	// goodbyeFunc(&fsm.FSM{})
+	// notaFunc := extension.GetFunc("nota")
+	// notaFunc(&fsm.FSM{})
 
 	return extension
 }

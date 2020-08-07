@@ -28,7 +28,7 @@ functions:
       state: "ask_age"
       slot: "age" # Save the slot
     transition: "final"
-    message: "OK."
+    message: "ext_name_age"
 
 defaults:
   unknown: "Unknown command, try again please."
