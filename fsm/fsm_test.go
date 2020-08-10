@@ -67,12 +67,12 @@ func TestFSM(t *testing.T) {
 	}
 
 	machine := FSM{State: 0}
-	resp1 := machine.ExecuteCmd("turn_on", "turn_on", domain)
+	resp1 := machine.ExecuteCmd("turn_on", "turn_on", domain, *new(Extension))
 	if resp1 != "Turning on." {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp1, "Turning on.")
 	}
 
-	resp2 := machine.ExecuteCmd("turn_on", "turn_on", domain)
+	resp2 := machine.ExecuteCmd("turn_on", "turn_on", domain, *new(Extension))
 	if resp2 != "Can't do that." {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Can't do that.")
 	}

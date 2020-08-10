@@ -2,7 +2,6 @@ package bot
 
 import (
 	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
@@ -17,7 +16,7 @@ type Bot struct {
 	Machines   map[string]*fsm.FSM
 	Domain     fsm.Domain
 	Classifier clf.Classifier
-	Extension  ext.Extension
+	Extension  fsm.Extension
 }
 
 // Prediction models a classifier prediction and its orignal string
@@ -33,7 +32,7 @@ func (b Bot) Answer(mess Message) string {
 	}
 
 	cmd, _ := b.Classifier.Predict(mess.Text) // Predict command from text using classifier
-	return b.Machines[mess.Sender].ExecuteCmd(cmd, mess.Text, b.Domain)
+	return b.Machines[mess.Sender].ExecuteCmd(cmd, mess.Text, b.Domain, b.Extension)
 }
 
 // LOGO for Chatto

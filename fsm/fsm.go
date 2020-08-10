@@ -1,7 +1,9 @@
 package fsm
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -64,7 +66,7 @@ type FSM struct {
 // }
 
 // ExecuteCmd executes a command in FSM
-func (m *FSM) ExecuteCmd(cmd, org string, dom Domain) string {
+func (m *FSM) ExecuteCmd(cmd, org string, dom Domain, ext Extension) string {
 	// if cmd == "" {
 	// 	return dom.DefaultMessages["unsure"]
 	// }
@@ -80,6 +82,11 @@ func (m *FSM) ExecuteCmd(cmd, org string, dom Domain) string {
 		m.Slots[slot] = org
 	}
 	log.Println(m.Slots)
+
+	if strings.HasPrefix(trans.Message, "ext_") {
+		extFunc := ext.GetFunc(trans.Message)
+		trans.Message = fmt.Sprintf("%v", extFunc(m))
+	}
 
 	m.State = trans.Next
 	return trans.Message

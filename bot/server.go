@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
@@ -38,7 +37,8 @@ func (b Bot) handler(w http.ResponseWriter, r *http.Request) {
 func ServeBot(path *string) {
 	domain := fsm.Create(path)
 	classifier := clf.Create(path)
-	extension := ext.Create(path)
+
+	extension := fsm.LoadExtension(path)
 
 	machines := make(map[string]*fsm.FSM)
 	bot := Bot{machines, domain, classifier, extension}

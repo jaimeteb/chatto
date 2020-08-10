@@ -1,17 +1,15 @@
-package ext
+package fsm
 
 import (
 	"log"
 	"os/exec"
 	"path/filepath"
 	"plugin"
-
-	"github.com/jaimeteb/chatto/fsm"
 )
 
 // Extension interface
 type Extension interface {
-	GetFunc(string) func(*fsm.FSM)
+	GetFunc(string) func(*FSM) interface{}
 }
 
 // BuildPlugin builds the extension code as a plugin
@@ -36,8 +34,8 @@ func BuildPlugin(path *string) error {
 	return nil
 }
 
-// Create creates an extension
-func Create(path *string) Extension {
+// LoadExtension creates an extension
+func LoadExtension(path *string) Extension {
 	if err := BuildPlugin(path); err != nil {
 		log.Println(err)
 		return nil
@@ -63,11 +61,11 @@ func Create(path *string) Extension {
 	}
 
 	// greetFunc := extension.GetFunc("greet")
-	// greetFunc(&fsm.FSM{})
+	// greetFunc(&FSM{})
 	// goodbyeFunc := extension.GetFunc("goodbye")
-	// goodbyeFunc(&fsm.FSM{})
+	// goodbyeFunc(&FSM{})
 	// notaFunc := extension.GetFunc("nota")
-	// notaFunc(&fsm.FSM{})
+	// notaFunc(&FSM{})
 
 	return extension
 }
