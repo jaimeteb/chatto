@@ -40,4 +40,13 @@ func (fm FuncMap) GetFunc(action string) func(*fsm.FSM) interface{} {
 	return noFunc
 }
 
+// GetAllFuncs retreives all functions in function map
+func (fm FuncMap) GetAllFuncs() []string {
+	allFuncs := make([]string, 0)
+	for funcName := range fm {
+		allFuncs = append(allFuncs, funcName)
+	}
+	return allFuncs
+}
+
 func main() {}

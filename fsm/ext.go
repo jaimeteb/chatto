@@ -10,6 +10,7 @@ import (
 // Extension interface
 type Extension interface {
 	GetFunc(string) func(*FSM) interface{}
+	GetAllFuncs() []string
 }
 
 // BuildPlugin builds the extension code as a plugin
@@ -36,36 +37,36 @@ func BuildPlugin(path *string) error {
 
 // LoadExtension creates an extension
 func LoadExtension(path *string) Extension {
-	if err := BuildPlugin(path); err != nil {
-		log.Println(err)
+	loadExtErr := func(err error) Extension {
+		log.Println("Error while loading extensions: ", err.Error())
+		log.Println("Using bot without extensions.")
 		return nil
+	}
+
+	if err := BuildPlugin(path); err != nil {
+		return loadExtErr(err)
 	}
 
 	plug, err := plugin.Open(filepath.Join(*path, "ext.so"))
 	if err != nil {
-		log.Println(err)
-		return nil
+		return loadExtErr(err)
 	}
 
 	echo, err := plug.Lookup("Ext")
 	if err != nil {
-		log.Println(err)
-		return nil
+		return loadExtErr(err)
 	}
 
 	var extension Extension
 	extension, ok := echo.(Extension)
 	if !ok {
-		log.Println("unexpected type from module symbol")
-		return nil
+		return loadExtErr(err)
 	}
 
-	// greetFunc := extension.GetFunc("greet")
-	// greetFunc(&FSM{})
-	// goodbyeFunc := extension.GetFunc("goodbye")
-	// goodbyeFunc(&FSM{})
-	// notaFunc := extension.GetFunc("nota")
-	// notaFunc(&FSM{})
+	log.Println("Loaded extensions for FSM:")
+	for i, f := range extension.GetAllFuncs() {
+		log.Printf("%v\t%v\n", i, f)
+	}
 
 	return extension
 }
