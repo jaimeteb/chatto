@@ -42,8 +42,8 @@ func BuildPlugin(path *string) error {
 		"build",
 		"-buildmode=plugin",
 		"-o",
-		filepath.Join(*path, "ext.so"),
-		filepath.Join(*path, "ext.go"),
+		filepath.Join(*path, "ext/ext.so"),
+		filepath.Join(*path, "ext/ext.go"),
 	}
 
 	cmd := exec.Command(buildGo, buildArgs...)
@@ -68,7 +68,7 @@ func LoadExtension(path *string) Extension {
 		return loadExtErr(err)
 	}
 
-	plug, err := plugin.Open(filepath.Join(*path, "ext.so"))
+	plug, err := plugin.Open(filepath.Join(*path, "ext/ext.so"))
 	if err != nil {
 		return loadExtErr(err)
 	}
