@@ -13,6 +13,28 @@ type Extension interface {
 	GetAllFuncs() []string
 }
 
+// FuncMap maps function names to functions
+type FuncMap map[string]func(*FSM) interface{}
+
+// GetFunc gets a function from the function map
+func (fm FuncMap) GetFunc(action string) func(*FSM) interface{} {
+	if _, ok := fm[action]; ok {
+		return fm[action]
+	}
+	return func(*FSM) interface{} {
+		return nil
+	}
+}
+
+// GetAllFuncs retreives all functions in function map
+func (fm FuncMap) GetAllFuncs() []string {
+	allFuncs := make([]string, 0)
+	for funcName := range fm {
+		allFuncs = append(allFuncs, funcName)
+	}
+	return allFuncs
+}
+
 // BuildPlugin builds the extension code as a plugin
 func BuildPlugin(path *string) error {
 	buildGo := "go"
@@ -25,13 +47,12 @@ func BuildPlugin(path *string) error {
 	}
 
 	cmd := exec.Command(buildGo, buildArgs...)
-	stdout, err := cmd.Output()
+	_, err := cmd.Output()
 
 	if err != nil {
 		return err
 	}
 
-	log.Println(string(stdout))
 	return nil
 }
 
