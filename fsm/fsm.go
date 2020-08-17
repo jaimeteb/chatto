@@ -18,16 +18,22 @@ type Config struct {
 
 // Function models a function in yaml
 type Function struct {
-	Tuple      Tuple  `yaml:"tuple"`
-	Transition string `yaml:"transition"`
-	Message    string `yaml:"message"`
+	Transition Transition `yaml:"transition"`
+	Command    string     `yaml:"command"`
+	Slot       Slot       `yaml:"slot"`
+	Message    string     `yaml:"message"`
 }
 
-// Tuple models a command state tuple in yaml
-type Tuple struct {
-	Command string `yaml:"command"`
-	State   string `yaml:"state"`
-	Slot    string `yaml:"slot"`
+// Transition models a state transition
+type Transition struct {
+	From string `yaml:"from"`
+	Into string `yaml:"into"`
+}
+
+// Slot models a slot configuration
+type Slot struct {
+	Name string `yaml:"name"`
+	Mode string `yaml:"mode"`
 }
 
 // Domain models the final configuration of an FSM
@@ -46,11 +52,8 @@ type CmdStateTupple struct {
 }
 
 // TransitionFunc models a transition function
-type TransitionFunc Transition
-
-// Transition models a state transition
-type Transition struct {
-	Next    int
+type TransitionFunc struct {
+	State   int
 	Message string
 }
 
@@ -121,18 +124,18 @@ func Create(path *string) Domain {
 	}
 
 	transitionTable := make(map[CmdStateTupple]TransitionFunc)
-	slotTable := make(map[CmdStateTupple]string)
+	slotTable := make(map[CmdStateTupple]Slot)
 	for _, function := range config.Functions {
 		tupple := CmdStateTupple{
-			Cmd:   function.Tuple.Command,
-			State: stateTable[function.Tuple.State],
+			Cmd:   function.Command,
+			State: stateTable[function.Transition.From],
 		}
 		transitionTable[tupple] = TransitionFunc{
-			stateTable[function.Transition],
+			stateTable[function.Transition.Into],
 			function.Message,
 		}
-		if function.Tuple.Slot != "" {
-			slotTable[tupple] = function.Tuple.Slot
+		if function.Slot != (Slot{}) {
+			slotTable[tupple] = function.Slot
 		}
 	}
 
