@@ -40,22 +40,19 @@ type Slot struct {
 type Domain struct {
 	StateTable      map[string]int
 	CommandList     []string
-	TransitionTable map[CmdStateTupple]TransitionFunc
-	SlotTable       map[CmdStateTupple]string
+	TransitionTable map[CmdStateTuple]TransitionFunc
+	SlotTable       map[CmdStateTuple]Slot
 	DefaultMessages map[string]string
 }
 
-// CmdStateTupple is a tuple of Command and State
-type CmdStateTupple struct {
+// CmdStateTuple is a tuple of Command and State
+type CmdStateTuple struct {
 	Cmd   string
 	State int
 }
 
 // TransitionFunc models a transition function
-type TransitionFunc struct {
-	State   int
-	Message string
-}
+type TransitionFunc func(m *FSM) string
 
 // FSM models a Finite State Machine
 type FSM struct {
@@ -63,36 +60,43 @@ type FSM struct {
 	Slots map[string]interface{}
 }
 
-// type Cmder interface {
-// 	Original() string
-// 	Predicted()
-// }
+// NewTransitionFunc generates a new transition function
+func NewTransitionFunc(s int, r string) TransitionFunc {
+	return func(m *FSM) string {
+		(*m).State = s
+		return r
+	}
+}
 
 // ExecuteCmd executes a command in FSM
-func (m *FSM) ExecuteCmd(cmd, org string, dom Domain, ext Extension) string {
-	// if cmd == "" {
-	// 	return dom.DefaultMessages["unsure"]
-	// }
+func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response string) {
+	//// if cmd == "" {
+	//// 	return dom.DefaultMessages["unsure"]
+	//// }
 
-	tupple := CmdStateTupple{cmd, m.State}
-	trans := dom.TransitionTable[tupple]
-	if trans == (TransitionFunc{}) {
-		return dom.DefaultMessages["unknown"]
-	}
+	tuple := CmdStateTuple{cmd, m.State}
+	trans := dom.TransitionTable[tuple]
 
-	slot := dom.SlotTable[tupple]
-	if slot != "" {
-		m.Slots[slot] = org
+	slot := dom.SlotTable[tuple]
+	if slot.Name != "" {
+		switch slot.Mode {
+		case "whole_text":
+			m.Slots[slot.Name] = txt
+		}
 	}
 	log.Println(m.Slots)
 
-	if strings.HasPrefix(trans.Message, "ext_") {
-		extFunc := ext.GetFunc(trans.Message)
-		trans.Message = fmt.Sprintf("%v", extFunc(m))
+	if trans == nil {
+		response = dom.DefaultMessages["unknown"]
+	} else {
+		response = trans(m)
+		if strings.HasPrefix(response, "ext_") {
+			extFunc := ext.GetFunc(response)
+			response = fmt.Sprintf("%v", extFunc(m))
+		}
 	}
 
-	m.State = trans.Next
-	return trans.Message
+	return
 }
 
 // Load loads configuration from yaml
@@ -123,19 +127,19 @@ func Create(path *string) Domain {
 		stateTable[state] = i
 	}
 
-	transitionTable := make(map[CmdStateTupple]TransitionFunc)
-	slotTable := make(map[CmdStateTupple]Slot)
+	transitionTable := make(map[CmdStateTuple]TransitionFunc)
+	slotTable := make(map[CmdStateTuple]Slot)
 	for _, function := range config.Functions {
-		tupple := CmdStateTupple{
+		tuple := CmdStateTuple{
 			Cmd:   function.Command,
 			State: stateTable[function.Transition.From],
 		}
-		transitionTable[tupple] = TransitionFunc{
+		transitionTable[tuple] = NewTransitionFunc(
 			stateTable[function.Transition.Into],
 			function.Message,
-		}
+		)
 		if function.Slot != (Slot{}) {
-			slotTable[tupple] = function.Slot
+			slotTable[tuple] = function.Slot
 		}
 	}
 
