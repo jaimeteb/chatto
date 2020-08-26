@@ -10,46 +10,46 @@ commands:
   - "no"
 
 functions:
-  - tuple:
-      command: "repair"
-      state: "initial"
-    transition: "does_it_move"
+  - transition:
+      from: "initial"
+      into: "does_it_move"
+    command: "repair"
     message: "Does it move?"
 
-  - tuple:
-      command: "yes"
-      state: "does_it_move"
-    transition: "yes_should_it"
+  - transition:
+      from: "does_it_move"
+      into: "yes_should_it"
+    command: "yes"
     message: "Should it?"
 
-  - tuple:
-      command: "no"
-      state: "does_it_move"
-    transition: "no_should_it"
+  - transition:
+      from: "does_it_move"
+      into: "no_should_it"
+    command: "no"
     message: "Should it?"
 
-  - tuple:
-      command: "yes"
-      state: "yes_should_it"
-    transition: "initial"
+  - transition:
+      from: "yes_should_it"
+      into: "initial"
+    command: "yes"
     message: "No problem."
 
-  - tuple:
-      command: "no"
-      state: "yes_should_it"
-    transition: "initial"
+  - transition:
+      from: "yes_should_it"
+      into: "initial"
+    command: "no"
     message: "Use WD-40."
 
-  - tuple:
-      command: "yes"
-      state: "no_should_it"
-    transition: "initial"
+  - transition:
+      from: "no_should_it"
+      into: "initial"
+    command: "yes"
     message: "Use duct tape."
 
-  - tuple:
-      command: "no"
-      state: "no_should_it"
-    transition: "initial"
+  - transition:
+      from: "no_should_it"
+      into: "initial"
+    command: "no"
     message: "No problem."
 
 

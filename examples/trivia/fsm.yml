@@ -11,10 +11,10 @@ commands:
   - "3"
 
 functions:
-  - tuple:
-      command: "start"
-      state: "initial"
-    transition: "question_1"
+  - transition:
+      from: "initial"
+      into: "question_1"
+    command: "start"
     message: "Welcome to the trivia!\n\
       Question 1:\n\
       How many squares are there on a chessboard?\n\
@@ -22,10 +22,10 @@ functions:
       2. 64\n\
       3. 100"
 
-  - tuple:
-      command: "2"
-      state: "question_1"
-    transition: "question_2"
+  - transition:
+      from: "question_1"
+      into: "question_2"
+    command: "2"
     message: "Good!\n\
       Question 2:\n\
       What is the capital of the state of Utah?\n\
@@ -33,10 +33,10 @@ functions:
       2. Jefferson City\n\
       3. Cheyenne"
 
-  - tuple:
-      command: "1"
-      state: "question_2"
-    transition: "question_3"
+  - transition:
+      from: "question_2"
+      into: "question_3"
+    command: "1"
     message: "Nice!\n\
       Question 3:\n\
       Who painted Starry Night?\n\
@@ -44,10 +44,10 @@ functions:
       2. Claude Monet\n\
       3. Vincent Van Gogh"
 
-  - tuple:
-      command: "3"
-      state: "question_3"
-    transition: "initial"
+  - transition:
+      from: "question_3"
+      into: "initial"
+    command: "3"
     message: "Awesome!\n\
       You did great! Type *start* to begin again"
 
