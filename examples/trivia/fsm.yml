@@ -1,20 +1,18 @@
 states:
-  - "initial"
-  - "question_1"
-  - "question_2"
-  - "question_3"
+  - initial
+  - question_1
+  - question_2
+  - question_3
 
 commands:
-  - "start"
-  - "1"
-  - "2"
-  - "3"
+  - start
+  - select_option
 
 functions:
   - transition:
-      from: "initial"
-      into: "question_1"
-    command: "start"
+      from: initial
+      into: question_1
+    command: start
     message: "Welcome to the trivia!\n\
       Question 1:\n\
       How many squares are there on a chessboard?\n\
@@ -23,33 +21,41 @@ functions:
       3. 100"
 
   - transition:
-      from: "question_1"
-      into: "question_2"
-    command: "2"
+      from: question_1
+      into: question_2
+    command: select_option
     message: "Good!\n\
       Question 2:\n\
       What is the capital of the state of Utah?\n\
       1. Salt Lake City\n\
       2. Jefferson City\n\
       3. Cheyenne"
+    slot:
+      name: answer_1
+      mode: whole_text
 
   - transition:
-      from: "question_2"
-      into: "question_3"
-    command: "1"
+      from: question_2
+      into: question_3
+    command: select_option
     message: "Nice!\n\
       Question 3:\n\
       Who painted Starry Night?\n\
       1. Pablo Picasso\n\
       2. Claude Monet\n\
       3. Vincent Van Gogh"
+    slot:
+      name: answer_2
+      mode: whole_text
 
   - transition:
-      from: "question_3"
-      into: "initial"
-    command: "3"
-    message: "Awesome!\n\
-      You did great! Type *start* to begin again"
+      from: question_3
+      into: initial
+    command: select_option
+    message: ext_score
+    slot:
+      name: answer_3
+      mode: whole_text
 
 defaults:
   unknown: "Wrong answer, try again please."
