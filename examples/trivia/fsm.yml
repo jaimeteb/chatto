@@ -58,5 +58,5 @@ functions:
       mode: whole_text
 
 defaults:
-  unknown: "Wrong answer, try again please."
+  unknown: "Not sure I understood, try again please."
   unsure: "Not sure I understood, try again please."
