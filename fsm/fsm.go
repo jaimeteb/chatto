@@ -1,7 +1,6 @@
 package fsm
 
 import (
-	"fmt"
 	"log"
 	"strings"
 
@@ -92,7 +91,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 		response = trans(m)
 		if strings.HasPrefix(response, "ext_") {
 			extFunc := ext.GetFunc(response)
-			response = fmt.Sprintf("%v", extFunc(m))
+			response = extFunc(m).(string) // response = fmt.Sprintf("%v", extFunc(m))
 		}
 	}
 
