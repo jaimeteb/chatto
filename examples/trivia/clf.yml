@@ -13,3 +13,11 @@ classification:
       - "1"
       - "2"
       - "3"
+
+  - command: end
+    texts:
+      - "end"  
+      - "exit"  
+      - "stop"  
+      - "end the quiz"  
+      - "end trivia"  

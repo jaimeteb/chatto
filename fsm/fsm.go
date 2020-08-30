@@ -73,8 +73,14 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 	//// 	return dom.DefaultMessages["unsure"]
 	//// }
 
+	var trans TransitionFunc
+	tupleFromAny := CmdStateTuple{cmd, -1}
 	tuple := CmdStateTuple{cmd, m.State}
-	trans := dom.TransitionTable[tuple]
+	if dom.TransitionTable[tupleFromAny] == nil {
+		trans = dom.TransitionTable[tuple]
+	} else {
+		trans = dom.TransitionTable[tupleFromAny]
+	}
 
 	slot := dom.SlotTable[tuple]
 	if slot.Name != "" {
@@ -125,6 +131,7 @@ func Create(path *string) Domain {
 	for i, state := range config.States {
 		stateTable[state] = i
 	}
+	stateTable["any"] = -1 // Add state "any"
 
 	transitionTable := make(map[CmdStateTuple]TransitionFunc)
 	slotTable := make(map[CmdStateTuple]Slot)

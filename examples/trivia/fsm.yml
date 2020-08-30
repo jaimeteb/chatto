@@ -7,6 +7,7 @@ states:
 commands:
   - start
   - select_option
+  - end
 
 functions:
   - transition:
@@ -56,6 +57,12 @@ functions:
     slot:
       name: answer_3
       mode: whole_text
+
+  - transition:
+      from: any
+      into: initial
+    command: end
+    message: "Bye bye!"
 
 defaults:
   unknown: "Not sure I understood, try again please."
