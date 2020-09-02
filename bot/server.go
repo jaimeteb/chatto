@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
 )
@@ -46,6 +47,7 @@ func ServeBot(path *string) {
 	log.Println("\n" + LOGO)
 	log.Println("Server started")
 
-	http.HandleFunc("/endpoint", bot.handler)
-	log.Fatal(http.ListenAndServe(":4770", nil))
+	r := mux.NewRouter()
+	r.HandleFunc("/endpoint", bot.handler)
+	log.Fatal(http.ListenAndServe(":4770", r))
 }
