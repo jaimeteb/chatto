@@ -55,8 +55,8 @@ type TransitionFunc func(m *FSM) string
 
 // FSM models a Finite State Machine
 type FSM struct {
-	State int
-	Slots map[string]interface{}
+	State int                    `json:"state"`
+	Slots map[string]interface{} `json:"slots"`
 }
 
 // NewTransitionFunc generates a new transition function

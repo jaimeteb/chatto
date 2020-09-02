@@ -10,7 +10,7 @@ import (
 	"github.com/jaimeteb/chatto/fsm"
 )
 
-func (b Bot) handler(w http.ResponseWriter, r *http.Request) {
+func (b Bot) endpointHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var mess Message
 
@@ -34,6 +34,20 @@ func (b Bot) handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	senderObj := b.Machines[vars["sender"]]
+
+	js, err := json.Marshal(senderObj)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+}
+
 // ServeBot function
 func ServeBot(path *string) {
 	domain := fsm.Create(path)
@@ -48,6 +62,7 @@ func ServeBot(path *string) {
 	log.Println("Server started")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/endpoint", bot.handler)
+	r.HandleFunc("/endpoint", bot.endpointHandler)
+	r.HandleFunc("/senders/{sender}", bot.detailsHandler)
 	log.Fatal(http.ListenAndServe(":4770", r))
 }
