@@ -1,0 +1,15 @@
+classification:
+  - command: "turn_on"
+    texts:
+      - "turn on"
+      - "on"
+
+  - command: "turn_off"
+    texts:
+      - "turn off"
+      - "off"
+
+  - command: "hello_universe"
+    texts:
+      - "hello"
+      - "universe"

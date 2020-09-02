@@ -53,16 +53,16 @@ commands:
   - "turn_off"
 
 functions:
-  - tuple:
-      command: "turn_on"
-      state: "off"
-    transition: "on"
+ - transition:
+      from: "off"
+      into: "on"
+    command: "turn_on"
     message: "Turning on."
 
-  - tuple:
-      command: "turn_off"
-      state: "on"
-    transition: "off"
+  - transition:
+      from: "on"
+      into: "off"
+    command: "turn_off"
     message: "Turning off."
 
 defaults:
@@ -70,7 +70,53 @@ defaults:
   unsure: "???"
 ```
 
-Under **functions** you can list the transitions available for the FSM. The object **tuple** describes a command that is executed when the machine is at certain state, while **transition** and **message** are the next state and the message to send to the user respectively.
+Under **functions** you can list the transitions available for the FSM. The object **transition** describes the states of the transition (**from** one state **into** another) if **command** is executed; **message** is the message to send to the user.
+
+The special state **any** can help you to go from any state into another, if the command is executed. You don't have to declare the **any** state in the states list.
+
+## 3. Extensions
+
+The extensions in chatto are pieces of code that can be executed instead of messages. The extensions names must begin by **"ext_"** and they must be placed in the **ext/ext.go** file. The format for a chatto extension is as follows:
+
+```go
+package main
+
+import (
+	"github.com/jaimeteb/chatto/fsm"
+)
+
+func greetFunc(m *fsm.FSM) interface{} {
+	return "Hello Universe"
+}
+
+// Ext is exported
+var Ext = fsm.FuncMap{
+	"ext_any": greetFunc,
+}
+
+func main() {}
+```
+
+You must export a variable called **Ext** of type **fsm.FuncMap**, and map the extension names to their respective functions. In this example, **ext_any** simply returns "Hello Universe". Note that, the functions must have the ```func(*FSM) interface{}``` signature.
+
+## 4. Slots
+
+You can save information from the user's input by using slots:
+
+```yaml
+  - transition:
+      from: ask_name
+      into: ask_age
+    command: say_name
+    slot:
+      name: name
+      mode: whole_text
+    message: "How old are you?"
+```
+
+In this example, in the transition from **ask_name** to **ask_age**, when **say_name** is executed, a slot called **name** will be saved, in other words, the user's message is stored in memory.
+
+At the time, only **whole_text** mode is supported, which saves the entire input in the slot.
 
 ## HTTP Endpoint
 

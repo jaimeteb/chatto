@@ -13,34 +13,34 @@ commands:
   - "no"
 
 functions:
-  - tuple:
-      command: "greet"
-      state: "initial"
-    transition: "ask_mood"
+  - transition:
+      from: initial
+      into: ask_mood
+    command: greet
     message: "Hello! How are you?"
 
-  - tuple:
-      command: "good"
-      state: "ask_mood"
-    transition: "initial"
+  - transition:
+      from: ask_mood
+      into: initial
+    command: good
     message: "Great! :)"
 
-  - tuple:
-      command: "bad"
-      state: "ask_mood"
-    transition: "say_bad"
+  - transition:
+      from: ask_mood
+      into: say_bad
+    command: bad
     message: "Oh don't be sad :(\nDid that help?"
 
-  - tuple:
-      command: "yes"
-      state: "say_bad"
-    transition: "initial"
+  - transition:
+      from: say_bad
+      into: initial
+    command: "yes"
     message: "I'm glad! :)"
 
-  - tuple:
-      command: "no"
-      state: "say_bad"
-    transition: "initial"
+  - transition:
+      from: say_bad
+      into: initial
+    command: "no"
     message: "Oh I'm sorry"
 
 defaults:

@@ -5,11 +5,12 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
-func (b Bot) handler(w http.ResponseWriter, r *http.Request) {
+func (b Bot) endpointHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var mess Message
 
@@ -33,17 +34,35 @@ func (b Bot) handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	senderObj := b.Machines[vars["sender"]]
+
+	js, err := json.Marshal(senderObj)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+}
+
 // ServeBot function
 func ServeBot(path *string) {
 	domain := fsm.Create(path)
 	classifier := clf.Create(path)
 
+	extension := fsm.LoadExtension(path)
+
 	machines := make(map[string]*fsm.FSM)
-	bot := Bot{machines, domain, classifier}
+	bot := Bot{machines, domain, classifier, extension}
 
 	log.Println("\n" + LOGO)
 	log.Println("Server started")
 
-	http.HandleFunc("/endpoint", bot.handler)
-	log.Fatal(http.ListenAndServe(":4770", nil))
+	r := mux.NewRouter()
+	r.HandleFunc("/endpoint", bot.endpointHandler)
+	r.HandleFunc("/senders/{sender}", bot.detailsHandler)
+	log.Fatal(http.ListenAndServe(":4770", r))
 }
