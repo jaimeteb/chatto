@@ -48,6 +48,29 @@ func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var mess Message
+
+	err := decoder.Decode(&mess)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	prediction, prob := b.Classifier.Predict(mess.Text)
+	ans := Prediction{mess.Text, prediction, prob}
+
+	js, err := json.Marshal(ans)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+}
+
 // ServeBot function
 func ServeBot(path *string) {
 	domain := fsm.Create(path)
@@ -63,6 +86,7 @@ func ServeBot(path *string) {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/endpoint", bot.endpointHandler)
+	r.HandleFunc("/predict", bot.predictHandler)
 	r.HandleFunc("/senders/{sender}", bot.detailsHandler)
 	log.Fatal(http.ListenAndServe(":4770", r))
 }
