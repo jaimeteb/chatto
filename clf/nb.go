@@ -73,6 +73,8 @@ func Create(path *string) Classifier {
 		}
 	}
 
+	classes = append(classes, bayesian.Class("any"))
+
 	log.Println("Loaded commands for classifier:")
 	for i, c := range classes {
 		log.Printf("%v\t%v\n", i, c)

@@ -8,11 +8,11 @@ classification:
       - "Let's go"
       - "start now"
     
-  - command: select_option
-    texts:
-      - "1"
-      - "2"
-      - "3"
+  # - command: select_option
+  #   texts:
+  #     - "1"
+  #     - "2"
+  #     - "3"
 
   - command: end
     texts:

@@ -74,15 +74,27 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 	//// }
 
 	var trans TransitionFunc
+	var tuple CmdStateTuple
+
 	tupleFromAny := CmdStateTuple{cmd, -1}
-	tuple := CmdStateTuple{cmd, m.State}
+	tupleNormal := CmdStateTuple{cmd, m.State}
+	tupleCmdAny := CmdStateTuple{"any", m.State}
+
 	if dom.TransitionTable[tupleFromAny] == nil {
-		trans = dom.TransitionTable[tuple]
+		if dom.TransitionTable[tupleCmdAny] == nil {
+			trans = dom.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
+			tuple = tupleNormal
+		} else {
+			trans = dom.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
+			tuple = tupleCmdAny
+		}
 	} else {
-		trans = dom.TransitionTable[tupleFromAny]
+		trans = dom.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
+		tuple = tupleFromAny
 	}
 
 	slot := dom.SlotTable[tuple]
+	log.Println(slot)
 	if slot.Name != "" {
 		switch slot.Mode {
 		case "whole_text":

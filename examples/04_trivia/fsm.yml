@@ -6,7 +6,6 @@ states:
 
 commands:
   - start
-  - select_option
   - end
 
 functions:
@@ -24,7 +23,7 @@ functions:
   - transition:
       from: question_1
       into: question_2
-    command: select_option
+    command: any
     message: "Good!\n\
       Question 2:\n\
       What is the capital of the state of Utah?\n\
@@ -38,7 +37,7 @@ functions:
   - transition:
       from: question_2
       into: question_3
-    command: select_option
+    command: any
     message: "Nice!\n\
       Question 3:\n\
       Who painted Starry Night?\n\
@@ -52,7 +51,7 @@ functions:
   - transition:
       from: question_3
       into: initial
-    command: select_option
+    command: any
     message: ext_score
     slot:
       name: answer_3
