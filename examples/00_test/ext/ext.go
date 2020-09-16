@@ -4,7 +4,7 @@ import (
 	"github.com/jaimeteb/chatto/fsm"
 )
 
-func greetFunc(m *fsm.FSM) interface{} {
+func greetFunc(m *fsm.FSM, dom *fsm.Domain, txt string) interface{} {
 	return "Hello Universe"
 }
 

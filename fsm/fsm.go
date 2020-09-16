@@ -94,14 +94,13 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 	}
 
 	slot := dom.SlotTable[tuple]
-	log.Println(slot)
 	if slot.Name != "" {
 		switch slot.Mode {
 		case "whole_text":
 			m.Slots[slot.Name] = txt
 		}
 	}
-	log.Println(m.Slots)
+	// log.Println(m.Slots)
 
 	if trans == nil {
 		response = dom.DefaultMessages["unknown"]
@@ -109,7 +108,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 		response = trans(m)
 		if strings.HasPrefix(response, "ext_") {
 			extFunc := ext.GetFunc(response)
-			response = extFunc(m).(string) // response = fmt.Sprintf("%v", extFunc(m))
+			response = extFunc(m, &dom, txt).(string) // response = fmt.Sprintf("%v", extFunc(m))
 		}
 	}
 

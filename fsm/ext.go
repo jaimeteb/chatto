@@ -9,19 +9,19 @@ import (
 
 // Extension interface
 type Extension interface {
-	GetFunc(string) func(*FSM) interface{}
+	GetFunc(string) func(*FSM, *Domain, string) interface{}
 	GetAllFuncs() []string
 }
 
 // FuncMap maps function names to functions
-type FuncMap map[string]func(*FSM) interface{}
+type FuncMap map[string]func(*FSM, *Domain, string) interface{}
 
 // GetFunc gets a function from the function map
-func (fm FuncMap) GetFunc(action string) func(*FSM) interface{} {
+func (fm FuncMap) GetFunc(action string) func(*FSM, *Domain, string) interface{} {
 	if _, ok := fm[action]; ok {
 		return fm[action]
 	}
-	return func(*FSM) interface{} {
+	return func(*FSM, *Domain, string) interface{} {
 		return nil
 	}
 }

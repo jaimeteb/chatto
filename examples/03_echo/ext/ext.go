@@ -7,15 +7,15 @@ import (
 	"github.com/jaimeteb/chatto/fsm"
 )
 
-func greetFunc(m *fsm.FSM) interface{} {
+func greetFunc(m *fsm.FSM, dom *fsm.Domain, txt string) interface{} {
 	return "Hello Universe"
 }
 
-func goodbyeFunc(m *fsm.FSM) interface{} {
+func goodbyeFunc(m *fsm.FSM, dom *fsm.Domain, txt string) interface{} {
 	return "Goodbye Universe"
 }
 
-func sayNameAgeFunc(m *fsm.FSM) interface{} {
+func sayNameAgeFunc(m *fsm.FSM, dom *fsm.Domain, txt string) interface{} {
 	name := m.Slots["name"].(string)
 	age := m.Slots["age"].(string)
 

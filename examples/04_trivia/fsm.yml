@@ -24,12 +24,7 @@ functions:
       from: question_1
       into: question_2
     command: any
-    message: "Good!\n\
-      Question 2:\n\
-      What is the capital of the state of Utah?\n\
-      1. Salt Lake City\n\
-      2. Jefferson City\n\
-      3. Cheyenne"
+    message: ext_val_ans_1
     slot:
       name: answer_1
       mode: whole_text
@@ -38,12 +33,7 @@ functions:
       from: question_2
       into: question_3
     command: any
-    message: "Nice!\n\
-      Question 3:\n\
-      Who painted Starry Night?\n\
-      1. Pablo Picasso\n\
-      2. Claude Monet\n\
-      3. Vincent Van Gogh"
+    message: ext_val_ans_2
     slot:
       name: answer_2
       mode: whole_text
