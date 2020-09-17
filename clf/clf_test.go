@@ -41,7 +41,7 @@ func testEqStr(a, b []string) bool {
 func TestClf(t *testing.T) {
 	path := "../examples/00_test/"
 	classif := Create(&path)
-	classes := []bayesian.Class{"turn_on", "turn_off", "hello_universe"}
+	classes := []bayesian.Class{"turn_on", "turn_off", "hello_universe", "any"}
 	if !testEq(classes, classif.Classes) {
 		t.Errorf("classes is incorrect, got: %v, want: %v.", classes, classif.Classes)
 	}

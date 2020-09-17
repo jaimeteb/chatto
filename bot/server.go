@@ -76,7 +76,10 @@ func ServeBot(path *string) {
 	domain := fsm.Create(path)
 	classifier := clf.Create(path)
 
-	extension := fsm.LoadExtension(path)
+	extension, err := fsm.LoadExtension(path)
+	if err != nil {
+		log.Println(err)
+	}
 
 	machines := make(map[string]*fsm.FSM)
 	bot := Bot{machines, domain, classifier, extension}

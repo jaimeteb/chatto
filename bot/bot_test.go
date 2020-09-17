@@ -74,7 +74,7 @@ func TestBot(t *testing.T) {
 	here := "."
 	domain := fsm.Create(&here)
 	classifier := clf.Create(&here)
-	extension := fsm.LoadExtension(&here)
+	extension, _ := fsm.LoadExtension(&here)
 	machines := make(map[string]*fsm.FSM)
 	bot := Bot{machines, domain, classifier, extension}
 

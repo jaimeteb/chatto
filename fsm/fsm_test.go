@@ -29,7 +29,10 @@ func TestFSM(t *testing.T) {
 	}
 
 	machine := FSM{State: 0}
-	extension := LoadExtension(&path)
+	extension, err := LoadExtension(&path)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 
 	resp1 := machine.ExecuteCmd("turn_on", "turn_on", domain, extension)
 	if resp1 != "Turning on." {
