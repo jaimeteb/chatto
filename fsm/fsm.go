@@ -107,8 +107,8 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 	} else {
 		response = trans(m)
 		if strings.HasPrefix(response, "ext_") {
-			extFunc := ext.GetFunc(response)
-			response = extFunc(m, &dom, txt).(string) // response = fmt.Sprintf("%v", extFunc(m))
+			// extFunc := ext.GetFunc(response)
+			// response = extFunc(m, &dom, txt).(string) // response = fmt.Sprintf("%v", extFunc(m))
 		}
 	}
 

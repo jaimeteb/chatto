@@ -67,10 +67,10 @@ func calculateScore(m *fsm.FSM, dom *fsm.Domain, txt string) interface{} {
 }
 
 // Ext is exported
-var Ext = fsm.FuncMap{
-	"ext_val_ans_1": validateAnswer1,
-	"ext_val_ans_2": validateAnswer2,
-	"ext_score":     calculateScore,
-}
+// var Ext = fsm.FuncMap{
+// 	"ext_val_ans_1": validateAnswer1,
+// 	"ext_val_ans_2": validateAnswer2,
+// 	"ext_score":     calculateScore,
+// }
 
 func main() {}

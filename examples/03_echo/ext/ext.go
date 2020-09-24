@@ -27,10 +27,10 @@ func sayNameAgeFunc(m *fsm.FSM, dom *fsm.Domain, txt string) interface{} {
 }
 
 // Ext is exported
-var Ext = fsm.FuncMap{
-	"greet":        greetFunc,
-	"goodbye":      goodbyeFunc,
-	"ext_name_age": sayNameAgeFunc,
-}
+// var Ext = fsm.FuncMap{
+// 	"greet":        greetFunc,
+// 	"goodbye":      goodbyeFunc,
+// 	"ext_name_age": sayNameAgeFunc,
+// }
 
 func main() {}
