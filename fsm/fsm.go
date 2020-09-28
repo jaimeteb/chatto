@@ -108,7 +108,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 	} else {
 		response = trans(m)
 		if strings.HasPrefix(response, "ext_") {
-			response = RunExtFunc(response, m, ext)
+			response = RunExtFunc(response, txt, dom, m, ext)
 		}
 	}
 
@@ -116,10 +116,12 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 }
 
 // RunExtFunc gets an extension function and executes it
-func RunExtFunc(extName string, m *FSM, client *rpc.Client) string {
+func RunExtFunc(extName, text string, dom Domain, m *FSM, client *rpc.Client) string {
 	req := Request{
 		FSM: m,
 		Req: extName,
+		Txt: text,
+		Dom: dom,
 	}
 	res := Response{}
 	err := client.Call("Listener.GetFunc", &req, &res)

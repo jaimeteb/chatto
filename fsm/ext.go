@@ -66,6 +66,8 @@ type Extension *rpc.Client
 type Request struct {
 	FSM *FSM
 	Req string
+	Txt string
+	Dom Domain
 }
 
 // Response struct for extension functions
