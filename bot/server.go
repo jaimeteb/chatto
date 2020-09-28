@@ -84,7 +84,7 @@ func ServeBot(path *string) {
 	machines := make(map[string]*fsm.FSM)
 	bot := Bot{machines, domain, classifier, extension}
 
-	log.Println("\n" + LOGO)
+	// log.Println("\n" + LOGO)
 	log.Println("Server started")
 
 	r := mux.NewRouter()

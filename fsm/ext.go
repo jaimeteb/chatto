@@ -2,36 +2,9 @@ package fsm
 
 import (
 	"log"
+	"net"
 	"net/rpc"
 )
-
-// // Extension interface
-// type Extension interface {
-// 	GetFunc(string) func(*FSM, *Domain, string) interface{}
-// 	GetAllFuncs() []string
-// }
-
-// // FuncMap maps function names to functions
-// type FuncMap map[string]func(*FSM, *Domain, string) interface{}
-
-// // GetFunc gets a function from the function map
-// func (fm FuncMap) GetFunc(action string) func(*FSM, *Domain, string) interface{} {
-// 	if _, ok := fm[action]; ok {
-// 		return fm[action]
-// 	}
-// 	return func(*FSM, *Domain, string) interface{} {
-// 		return nil
-// 	}
-// }
-
-// // GetAllFuncs retreives all functions in function map
-// func (fm FuncMap) GetAllFuncs() []string {
-// 	allFuncs := make([]string, 0)
-// 	for funcName := range fm {
-// 		allFuncs = append(allFuncs, funcName)
-// 	}
-// 	return allFuncs
-// }
 
 // BuildPlugin builds the extension code as a plugin
 // func BuildPlugin(path *string) error {
@@ -54,22 +27,75 @@ import (
 // 	return nil
 // }
 
+// ExtensionMap maps strings to functions to be
+// used in extensions
 type ExtensionMap map[string]func(*Request) *Response
 
+// Listener contains the ExtensionMap to be served through RPC
+type Listener struct {
+	ExtensionMap ExtensionMap
+}
+
+// GetFunc returns a requested extension function
+func (l *Listener) GetFunc(req *Request, res *Response) error {
+	extRes := l.ExtensionMap[req.Req](req)
+
+	res.FSM = req.FSM
+	res.Res = extRes.Res
+
+	log.Printf("Request:\t%v,\t%v", req.FSM, req.Req)
+	log.Printf("Response:\t%v,\t%v", *res.FSM, res.Res)
+	return nil
+}
+
+// GetAllFuncs returns all functions registered in an ExtensionMap
+func (l *Listener) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error {
+	allFuncs := make([]string, 0)
+	for funcName := range l.ExtensionMap {
+		allFuncs = append(allFuncs, funcName)
+	}
+	res.Res = allFuncs
+	log.Println(res)
+	return nil
+}
+
+// Extension is an RPC Client that serves extension functions
 type Extension *rpc.Client
 
+// Request struct for extension functions
 type Request struct {
-	FSM FSM
+	FSM *FSM
 	Req string
 }
 
+// Response struct for extension functions
 type Response struct {
-	FSM FSM
+	FSM *FSM
 	Res string
 }
 
+// GetAllFuncsResponse struct for GetAllFuncs function
 type GetAllFuncsResponse struct {
 	Res []string
+}
+
+// ServeExtension serves the registered extension functions
+func ServeExtension(extMap ExtensionMap) error {
+	addr, err := net.ResolveTCPAddr("tcp", "0.0.0.0:42586")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	inbound, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	rpc.Register(&Listener{ExtensionMap: extMap})
+	rpc.Accept(inbound)
+	return nil
 }
 
 // LoadExtension creates an extension

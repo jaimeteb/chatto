@@ -2,6 +2,7 @@ package fsm
 
 import (
 	"log"
+	"net/rpc"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -107,12 +108,28 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 	} else {
 		response = trans(m)
 		if strings.HasPrefix(response, "ext_") {
-			// extFunc := ext.GetFunc(response)
-			// response = extFunc(m, &dom, txt).(string) // response = fmt.Sprintf("%v", extFunc(m))
+			response = RunExtFunc(response, m, ext)
 		}
 	}
 
 	return
+}
+
+// RunExtFunc gets an extension function and executes it
+func RunExtFunc(extName string, m *FSM, client *rpc.Client) string {
+	req := Request{
+		FSM: m,
+		Req: extName,
+	}
+	res := Response{}
+	err := client.Call("Listener.GetFunc", &req, &res)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+
+	m = res.FSM
+	return res.Res
 }
 
 // Load loads configuration from yaml
