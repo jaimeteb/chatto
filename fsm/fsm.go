@@ -45,6 +45,15 @@ type Domain struct {
 	DefaultMessages map[string]string
 }
 
+// DomainNoFuncs models the final configuration of an FSM without functions
+// to be used in extensions
+type DomainNoFuncs struct {
+	StateTable      map[string]int
+	CommandList     []string
+	SlotTable       map[CmdStateTuple]Slot
+	DefaultMessages map[string]string
+}
+
 // CmdStateTuple is a tuple of Command and State
 type CmdStateTuple struct {
 	Cmd   string
@@ -58,6 +67,17 @@ type TransitionFunc func(m *FSM) string
 type FSM struct {
 	State int                    `json:"state"`
 	Slots map[string]interface{} `json:"slots"`
+}
+
+// NoFuncs returns a Domain without TransitionFunc items in order
+// to serialize it for extensions
+func (d *Domain) NoFuncs() *DomainNoFuncs {
+	return &DomainNoFuncs{
+		StateTable:      d.StateTable,
+		CommandList:     d.CommandList,
+		SlotTable:       d.SlotTable,
+		DefaultMessages: d.DefaultMessages,
+	}
 }
 
 // NewTransitionFunc generates a new transition function
@@ -121,7 +141,7 @@ func RunExtFunc(extName, text string, dom Domain, m *FSM, client *rpc.Client) st
 		FSM: m,
 		Req: extName,
 		Txt: text,
-		Dom: dom,
+		Dom: dom.NoFuncs(),
 	}
 	res := Response{}
 	err := client.Call("Listener.GetFunc", &req, &res)
@@ -130,7 +150,7 @@ func RunExtFunc(extName, text string, dom Domain, m *FSM, client *rpc.Client) st
 		return ""
 	}
 
-	m = res.FSM
+	*m = *res.FSM
 	return res.Res
 }
 

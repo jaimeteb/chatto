@@ -40,7 +40,7 @@ type Listener struct {
 func (l *Listener) GetFunc(req *Request, res *Response) error {
 	extRes := l.ExtensionMap[req.Req](req)
 
-	res.FSM = req.FSM
+	res.FSM = extRes.FSM
 	res.Res = extRes.Res
 
 	log.Printf("Request:\t%v,\t%v", req.FSM, req.Req)
@@ -67,7 +67,7 @@ type Request struct {
 	FSM *FSM
 	Req string
 	Txt string
-	Dom Domain
+	Dom *DomainNoFuncs
 }
 
 // Response struct for extension functions
