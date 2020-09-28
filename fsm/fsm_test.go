@@ -44,6 +44,11 @@ func TestFSM(t *testing.T) {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Can't do that.")
 	}
 
+	resp3 := machine.ExecuteCmd("hello_universe", "hello", domain, extension)
+	if resp3 != "Hello Universe" {
+		t.Errorf("resp is incorrect, got: %v, want: %v.", resp3, "Hello Universe")
+	}
+
 	// testFuncExists := extension.GetFunc("ext_any")
 	// testFuncExistsNot := extension.GetFunc("ext_any_other")
 	// if testFuncExists == nil {
