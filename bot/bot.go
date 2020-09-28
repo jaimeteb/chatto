@@ -11,12 +11,34 @@ type Message struct {
 	Text   string `json:"text"`
 }
 
+// TelegramMessageIn models a telegram incoming message
+type TelegramMessageIn struct {
+	UpdateID int                    `json:"update_id"`
+	Message  TelegramMessageInInner `json:"message"`
+}
+
+// TelegramMessageInInner models a telegram incoming message inner struct
+type TelegramMessageInInner struct {
+	MessageID int                        `json:"message_id"`
+	From      TelegramMessageInInnerFrom `json:"from"`
+	Date      int                        `json:"date"`
+	Text      string                     `json:"text"`
+}
+
+// TelegramMessageInInnerFrom models a telegram incoming message inner struct
+type TelegramMessageInInnerFrom struct {
+	ID        int    `json:"id"`
+	FirstName string `json:"first_name"`
+	Username  string `json:"username"`
+}
+
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
 	Machines   map[string]*fsm.FSM
 	Domain     fsm.Domain
 	Classifier clf.Classifier
 	Extension  fsm.Extension
+	Endpoints  map[string]interface{}
 }
 
 // Prediction models a classifier prediction and its orignal string

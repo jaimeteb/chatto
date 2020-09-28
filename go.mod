@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/kimrgrey/go-telegram v0.0.0-20170122230828-955a999278a2
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/navossoc/bayesian v0.0.0-20171203014413-18fc5ea11e24
 	github.com/pelletier/go-toml v1.8.0 // indirect

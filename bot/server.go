@@ -4,13 +4,17 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/kimrgrey/go-telegram"
 )
 
-func (b Bot) endpointHandler(w http.ResponseWriter, r *http.Request) {
+func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var mess Message
 
@@ -32,6 +36,37 @@ func (b Bot) endpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+}
+
+func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var telegramMess TelegramMessageIn
+
+	err := decoder.Decode(&telegramMess)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Println(telegramMess)
+	sender := strconv.Itoa(telegramMess.Message.From.ID)
+	mess := Message{
+		Sender: sender,
+		Text:   telegramMess.Message.Text,
+	}
+
+	resp := b.Answer(mess)
+
+	chatID := []string{sender}
+	text := []string{resp}
+	respValues := url.Values{
+		"chat_id": chatID,
+		"text":    text,
+	}
+	telegramClient := b.Endpoints["telegram"].(*telegram.Client)
+	apiResp := new(interface{})
+	telegramClient.Call("SendMessage", respValues, apiResp)
+	log.Println(*apiResp)
 }
 
 func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,14 +116,25 @@ func ServeBot(path *string) {
 		log.Println(err)
 	}
 
+	endpoints := make(map[string]interface{})
+
+	// TELEGRAM
+	if telegramKey := os.Getenv("TELEGRAM_BOT_KEY"); telegramKey != "" {
+		client := telegram.NewClient(telegramKey)
+		endpoints["telegram"] = client
+
+		log.Printf("Added Telegram client: %v\n", client.GetMe())
+	}
+
 	machines := make(map[string]*fsm.FSM)
-	bot := Bot{machines, domain, classifier, extension}
+	bot := Bot{machines, domain, classifier, extension, endpoints}
 
 	// log.Println("\n" + LOGO)
 	log.Println("Server started")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/endpoint", bot.endpointHandler)
+	r.HandleFunc("/endpoints/rest", bot.restEndpointHandler)
+	r.HandleFunc("/endpoints/telegram", bot.telegramEndpointHandler)
 	r.HandleFunc("/predict", bot.predictHandler)
 	r.HandleFunc("/senders/{sender}", bot.detailsHandler)
 	log.Fatal(http.ListenAndServe(":4770", r))

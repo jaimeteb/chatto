@@ -76,7 +76,8 @@ func TestBot(t *testing.T) {
 	classifier := clf.Create(&here)
 	extension, _ := fsm.LoadExtension(&here)
 	machines := make(map[string]*fsm.FSM)
-	bot := Bot{machines, domain, classifier, extension}
+	endpoints := make(map[string]interface{})
+	bot := Bot{machines, domain, classifier, extension, endpoints}
 
 	resp1 := bot.Answer(Message{"foo", "on"})
 	if resp1 != "Turning on." {
