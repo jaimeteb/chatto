@@ -34,7 +34,8 @@ type TelegramMessageInInnerFrom struct {
 
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
-	Machines   map[string]*fsm.FSM
+	// Machines   map[string]*fsm.FSM
+	Machines   fsm.StoreFSM
 	Domain     fsm.Domain
 	Classifier clf.Classifier
 	Extension  fsm.Extension
@@ -50,12 +51,23 @@ type Prediction struct {
 
 // Answer takes a user input and executes a transition on the FSM if possible
 func (b Bot) Answer(mess Message) string {
-	if _, ok := b.Machines[mess.Sender]; !ok {
-		b.Machines[mess.Sender] = &fsm.FSM{State: 0, Slots: make(map[string]interface{})}
+	// if _, ok := b.Machines[mess.Sender]; !ok {
+	// 	b.Machines[mess.Sender] = &fsm.FSM{State: 0, Slots: make(map[string]interface{})}
+	// }
+
+	// cmd, _ := b.Classifier.Predict(mess.Text) // Predict command from text using classifier
+	// return b.Machines[mess.Sender].ExecuteCmd(cmd, mess.Text, b.Domain, b.Extension)
+
+	if !b.Machines.Exists(mess.Sender) {
+		// b.Machines[mess.Sender] = &fsm.FSM{
+		// 	State: i,
+		// 	Slots: make(map[string]interface{}),
+		// }
+		b.Machines.SetState(mess.Sender, 0) // What if I don't set a state
 	}
 
-	cmd, _ := b.Classifier.Predict(mess.Text) // Predict command from text using classifier
-	return b.Machines[mess.Sender].ExecuteCmd(cmd, mess.Text, b.Domain, b.Extension)
+	cmd, _ := b.Classifier.Predict(mess.Text)
+	return cmd
 }
 
 // LOGO for Chatto

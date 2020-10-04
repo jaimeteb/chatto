@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const localEndpoint = "http://localhost:4770/endpoint"
+const localEndpoint = "http://localhost:4770/endpoints/rest"
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
 func SendAndReceive(mess *Message) *Message {

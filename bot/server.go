@@ -71,7 +71,10 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	senderObj := b.Machines[vars["sender"]]
+	senderObj := fsm.FSM{
+		State: b.Machines.GetState(vars["sender"]),
+		// Slots: , TODO: retreive all slots
+	}
 
 	js, err := json.Marshal(senderObj)
 	if err != nil {
@@ -117,7 +120,6 @@ func ServeBot(path *string) {
 	}
 
 	endpoints := make(map[string]interface{})
-
 	// TELEGRAM
 	if telegramKey := os.Getenv("TELEGRAM_BOT_KEY"); telegramKey != "" {
 		client := telegram.NewClient(telegramKey)
@@ -126,7 +128,15 @@ func ServeBot(path *string) {
 		log.Printf("Added Telegram client: %v\n", client.GetMe())
 	}
 
-	machines := make(map[string]*fsm.FSM)
+	var machines fsm.StoreFSM
+	// REDIS
+	if redisHost := os.Getenv("REDIS_HOST"); redisHost != "" {
+		machines = &fsm.RedisStoreFSM{R: fsm.RDB}
+	} else {
+		machines = &fsm.CacheStoreFSM{}
+	}
+
+	// machines := make(map[string]*fsm.FSM)
 	bot := Bot{machines, domain, classifier, extension, endpoints}
 
 	// log.Println("\n" + LOGO)

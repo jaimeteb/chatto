@@ -3,7 +3,7 @@ module github.com/jaimeteb/chatto
 go 1.13
 
 require (
-	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/go-redis/redis/v8 v8.2.3
 	github.com/gorilla/mux v1.8.0
 	github.com/kimrgrey/go-telegram v0.0.0-20170122230828-955a999278a2
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
