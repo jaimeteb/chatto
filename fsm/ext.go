@@ -119,7 +119,10 @@ func LoadExtension(path *string) (Extension, error) {
 		return loadExtErr(err)
 	}
 
-	log.Println(res.Res)
+	log.Println("Loaded extensions:")
+	for i, fun := range res.Res {
+		log.Printf("%v\t%v\n", i, fun)
+	}
 
 	return client, nil
 }
