@@ -88,7 +88,12 @@ func (s *RedisStoreFSM) Set(user string, m *FSM) {
 		log.Println("Error setting state:", err)
 	}
 	if len(m.Slots) > 0 {
-		if err := s.R.HSet(ctx, user+":slots", m.Slots, 0).Err(); err != nil {
+		kvs := make([]string, 0)
+		for k, v := range m.Slots {
+			kvs = append(kvs, k, v)
+		}
+
+		if err := s.R.HSet(ctx, user+":slots", kvs).Err(); err != nil {
 			log.Println("Error setting slots:", err)
 		}
 	}
