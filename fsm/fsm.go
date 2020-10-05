@@ -65,8 +65,8 @@ type TransitionFunc func(m *FSM) string
 
 // FSM models a Finite State Machine
 type FSM struct {
-	State int                    `json:"state"`
-	Slots map[string]interface{} `json:"slots"`
+	State int               `json:"state"`
+	Slots map[string]string `json:"slots"`
 }
 
 // NoFuncs returns a Domain without TransitionFunc items in order

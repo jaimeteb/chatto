@@ -25,8 +25,8 @@ func goodbyeFunc(req *fsm.Request) (res *fsm.Response) {
 func sayNameAgeFunc(req *fsm.Request) (res *fsm.Response) {
 	m := req.FSM
 
-	name := m.Slots["name"].(string)
-	age := m.Slots["age"].(string)
+	name := m.Slots["name"]
+	age := m.Slots["age"]
 
 	var message string
 	if _, err := strconv.Atoi(age); err != nil {

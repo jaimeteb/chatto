@@ -21,12 +21,9 @@ var RDB = redis.NewClient(&redis.Options{
 
 // StoreFSM interface for FSM Store modes
 type StoreFSM interface {
-	SetState(string, int)
-	GetState(string) int
 	Exists(string) bool
-
-	// SetSlot(string, string, interface{})
-	// GetSlot(string, string) interface{}
+	Get(string) *FSM
+	Set(string, *FSM)
 }
 
 // CacheStoreFSM struct models an FSM sotred in Cache
@@ -37,55 +34,10 @@ type RedisStoreFSM struct {
 	R *redis.Client
 }
 
-// SetState for CacheStoreFSM
-func (s *CacheStoreFSM) SetState(user string, i int) {
-	// if s.Exists(user) {
-	// 	(*s)[user].State = i
-	// } else {
-	// 	(*s)[user] = &FSM{
-	// 		State: i,
-	// 		Slots: make(map[string]interface{}),
-	// 	}
-	// }
-	(*s)[user].State = i
-}
-
-// GetState for CacheStoreFSM
-func (s *CacheStoreFSM) GetState(user string) (i int) {
-	// if s.Exists(user) {
-	// 	return (*s)[user].State
-	// }
-	// return -1
-	return (*s)[user].State
-}
-
 // Exists for CacheStoreFSM
 func (s *CacheStoreFSM) Exists(user string) (e bool) {
 	_, ok := (*s)[user]
 	return ok
-}
-
-// SetState for RedisStoreFSM
-func (s *RedisStoreFSM) SetState(user string, i int) {
-	if err := s.R.Set(ctx, user+":state", i, 0).Err(); err != nil {
-		log.Println(err)
-		// return err
-	}
-}
-
-// GetState for RedisStoreFSM
-func (s *RedisStoreFSM) GetState(user string) (i int) {
-	val, err := s.R.Get(ctx, user+":state").Result()
-	if err != nil {
-		log.Println(err)
-		return -1
-	}
-	i, err = strconv.Atoi(val)
-	if err != nil {
-		log.Println(err)
-		return -1
-	}
-	return i
 }
 
 // Exists for RedisStoreFSM
@@ -95,4 +47,49 @@ func (s *RedisStoreFSM) Exists(user string) (e bool) {
 		return false
 	}
 	return true
+}
+
+// Get method for CacheStoreFSM
+func (s *CacheStoreFSM) Get(user string) *FSM {
+	return (*s)[user]
+}
+
+// Get method for RedisStoreFSM
+func (s *RedisStoreFSM) Get(user string) *FSM {
+	m := &FSM{}
+
+	state, err := s.R.Get(ctx, user+":state").Result()
+	if err != nil {
+		log.Println(err)
+	}
+	i, err := strconv.Atoi(state)
+	if err != nil {
+		log.Println(err)
+	}
+	m.State = i
+
+	slots, err := s.R.HGetAll(ctx, user+":slots").Result()
+	if err != nil {
+		log.Println(err)
+	}
+	m.Slots = slots
+
+	return m
+}
+
+// Set method for CacheStoreFSM
+func (s *CacheStoreFSM) Set(user string, m *FSM) {
+	(*s)[user] = m
+}
+
+// Set method for RedisStoreFSM
+func (s *RedisStoreFSM) Set(user string, m *FSM) {
+	if err := s.R.Set(ctx, user+":state", m.State, 0).Err(); err != nil {
+		log.Println("Error setting state:", err)
+	}
+	if len(m.Slots) > 0 {
+		if err := s.R.HSet(ctx, user+":slots", m.Slots, 0).Err(); err != nil {
+			log.Println("Error setting slots:", err)
+		}
+	}
 }

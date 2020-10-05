@@ -71,10 +71,7 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	senderObj := fsm.FSM{
-		State: b.Machines.GetState(vars["sender"]),
-		// Slots: , TODO: retreive all slots
-	}
+	senderObj := b.Machines.Get(vars["sender"])
 
 	js, err := json.Marshal(senderObj)
 	if err != nil {
@@ -132,8 +129,10 @@ func ServeBot(path *string) {
 	// REDIS
 	if redisHost := os.Getenv("REDIS_HOST"); redisHost != "" {
 		machines = &fsm.RedisStoreFSM{R: fsm.RDB}
+		log.Println("Registered RedisStoreFSM")
 	} else {
 		machines = &fsm.CacheStoreFSM{}
+		log.Println("Registered CacheStoreFSM")
 	}
 
 	// machines := make(map[string]*fsm.FSM)

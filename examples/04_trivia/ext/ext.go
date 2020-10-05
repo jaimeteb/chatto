@@ -69,9 +69,9 @@ func calculateScore(req *fsm.Request) (res *fsm.Response) {
 		}
 	}
 
-	answer1 := slt["answer_1"].(string)
-	answer2 := slt["answer_2"].(string)
-	answer3 := slt["answer_3"].(string)
+	answer1 := slt["answer_1"]
+	answer2 := slt["answer_2"]
+	answer3 := slt["answer_3"]
 
 	score := 0
 	if answer1 == "2" {
