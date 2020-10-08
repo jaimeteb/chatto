@@ -11,7 +11,7 @@
 
 Simple chatbot framework written in Go, with configurations in YAML. The aim of this project is to create very simple text-based chatbots using a few configuration files. 
 
-The inspiration for this project came from [Flottbot](https://github.com/target/flottbot), and my experience using [Rasa](https://github.com/RasaHQ/rasa).
+The inspiration for this project originally came from [Flottbot](https://github.com/target/flottbot) and my experience using [Rasa](https://github.com/RasaHQ/rasa).
 
 ## Installation
 
@@ -19,7 +19,7 @@ Run ```go get -u github.com/jaimeteb/chatto```.
 
 ## How does it work?
 
-Chatto combines the consistency of a finite-state-machine with the flexibility of machine learning. It has two main components: the classifier and the finite-stete-machine
+Chatto combines the consistency of a finite-state-machine with the flexibility of machine learning. It has three main components: the classifier, the finite-stete-machine and the extensions.
 
 ### 1. Classifier
 
@@ -83,22 +83,42 @@ The extensions in chatto are pieces of code that can be executed instead of mess
 package main
 
 import (
+	"log"
+
 	"github.com/jaimeteb/chatto/fsm"
 )
 
-func greetFunc(m *fsm.FSM) interface{} {
-	return "Hello Universe"
+func greetFunc(req *fsm.Request) (res *fsm.Response) {
+	return &fsm.Response{
+		FSM: req.FSM,
+		Res: "Hello Universe",
+	}
 }
 
-// Ext is exported
-var Ext = fsm.FuncMap{
+var myExtMap = fsm.ExtensionMap{
 	"ext_any": greetFunc,
 }
 
-func main() {}
+func main() {
+	if err := fsm.ServeExtension(myExtMap); err != nil {
+		log.Fatalln(err)
+	}
+}
 ```
 
-You must export a variable called **Ext** of type **fsm.FuncMap**, and map the extension names to their respective functions. In this example, **ext_any** simply returns "Hello Universe". Note that, the functions must have the ```func(*FSM) interface{}``` signature.
+You must use the ```fsm.ServeExtension(fsm.ExtensionMap)``` in the main function in order to run the extension server and pass your own **fsm.ExtensionMap**, which maps the extension names to their respective functions.
+
+The extension functions must have the ```func(*fsm.Request) *fsm.Response interface{}``` signature, where:
+* Request contains:
+  * The current FSM
+  * The requested extension
+  * The input text from the user
+  * The Domain
+* Response must contain:
+  * The resulting FSM
+  * The message to be sent to the user
+
+In this example, **ext_any** simply returns "Hello Universe" and does not modify the current FSM.
 
 ## 4. Slots
 
@@ -119,7 +139,11 @@ In this example, in the transition from **ask_name** to **ask_age**, when **say_
 
 At the time, only **whole_text** mode is supported, which saves the entire input in the slot.
 
-## HTTP Endpoint
+## 5. Redis
+
+You can store the FSMs in memory or in Redis. In order to use the Redis Store, set the **REDIS_HOST** and **REDIS_PASS** environment variables.
+
+## 6. HTTP Endpoint
 
 To enable the HTTP endpoint, simply run ```chatto``` on the same directory as your **clf.yml** and **fsm.yml** files, or specify a path to them with the ```--path``` flag. A service will run on port 4770 of your localhost.
 
@@ -141,11 +165,15 @@ The bot will respond as such:
 }
 ```
 
-## CLI
+## 7. CLI
 
 Alternatively, run chatto on a command line interface using the ```--cli``` flag.
 
-## Examples
+## 8. Telegram
+
+You can connect your chatto bot to [Telegram](https://core.telegram.org/bots) by setting the **TELEGRAM_BOT_KEY** environment variable. You must set the bot's webhook to the */endpoints/telegram* endpoint in order to receive messages.
+
+## 9. Examples
 
 I have provided some config files unnder *examples*. Run ```chatto``` with the ```--path``` of your desired example to test them out.
 
