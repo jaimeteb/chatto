@@ -2,6 +2,8 @@ package fsm
 
 import (
 	"testing"
+
+	"github.com/go-redis/redis/v8"
 )
 
 func testEq(a, b []string) bool {
@@ -57,4 +59,103 @@ func TestFSM(t *testing.T) {
 	// if testFuncExistsNot != nil {
 	// 	t.Errorf("GetFunc is incorrect, 'ext_any_other' should not exist.")
 	// }
+}
+
+func TestCacheStore(t *testing.T) {
+	machines := &CacheStoreFSM{}
+	if resp1 := machines.Exists("foo"); resp1 != false {
+		t.Errorf("incorrect, got: %v, want: %v.", resp1, "false")
+	}
+
+	machines.Set(
+		"foo",
+		&FSM{
+			State: 0,
+			Slots: make(map[string]string),
+		},
+	)
+	if resp2 := machines.Get("foo"); resp2.State != 0 {
+		t.Errorf("incorrect, got: %v, want: %v.", resp2, "0")
+	}
+
+	newFsm := &FSM{
+		State: 1,
+		Slots: map[string]string{
+			"abc": "xyz",
+		},
+	}
+	machines.Set("foo", newFsm)
+	if resp3 := machines.Get("foo"); resp3.State != 1 {
+		t.Errorf("incorrect, got: %v, want: %v.", resp3, "1")
+	}
+}
+
+func TestRedisStore(t *testing.T) {
+	var rdb = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "pass",
+		DB:       0,
+	})
+
+	machines := &RedisStoreFSM{R: rdb}
+	if resp1 := machines.Exists("foo"); resp1 != false {
+		t.Errorf("incorrect, got: %v, want: %v.", resp1, "false")
+	}
+
+	machines.Set(
+		"foo",
+		&FSM{
+			State: 0,
+			Slots: make(map[string]string),
+		},
+	)
+	if resp2 := machines.Get("foo"); resp2.State != 0 {
+		t.Errorf("incorrect, got: %v, want: %v.", resp2, "0")
+	}
+
+	newFsm := &FSM{
+		State: 1,
+		Slots: map[string]string{
+			"abc": "xyz",
+		},
+	}
+	machines.Set("foo", newFsm)
+	if resp3 := machines.Get("foo"); resp3.State != 1 {
+		t.Errorf("incorrect, got: %v, want: %v.", resp3, "1")
+	}
+}
+
+func TestExt(t *testing.T) {
+	greetFunc := func(req *Request) (res *Response) {
+		return &Response{
+			FSM: req.FSM,
+			Res: "Hello Universe",
+		}
+	}
+
+	var myExtMap = ExtensionMap{
+		"ext_any": greetFunc,
+	}
+
+	listener := &Listener{ExtensionMap: myExtMap}
+
+	req1 := &Request{
+		FSM: &FSM{
+			State: 0,
+			Slots: make(map[string]string),
+		},
+		Req: "ext_any",
+	}
+	res1 := new(Response)
+	listener.GetFunc(req1, res1)
+	if res1.Res != "Hello Universe" {
+		t.Errorf("incorrect, got: %v, want: %v.", res1.Res, "Hello Universe")
+	}
+
+	req2 := new(Request)
+	res2 := new(GetAllFuncsResponse)
+	listener.GetAllFuncs(req2, res2)
+	if len(res2.Res) != 1 {
+		t.Errorf("incorrect, got: %v, want: %v.", len(res2.Res), "1")
+	}
 }
