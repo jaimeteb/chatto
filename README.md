@@ -177,6 +177,7 @@ You can connect your chatto bot to [Telegram](https://core.telegram.org/bots) by
 
 I have provided some config files unnder *examples*. Run ```chatto``` with the ```--path``` of your desired example to test them out.
 
-1. [**Mood Bot**](/examples/moodbot) - Greet the bot to start the conversation.
-2. [**Engineering Flowchart**](/examples/repair) - Tell the bot you want to repair something.
-3. [**Trivia Quiz**](/examples/trivia) - Type *start* to take a quick trivia quiz.
+1. [**Mood Bot**](/examples/01_moodbot) - Greet the bot to start the conversation.
+2. [**Engineering Flowchart**](/examples/02_repair) - Tell the bot you want to repair something.
+3. [**Echo**](/examples/03_echo) - The bot will ask for your name and age (beta).
+4. [**Trivia Quiz**](/examples/04_trivia) - Type *start* to take a quick trivia quiz.
