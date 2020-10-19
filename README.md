@@ -13,15 +13,32 @@ Simple chatbot framework written in Go, with configurations in YAML. The aim of 
 
 The inspiration for this project originally came from [Flottbot](https://github.com/target/flottbot) and my experience using [Rasa](https://github.com/RasaHQ/rasa).
 
-## Installation
+## Contents
+
+[1. Installation](#install)  
+[2. How does it work?](#how)  
+[3. Classifier](#clf)  
+[4. Finite State Machine](#fsm)  
+[5. Extensions](#ext)  
+[6. Slots](#slots)  
+[7. Redis](#redis)  
+[8. HTTP Endpoint](#endpoint)  
+[9. CLI](#cli)  
+[10. Telegram](#telegram)  
+[11. Examples](#examples)  
+
+<a name="install"></a>
+## 1. Installation
 
 Run ```go get -u github.com/jaimeteb/chatto```.
 
-## How does it work?
+<a name="how"></a>
+## 2. How does it work?
 
 Chatto combines the consistency of a finite-state-machine with the flexibility of machine learning. It has three main components: the classifier, the finite-stete-machine and the extensions.
 
-### 1. Classifier
+<a name="clf"></a>
+## 3. Classifier
 
 Currently, chatto uses a [Naïve-Bayes classifier](github.com/navossoc/bayesian) to take the user input and decide a command to execute on the finite-state-machine. The training text for the classifier is provided in the **clf.yml** file:
 
@@ -40,7 +57,8 @@ classification:
 
 Under **classification** you can list the commands and their respective training data under **texts**.
 
-### 2. Finite State Machine
+<a name="fsm"></a>
+## 4. Finite State Machine
 
 The FSM (finite-state-machine) is based on the one shown in [this article](https://levelup.gitconnected.com/implement-a-finite-state-machine-in-golang-f0438b6bc0a8). The states, commands, default messages and transitions are described in the **fsm.yml** file:
 
@@ -75,7 +93,8 @@ Under **functions** you can list the transitions available for the FSM. The obje
 
 The special state **any** can help you to go from any state into another, if the command is executed. You don't have to declare the **any** state in the states list.
 
-## 3. Extensions
+<a name="ext"></a>
+## 5. Extensions
 
 The extensions in chatto are pieces of code that can be executed instead of messages. The extensions names must begin by **"ext_"** and they must be placed in the **ext/ext.go** file. The format for a chatto extension is as follows:
 
@@ -120,7 +139,8 @@ The extension functions must have the ```func(*fsm.Request) *fsm.Response interf
 
 In this example, **ext_any** simply returns "Hello Universe" and does not modify the current FSM.
 
-## 4. Slots
+<a name="slots"></a>
+## 6. Slots
 
 You can save information from the user's input by using slots:
 
@@ -139,11 +159,13 @@ In this example, in the transition from **ask_name** to **ask_age**, when **say_
 
 At the time, only **whole_text** mode is supported, which saves the entire input in the slot.
 
-## 5. Redis
+<a name="redis"></a>
+## 7. Redis
 
 You can store the FSMs in memory or in Redis. In order to use the Redis Store, set the **REDIS_HOST** and **REDIS_PASS** environment variables.
 
-## 6. HTTP Endpoint
+<a name="endpoint"></a>
+## 8. HTTP Endpoint
 
 To enable the HTTP endpoint, simply run ```chatto``` on the same directory as your **clf.yml** and **fsm.yml** files, or specify a path to them with the ```--path``` flag. A service will run on port 4770 of your localhost.
 
@@ -165,15 +187,18 @@ The bot will respond as such:
 }
 ```
 
-## 7. CLI
+<a name="cli"></a>
+## 9. CLI
 
 Alternatively, run chatto on a command line interface using the ```--cli``` flag.
 
-## 8. Telegram
+<a name="telegram"></a>
+## 10. Telegram
 
 You can connect your chatto bot to [Telegram](https://core.telegram.org/bots) by setting the **TELEGRAM_BOT_KEY** environment variable. You must set the bot's webhook to the */endpoints/telegram* endpoint in order to receive messages.
 
-## 9. Examples
+<a name="examples"></a>
+## 11. Examples
 
 I have provided some config files unnder *examples*. Run ```chatto``` with the ```--path``` of your desired example to test them out.
 
