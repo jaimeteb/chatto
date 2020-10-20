@@ -2,6 +2,8 @@ package bot
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -26,7 +28,20 @@ func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	// log.Println(mess.Sender, mess.Text)
 	resp := b.Answer(mess)
-	ans := Message{Sender: "botto", Text: resp}
+
+	ans := make([]Message, 0)
+	switch r := resp.(type) {
+	case []interface{}:
+		for _, text := range r {
+			ans = append(ans, Message{Sender: "botto", Text: text.(string)})
+		}
+	case interface{}:
+		ans = append(ans, Message{Sender: "botto", Text: r.(string)})
+	default:
+		errMsg := fmt.Sprintf("Message type unsupported: %T", r)
+		http.Error(w, errors.New(errMsg).Error(), http.StatusInternalServerError)
+		return
+	}
 
 	js, err := json.Marshal(ans)
 	if err != nil {
@@ -57,16 +72,32 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := b.Answer(mess)
 
-	chatID := []string{sender}
-	text := []string{resp}
-	respValues := url.Values{
-		"chat_id": chatID,
-		"text":    text,
+	send := func(s, t string) {
+		chatID := []string{s}
+		text := []string{t}
+
+		respValues := url.Values{
+			"chat_id": chatID,
+			"text":    text,
+		}
+		telegramClient := b.Endpoints["telegram"].(*telegram.Client)
+		apiResp := new(interface{})
+		telegramClient.Call("SendMessage", respValues, apiResp)
+		log.Println(*apiResp)
 	}
-	telegramClient := b.Endpoints["telegram"].(*telegram.Client)
-	apiResp := new(interface{})
-	telegramClient.Call("SendMessage", respValues, apiResp)
-	log.Println(*apiResp)
+
+	switch r := resp.(type) {
+	case []interface{}:
+		for _, text := range r {
+			send(sender, text.(string))
+		}
+	case interface{}:
+		send(sender, r.(string))
+	default:
+		errMsg := fmt.Sprintf("Message type unsupported: %T", r)
+		http.Error(w, errors.New(errMsg).Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,8 +124,9 @@ func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prediction, prob := b.Classifier.Predict(mess.Text)
-	ans := Prediction{mess.Text, prediction, prob}
+	inputText := mess.Text.(string)
+	prediction, prob := b.Classifier.Predict(inputText)
+	ans := Prediction{inputText, prediction, prob}
 
 	js, err := json.Marshal(ans)
 	if err != nil {

@@ -10,12 +10,16 @@ functions:
       from: "off"
       into: "on"
     command: "turn_on"
-    message: "Turning on."
+    message: 
+      - "Turning on."
+      - "✔"
   - transition:
       from: "on"
       into: "off"
     command: "turn_off"
-    message: "Turning off."
+    message:
+      - "Turning off."
+      - "❌"
   - transition:
       from: "any"
       into: "off"

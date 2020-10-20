@@ -10,18 +10,18 @@ import (
 
 // Config models the yaml configuration
 type Config struct {
-	States    []string          `yaml:"states"`
-	Commands  []string          `yaml:"commands"`
-	Functions []Function        `yaml:"functions"`
-	Defaults  map[string]string `yaml:"defaults"`
+	States    []string               `yaml:"states"`
+	Commands  []string               `yaml:"commands"`
+	Functions []Function             `yaml:"functions"`
+	Defaults  map[string]interface{} `yaml:"defaults"`
 }
 
 // Function models a function in yaml
 type Function struct {
-	Transition Transition `yaml:"transition"`
-	Command    string     `yaml:"command"`
-	Slot       Slot       `yaml:"slot"`
-	Message    string     `yaml:"message"`
+	Transition Transition  `yaml:"transition"`
+	Command    string      `yaml:"command"`
+	Slot       Slot        `yaml:"slot"`
+	Message    interface{} `yaml:"message"`
 }
 
 // Transition models a state transition
@@ -42,7 +42,7 @@ type Domain struct {
 	CommandList     []string
 	TransitionTable map[CmdStateTuple]TransitionFunc
 	SlotTable       map[CmdStateTuple]Slot
-	DefaultMessages map[string]string
+	DefaultMessages map[string]interface{}
 }
 
 // DomainNoFuncs models the final configuration of an FSM without functions
@@ -51,7 +51,7 @@ type DomainNoFuncs struct {
 	StateTable      map[string]int
 	CommandList     []string
 	SlotTable       map[CmdStateTuple]Slot
-	DefaultMessages map[string]string
+	DefaultMessages map[string]interface{}
 }
 
 // CmdStateTuple is a tuple of Command and State
@@ -61,7 +61,7 @@ type CmdStateTuple struct {
 }
 
 // TransitionFunc models a transition function
-type TransitionFunc func(m *FSM) string
+type TransitionFunc func(m *FSM) interface{}
 
 // FSM models a Finite State Machine
 type FSM struct {
@@ -81,15 +81,15 @@ func (d *Domain) NoFuncs() *DomainNoFuncs {
 }
 
 // NewTransitionFunc generates a new transition function
-func NewTransitionFunc(s int, r string) TransitionFunc {
-	return func(m *FSM) string {
+func NewTransitionFunc(s int, r interface{}) TransitionFunc {
+	return func(m *FSM) interface{} {
 		(*m).State = s
 		return r
 	}
 }
 
 // ExecuteCmd executes a command in FSM
-func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response string) {
+func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response interface{}) {
 	//// if cmd == "" {
 	//// 	return dom.DefaultMessages["unsure"]
 	//// }
@@ -127,8 +127,11 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response s
 		response = dom.DefaultMessages["unknown"]
 	} else {
 		response = trans(m)
-		if strings.HasPrefix(response, "ext_") {
-			response = RunExtFunc(response, txt, dom, m, ext)
+		switch r := response.(type) {
+		case string:
+			if strings.HasPrefix(r, "ext_") {
+				response = RunExtFunc(r, txt, dom, m, ext)
+			}
 		}
 	}
 

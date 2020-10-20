@@ -7,8 +7,8 @@ import (
 
 // Message models and incoming/outgoing message
 type Message struct {
-	Sender string `json:"sender"`
-	Text   string `json:"text"`
+	Sender string      `json:"sender"`
+	Text   interface{} `json:"text"`
 }
 
 // TelegramMessageIn models a telegram incoming message
@@ -50,7 +50,7 @@ type Prediction struct {
 }
 
 // Answer takes a user input and executes a transition on the FSM if possible
-func (b Bot) Answer(mess Message) string {
+func (b Bot) Answer(mess Message) interface{} {
 	if !b.Machines.Exists(mess.Sender) {
 		b.Machines.Set(
 			mess.Sender,
@@ -61,10 +61,11 @@ func (b Bot) Answer(mess Message) string {
 		)
 	}
 
-	cmd, _ := b.Classifier.Predict(mess.Text)
+	inputMessage := mess.Text.(string)
+	cmd, _ := b.Classifier.Predict(inputMessage)
 
 	m := b.Machines.Get(mess.Sender)
-	resp := m.ExecuteCmd(cmd, mess.Text, b.Domain, b.Extension)
+	resp := m.ExecuteCmd(cmd, inputMessage, b.Domain, b.Extension)
 	b.Machines.Set(mess.Sender, m)
 
 	return resp
