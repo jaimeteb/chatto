@@ -3,7 +3,8 @@ language: go
 env:
   - GO111MODULE=on
 
-install: true
+install:
+  - go mod tidy
 
 script:
  - go run examples/00_test/ext/ext.go &
