@@ -1,5 +1,10 @@
 language: go
 
+env:
+  - GO111MODULE=on
+
+install: true
+
 script:
  - go run examples/00_test/ext/ext.go &
  - go test ./fsm ./clf -cover -coverprofile=coverage.txt
