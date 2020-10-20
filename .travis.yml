@@ -2,14 +2,14 @@ language: go
 
 env:
   - GO111MODULE=on
-  - REDIS_HOST=localhost
-  - REDIS_PASS=pass
 
 install:
   - go mod tidy
 
 before_script:
   - sudo redis-server /etc/redis/redis.conf --port 6379 --requirepass 'pass'
+  - export REDIS_HOST=localhost
+  - export REDIS_PASS=pass
 
 script:
  - go run examples/00_test/ext/ext.go &
