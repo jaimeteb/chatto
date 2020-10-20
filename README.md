@@ -82,14 +82,16 @@ functions:
       from: "on"
       into: "off"
     command: "turn_off"
-    message: "Turning off."
+    message:
+      - "Turning off."
+      - "❌"
 
 defaults:
   unknown: "Can't do that."
   unsure: "???"
 ```
 
-Under **functions** you can list the transitions available for the FSM. The object **transition** describes the states of the transition (**from** one state **into** another) if **command** is executed; **message** is the message to send to the user.
+Under **functions** you can list the transitions available for the FSM. The object **transition** describes the states of the transition (**from** one state **into** another) if **command** is executed; **message** is the message (or messages) to send to the user.
 
 The special state **any** can help you to go from any state into another, if the command is executed. You don't have to declare the **any** state in the states list.
 
