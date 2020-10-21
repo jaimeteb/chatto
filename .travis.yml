@@ -1,5 +1,16 @@
 language: go
 
+env:
+  - GO111MODULE=on
+
+install:
+  - go mod tidy
+
+before_script:
+  - sudo redis-server /etc/redis/redis.conf --port 6379 --requirepass 'pass'
+  - export REDIS_HOST=localhost
+  - export REDIS_PASS=pass
+
 script:
  - go run examples/00_test/ext/ext.go &
  - go test ./fsm ./clf -cover -coverprofile=coverage.txt
