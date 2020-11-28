@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const localEndpoint = "http://localhost:4770/endpoints/rest"
+var localEndpoint = fmt.Sprintf("http://localhost:%v/endpoints/rest", chattoPort)
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
 func SendAndReceive(mess *Message) *Message {
