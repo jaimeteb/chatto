@@ -93,7 +93,7 @@ defaults:
 
 Under **functions** you can list the transitions available for the FSM. The object **transition** describes the states of the transition (**from** one state **into** another) if **command** is executed; **message** is the message (or messages) to send to the user.
 
-The special state **any** can help you to go from any state into another, if the command is executed. You don't have to declare the **any** state in the states list.
+The special state **any** can help you go from any state into another, if the command is executed. You don't have to declare the **any** state in the states list.
 
 <a name="ext"></a>
 ## 5. Extensions
@@ -128,6 +128,8 @@ func main() {
 ```
 
 You must use the ```fsm.ServeExtension(fsm.ExtensionMap)``` in the main function in order to run the extension server and pass your own **fsm.ExtensionMap**, which maps the extension names to their respective functions.
+
+The extension server runs on port ```42586``` by default but you can specify it with the **EXTENSION_PORT** environment variable. Furthermore, you can run the extension server elsewhere, in which case you have to ser the **EXTENSION_HOST** environment variable.
 
 The extension functions must have the ```func(*fsm.Request) *fsm.Response interface{}``` signature, where:
 * Request contains:
