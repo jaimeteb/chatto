@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  chatto:
+    image: jaimeteb/chatto:${CHATTO_VERSION}
+    env_file: .env
+    ports:
+      - ${CHATTO_PORT}:${CHATTO_PORT}
+    volumes:
+      - ${CHATTO_DATA}:/chatto/data
+    depends_on:
+      - ext
+      - redis
+
+  ext:
+    image: jaimeteb/chatto:${CHATTO_VERSION}
+    command: go run /chatto/data/ext/ext.go
+    env_file: .env
+    ports:
+      - ${EXTENSION_PORT}:${EXTENSION_PORT}
+    volumes:
+      - ${CHATTO_DATA}:/chatto/data
+
+  redis:
+    image: bitnami/redis:6.0
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASS}
+    expose:
+      - 6379
