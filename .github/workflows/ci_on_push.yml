@@ -45,7 +45,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ${{ steps.prepare.outputs.tags }}
+          tags: ${{ steps.prepare.outputs.buildx_args }}
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
