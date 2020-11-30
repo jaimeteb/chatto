@@ -27,7 +27,7 @@ jobs:
         name: Prepare
         id: prepare
         run: |
-          DOCKER_IMAGE=jaimeteb/chatto
+          DOCKER_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/chatto
           VERSION=latest
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
