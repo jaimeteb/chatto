@@ -1,9 +1,11 @@
 package fsm
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/rpc"
+	"os"
 )
 
 // BuildPlugin builds the extension code as a plugin
@@ -81,9 +83,21 @@ type GetAllFuncsResponse struct {
 	Res []string
 }
 
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+var extensionHost = getEnv("EXTENSION_HOST", "localhost")
+var extensionPort = getEnv("EXTENSION_PORT", "42586")
+var extensionAddr = fmt.Sprintf("0.0.0.0:%v", extensionPort)
+var extensionDial = fmt.Sprintf("%v:%v", extensionHost, extensionPort)
+
 // ServeExtension serves the registered extension functions
 func ServeExtension(extMap ExtensionMap) error {
-	addr, err := net.ResolveTCPAddr("tcp", "0.0.0.0:42586")
+	addr, err := net.ResolveTCPAddr("tcp", extensionAddr)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -108,7 +122,7 @@ func LoadExtension(path *string) (Extension, error) {
 		return nil, err
 	}
 
-	client, err := rpc.Dial("tcp", "localhost:42586")
+	client, err := rpc.Dial("tcp", extensionDial)
 	if err != nil {
 		return loadExtErr(err)
 	}
