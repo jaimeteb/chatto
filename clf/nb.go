@@ -2,7 +2,6 @@ package clf
 
 import (
 	"log"
-	"strings"
 
 	"github.com/navossoc/bayesian"
 	"github.com/spf13/viper"
@@ -21,19 +20,22 @@ type TrainingTexts struct {
 
 // Classifier models a classifier and its classes
 type Classifier struct {
-	Model   bayesian.Classifier
-	Classes []bayesian.Class
+	Model    bayesian.Classifier
+	Classes  []bayesian.Class
+	Pipeline PipelineConfig
 }
 
 // Predict predict a class for a given text
 func (c *Classifier) Predict(text string) (string, float64) {
-	probs, likely, _ := c.Model.ProbScores(Clean(&text))
+	probs, likely, _ := c.Model.ProbScores(Pipeline(&text, &c.Pipeline))
 	class := string(c.Classes[likely])
 	prob := probs[likely]
-	// log.Printf("CLF\t| \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)
-	// if prob < 0.75/float64(len(probs)) {
-	// 	return "", -1.0
-	// }
+
+	log.Printf("CLF\t| \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)
+	if prob < 0.3/float64(len(probs)) {
+		return "", -1.0
+	}
+
 	return class, prob
 }
 
@@ -66,10 +68,12 @@ func Create(path *string) Classifier {
 	}
 
 	classifier := bayesian.NewClassifier(classes...)
+	pipeline := LoadPipeline(path)
+	log.Println(pipeline)
 
 	for _, cls := range classification.Classification {
 		for _, txt := range cls.Texts {
-			classifier.Learn(Clean(&txt), bayesian.Class(cls.Command))
+			classifier.Learn(Pipeline(&txt, &pipeline), bayesian.Class(cls.Command))
 		}
 	}
 
@@ -80,15 +84,5 @@ func Create(path *string) Classifier {
 		log.Printf("%v\t%v\n", i, c)
 	}
 
-	return Classifier{*classifier, classes}
-}
-
-// Clean performs steps to clean a string
-func Clean(text *string) []string {
-	tokens := strings.Split(*text, " ")
-	lowerTokens := make([]string, 0)
-	for _, t := range tokens {
-		lowerTokens = append(lowerTokens, strings.ToLower(t))
-	}
-	return lowerTokens
+	return Classifier{*classifier, classes, pipeline}
 }

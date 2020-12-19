@@ -54,7 +54,7 @@ func TestClf(t *testing.T) {
 
 func TestPreprocess(t *testing.T) {
 	testString := "fOo BaR"
-	resultString := Clean(&testString)
+	resultString := Pipeline(&testString, &PipelineConfig{true, true})
 	expectedResult := []string{"foo", "bar"}
 
 	if !testEqStr(resultString, expectedResult) {
