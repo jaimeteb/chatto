@@ -109,6 +109,7 @@ func ServeExtension(extMap ExtensionMap) error {
 		return err
 	}
 
+	log.Printf("Extension server started. Using port %v\n", extensionPort)
 	rpc.Register(&Listener{ExtensionMap: extMap})
 	rpc.Accept(inbound)
 	return nil
