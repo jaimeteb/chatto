@@ -119,7 +119,6 @@ func ServeExtension(extMap ExtensionMap) error {
 func LoadExtension(path *string) (Extension, error) {
 	loadExtErr := func(err error) (Extension, error) {
 		log.Println("Error while loading extensions: ", err.Error())
-		log.Println("Using bot without extensions.")
 		return nil, err
 	}
 

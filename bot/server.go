@@ -154,7 +154,7 @@ func ServeBot(path *string) {
 
 	extension, err := fsm.LoadExtension(path)
 	if err != nil {
-		log.Println(err)
+		log.Println("Using bot without extensions.")
 	}
 
 	endpoints := make(map[string]interface{})
