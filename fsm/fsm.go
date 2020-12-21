@@ -90,10 +90,6 @@ func NewTransitionFunc(s int, r interface{}) TransitionFunc {
 
 // ExecuteCmd executes a command in FSM
 func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response interface{}) {
-	if cmd == "" {
-		return dom.DefaultMessages["unsure"]
-	}
-
 	var trans TransitionFunc
 	var tuple CmdStateTuple
 
@@ -123,8 +119,10 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 	}
 	// log.Println(m.Slots)
 
-	if trans == nil {
-		response = dom.DefaultMessages["unknown"]
+	if cmd == "" {
+		response = dom.DefaultMessages["unsure"] // Threshold not met
+	} else if trans == nil {
+		response = dom.DefaultMessages["unknown"] // Unknown transition
 	} else {
 		response = trans(m)
 		switch r := response.(type) {
