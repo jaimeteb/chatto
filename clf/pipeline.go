@@ -10,8 +10,9 @@ import (
 
 // PipelineConfig defines a Pipeline configuration
 type PipelineConfig struct {
-	RemoveSymbols bool `mapstructure:"remove_symbols"`
-	Lower         bool `mapstructure:"lower"`
+	RemoveSymbols bool    `mapstructure:"remove_symbols"`
+	Lower         bool    `mapstructure:"lower"`
+	Threshold     float64 `mapstructure:"threshold"`
 }
 
 // LoadPipeline returns a PipelineConfig
@@ -22,13 +23,13 @@ func LoadPipeline(path *string) PipelineConfig {
 
 	if err := config.ReadInConfig(); err != nil {
 		log.Println(err)
-		return PipelineConfig{true, true}
+		return PipelineConfig{true, true, 0.3}
 	}
 
 	var plc PipelineConfig
 	if err := config.Unmarshal(&plc); err != nil {
 		log.Println(err)
-		return PipelineConfig{true, true}
+		return PipelineConfig{true, true, 0.3}
 	}
 
 	return plc

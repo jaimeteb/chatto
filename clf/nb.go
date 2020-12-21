@@ -32,7 +32,7 @@ func (c *Classifier) Predict(text string) (string, float64) {
 	prob := probs[likely]
 
 	log.Printf("CLF\t| \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)
-	if prob < 0.3/float64(len(probs)) {
+	if prob < c.Pipeline.Threshold {
 		return "", -1.0
 	}
 
@@ -69,7 +69,10 @@ func Create(path *string) Classifier {
 
 	classifier := bayesian.NewClassifier(classes...)
 	pipeline := LoadPipeline(path)
-	log.Println(pipeline)
+	log.Println("Pipeline:")
+	log.Printf("* RemoveSymbols: \t%v\n", pipeline.RemoveSymbols)
+	log.Printf("* Lower: \t\t%v\n", pipeline.Lower)
+	log.Printf("* Threshold: \t%v\n", pipeline.Threshold)
 
 	for _, cls := range classification.Classification {
 		for _, txt := range cls.Texts {

@@ -1,2 +1,3 @@
 remove_symbols: true
 lower: true
+threshold: 0.3
