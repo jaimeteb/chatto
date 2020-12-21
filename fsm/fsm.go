@@ -93,6 +93,8 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 	var trans TransitionFunc
 	var tuple CmdStateTuple
 
+	previousState := m.State
+
 	tupleFromAny := CmdStateTuple{cmd, -1}
 	tupleNormal := CmdStateTuple{cmd, m.State}
 	tupleCmdAny := CmdStateTuple{"any", m.State}
@@ -133,6 +135,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 		}
 	}
 
+	log.Printf("FSM | transitioned %v -> %v\n", previousState, m.State)
 	return
 }
 
