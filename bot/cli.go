@@ -15,7 +15,7 @@ import (
 var localEndpoint = fmt.Sprintf("http://localhost:%v/endpoints/rest", chattoPort)
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
-func SendAndReceive(mess *Message) *Message {
+func SendAndReceive(mess *Message) *[]Message {
 	jsonMess, _ := json.Marshal(mess)
 
 	req, err := http.NewRequest("POST", localEndpoint, bytes.NewBuffer(jsonMess))
@@ -25,14 +25,14 @@ func SendAndReceive(mess *Message) *Message {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err.Error())
-		return &Message{}
+		return &[]Message{}
 	}
 	defer resp.Body.Close()
 
-	ans := &Message{}
+	ans := &[]Message{}
 	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
 		log.Println(err.Error())
-		return &Message{}
+		return &[]Message{}
 	}
 	return ans
 }
@@ -49,10 +49,10 @@ func CLI() {
 			fmt.Println(err)
 		}
 
-		fmt.Print("botto:\t| ")
-
 		// resp := bot.Answer(Message{"cli", strings.TrimSuffix(cmd, "\n")})
 		respMess := SendAndReceive(&Message{"cli", strings.TrimSuffix(cmd, "\n")})
-		fmt.Println(respMess.Text)
+		for _, msg := range *respMess {
+			fmt.Printf("botto:\t| %v\n", msg.Text)
+		}
 	}
 }
