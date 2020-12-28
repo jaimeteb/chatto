@@ -24,10 +24,11 @@ The inspiration for this project originally came from [Flottbot](https://github.
 [5. Extensions](#ext)  
 [6. Slots](#slots)  
 [7. Redis](#redis)  
-[8. HTTP Endpoint](#endpoint)  
-[9. CLI](#cli)  
-[10. Telegram](#telegram)  
-[11. Examples](#examples)  
+[8. Pipeline](#pipeline)  
+[9. HTTP Endpoint](#endpoint)  
+[10. CLI](#cli)  
+[11. Telegram](#telegram)  
+[12. Examples](#examples)  
 
 <a name="install"></a>
 ## 1. Installation
@@ -170,8 +171,18 @@ At the time, only **whole_text** mode is supported, which saves the entire input
 
 You can store the FSMs in memory or in Redis. In order to use the Redis Store, set the **REDIS_HOST** and **REDIS_PASS** environment variables.
 
+<a name="pipeline"></a>
+## 8. Pieline
+
+You can optionally configure the pipeline steps (removal of symbols, conversion into lowercase and classification threshold) using the **pl.yml** file:
+```yaml
+remove_symbols: true
+lower: true
+threshold: 0.3
+```
+
 <a name="endpoint"></a>
-## 8. HTTP Endpoint
+## 9. HTTP Endpoint
 
 To enable the HTTP endpoint, simply run ```chatto``` on the same directory as your **clf.yml** and **fsm.yml** files, or specify a path to them with the ```--path``` flag. A service will run on port 4770 of your localhost.
 
@@ -194,17 +205,17 @@ The bot will respond as such:
 ```
 
 <a name="cli"></a>
-## 9. CLI
+## 10. CLI
 
 Alternatively, run chatto on a command line interface using the ```--cli``` flag.
 
 <a name="telegram"></a>
-## 10. Telegram
+## 11. Telegram
 
 You can connect your chatto bot to [Telegram](https://core.telegram.org/bots) by setting the **TELEGRAM_BOT_KEY** environment variable. You must set the bot's webhook to the */endpoints/telegram* endpoint in order to receive messages.
 
 <a name="examples"></a>
-## 11. Examples
+## 12. Examples
 
 I have provided some config files unnder *examples*. Run ```chatto``` with the ```--path``` of your desired example to test them out.
 
