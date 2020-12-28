@@ -13,13 +13,13 @@ services:
       - redis
 
   ext:
-    image: jaimeteb/chatto:${CHATTO_VERSION}
-    command: go run /chatto/data/ext/ext.go
+    image: odise/busybox-curl # Busy box with certificates
+    command: ext/ext
     env_file: .env
     ports:
       - ${EXTENSION_PORT}:${EXTENSION_PORT}
     volumes:
-      - ${CHATTO_DATA}:/chatto/data
+      - ${CHATTO_DATA}/ext:/ext
 
   redis:
     image: bitnami/redis:6.0
