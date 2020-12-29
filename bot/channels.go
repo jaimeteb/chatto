@@ -2,6 +2,7 @@ package bot
 
 import (
 	"log"
+	"strings"
 
 	"github.com/kevinburke/twilio-go"
 	"github.com/kimrgrey/go-telegram"
@@ -37,6 +38,9 @@ func LoadClients(path *string) map[string]interface{} {
 	config := viper.New()
 	config.SetConfigName("chn")
 	config.AddConfigPath(*path)
+	config.AutomaticEnv()
+	replacer := strings.NewReplacer(".", "_")
+	config.SetEnvKeyReplacer(replacer)
 
 	clients := make(map[string]interface{})
 
@@ -65,5 +69,6 @@ func LoadClients(path *string) map[string]interface{} {
 		log.Printf("Added Twilio client: %v\n", twilioClient.AccountSid)
 	}
 
+	log.Println(clients)
 	return clients
 }
