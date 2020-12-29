@@ -130,7 +130,7 @@ func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	resp := b.Answer(mess)
 
 	send := func(s, t string) {
-		twilio := b.Clients["twilio"].(*Twilio)
+		twilio := b.Clients["twilio"].(Twilio)
 		msg, err := twilio.Client.Messages.SendMessage(twilio.Number, s, t, nil) // TODO
 		log.Println(msg, err)
 	}

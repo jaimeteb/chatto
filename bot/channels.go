@@ -69,6 +69,5 @@ func LoadClients(path *string) map[string]interface{} {
 		log.Printf("Added Twilio client: %v\n", twilioClient.AccountSid)
 	}
 
-	log.Println(clients)
 	return clients
 }
