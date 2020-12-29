@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/ajg/form"
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
@@ -89,10 +90,49 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 			"chat_id": chatID,
 			"text":    text,
 		}
-		telegramClient := b.Endpoints["telegram"].(*telegram.Client)
+		telegramClient := b.Clients["telegram"].(*telegram.Client)
 		apiResp := new(interface{})
 		telegramClient.Call("SendMessage", respValues, apiResp)
 		log.Println(*apiResp)
+	}
+
+	switch r := resp.(type) {
+	case []interface{}:
+		for _, text := range r {
+			send(sender, text.(string))
+		}
+	case interface{}:
+		send(sender, r.(string))
+	default:
+		errMsg := fmt.Sprintf("Message type unsupported: %T", r)
+		http.Error(w, errors.New(errMsg).Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := form.NewDecoder(r.Body)
+	var twilioMessage TwilioMessageIn
+	if err := decoder.Decode(&twilioMessage); err != nil {
+		http.Error(w, "Form could not be decoded", http.StatusBadRequest)
+		log.Println(err.Error())
+		return
+	}
+
+	log.Println(twilioMessage)
+	sender := twilioMessage.From
+	text := twilioMessage.Body
+	mess := Message{
+		Sender: sender,
+		Text:   text,
+	}
+
+	resp := b.Answer(mess)
+
+	send := func(s, t string) {
+		twilio := b.Clients["twilio"].(*Twilio)
+		msg, err := twilio.Client.Messages.SendMessage(twilio.Number, s, t, nil) // TODO
+		log.Println(msg, err)
 	}
 
 	switch r := resp.(type) {
@@ -157,14 +197,7 @@ func ServeBot(path *string) {
 		log.Println("Using bot without extensions.")
 	}
 
-	endpoints := make(map[string]interface{})
-	// TELEGRAM
-	if telegramKey := os.Getenv("TELEGRAM_BOT_KEY"); telegramKey != "" {
-		client := telegram.NewClient(telegramKey)
-		endpoints["telegram"] = client
-
-		log.Printf("Added Telegram client: %v\n", client.GetMe())
-	}
+	clients := LoadClients(path)
 
 	var machines fsm.StoreFSM
 	// REDIS
@@ -176,8 +209,7 @@ func ServeBot(path *string) {
 		log.Println("Registered CacheStoreFSM")
 	}
 
-	// machines := make(map[string]*fsm.FSM)
-	bot := Bot{machines, domain, classifier, extension, endpoints}
+	bot := Bot{machines, domain, classifier, extension, clients}
 
 	// log.Println("\n" + LOGO)
 	log.Println("Server started")
@@ -185,6 +217,7 @@ func ServeBot(path *string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/endpoints/rest", bot.restEndpointHandler)
 	r.HandleFunc("/endpoints/telegram", bot.telegramEndpointHandler)
+	r.HandleFunc("/endpoints/twilio", bot.twilioEndpointHandler)
 	r.HandleFunc("/predict", bot.predictHandler)
 	r.HandleFunc("/senders/{sender}", bot.detailsHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", chattoPort), r))

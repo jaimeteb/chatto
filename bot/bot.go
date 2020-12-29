@@ -32,6 +32,24 @@ type TelegramMessageInInnerFrom struct {
 	Username  string `json:"username"`
 }
 
+// TwilioMessageIn models an incoming Twilio message
+type TwilioMessageIn struct {
+	From             string `form:"From"`
+	Body             string `form:"Body"`
+	To               string `form:"To"`
+	MediaURL         string `form:"MediaUrl"`
+	MediaContentType string `form:"MediaContentType"`
+	MessageSid       string `form:"MessageSid"`
+	SmsStatus        string `form:"SmsStatus"`
+	AccountSid       string `form:"AccountSid"`
+	Sid              string `form:"Sid"`
+	SmsSid           string `form:"SmsSid"`
+	SmsMessageSid    string `form:"SmsMessageSid"`
+	NumMedia         int    `form:"NumMedia"`
+	NumSegments      int    `form:"NumSegments"`
+	APIVersion       string `form:"ApiVersion"`
+}
+
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
 	// Machines   map[string]*fsm.FSM
@@ -39,7 +57,7 @@ type Bot struct {
 	Domain     fsm.Domain
 	Classifier clf.Classifier
 	Extension  fsm.Extension
-	Endpoints  map[string]interface{}
+	Clients    map[string]interface{}
 }
 
 // Prediction models a classifier prediction and its orignal string

@@ -1,0 +1,7 @@
+telegram:
+  bot_key: ${TELEGRAM_BOT_KEY}
+
+twilio:
+  account_sid: ${TWILIO_ACCOUNT_SID}
+  auth_token: ${TWILIO_AUTH_TOKEN}
+  number: ${TWILIO_NUMBER}
