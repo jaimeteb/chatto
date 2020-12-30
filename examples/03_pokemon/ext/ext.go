@@ -33,9 +33,9 @@ func searchPokemon(req *fsm.Request) (res *fsm.Response) {
 			var json map[string]interface{}
 			response.Json(&json)
 			pokemonName := json["name"].(string)
-			pokemonID := json["id"].(string)
-			pokemonHeight := json["height"].(string)
-			pokemonWeight := json["weight"].(string)
+			pokemonID := json["id"].(float64)
+			pokemonHeight := json["height"].(float64)
+			pokemonWeight := json["weight"].(float64)
 			message = fmt.Sprintf("Name: %v \nID: %v \nHeight: %v \nWeight: %v", pokemonName, pokemonID, pokemonHeight, pokemonWeight)
 		}
 	}

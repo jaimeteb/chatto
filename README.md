@@ -221,5 +221,5 @@ I have provided some config files unnder *examples*. Run ```chatto``` with the `
 
 1. [**Mood Bot**](/examples/01_moodbot) - Greet the bot to start the conversation.
 2. [**Engineering Flowchart**](/examples/02_repair) - Tell the bot you want to repair something.
-3. [**Echo**](/examples/03_echo) - The bot will ask for your name and age (beta).
+3. [**Pokemon**](/examples/03_pokemon) - Search for Pokémon by name or number.
 4. [**Trivia Quiz**](/examples/04_trivia) - Type *start* to take a quick trivia quiz.
