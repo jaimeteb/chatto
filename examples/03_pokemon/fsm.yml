@@ -1,0 +1,43 @@
+states:
+  - "initial"
+  - "search_pokemon"
+
+commands:
+  - "greet"
+  - "search_pokemon"
+  - "faq"
+
+functions:
+  - transition:
+      from: initial
+      into: search_pokemon
+    command: search_pokemon
+    message: "What is the Pokémon's name or number?"
+
+  - transition:
+      from: initial
+      into: search_pokemon
+    command: greet
+    message: "What is the Pokémon's name or number?"
+
+  - transition:
+      from: search_pokemon
+      into: initial
+    command: any
+    slot:
+      name: pokemon
+      mode: whole_text
+    message: ext_search_pokemon
+
+  - transition:
+      from: any
+      into: initial
+    command: faq
+    message:
+      - "This is a simple chatbot created with Chatto"
+      - "You can find out more about it here: https://github.com/jaimeteb/chatto"
+      - "😊"
+
+defaults:
+  unknown: "Unknown command, try again please."
+  unsure: "Not sure I understood, try again please."

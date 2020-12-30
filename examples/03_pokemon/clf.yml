@@ -1,0 +1,35 @@
+classification:
+  - command: "greet"
+    texts:
+      - "hey"
+      - "hello"
+      - "hi"
+      - "hello there"
+      - "good morning"
+      - "good evening"
+      - "moin"
+      - "hey there"
+      - "let's go"
+      - "hey dude"
+      - "goodmorning"
+      - "goodevening"
+      - "good afternoon"
+
+  - command: "search_pokemon"
+    texts:
+      - "Search pokemon"
+      - "i want to search a pokémon"
+      - "start search"
+      - "im looking for a poke mon"
+      - "show me info about a pokemon!"
+      - "Pokemon number 1"
+      - "who is that pokémon ?"
+
+  - command: "faq"
+    texts:
+      - "Who are you?"
+      - "how are you built"
+      - "are you a bot ?"
+      - "are you real"
+      - "i have a question"
+      - "contact"
