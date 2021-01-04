@@ -1,6 +1,9 @@
 package bot
 
 import (
+	"log"
+	"os"
+
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
 )
@@ -87,6 +90,33 @@ func (b Bot) Answer(mess Message) interface{} {
 	b.Machines.Set(mess.Sender, m)
 
 	return resp
+}
+
+// LoadBot loads all configurations and returns a Bot
+func LoadBot(path *string) Bot {
+	domain := fsm.Create(path)
+	classifier := clf.Create(path)
+
+	// Load Extensions
+	extension, err := fsm.LoadExtension(path)
+	if err != nil {
+		log.Println("Using bot without extensions.")
+	}
+
+	// Load clients
+	clients := LoadClients(path)
+
+	var machines fsm.StoreFSM
+	// REDIS
+	if redisHost := os.Getenv("REDIS_HOST"); redisHost != "" {
+		machines = &fsm.RedisStoreFSM{R: fsm.RDB}
+		log.Println("Registered RedisStoreFSM")
+	} else {
+		machines = &fsm.CacheStoreFSM{}
+		log.Println("Registered CacheStoreFSM")
+	}
+
+	return Bot{machines, domain, classifier, extension, clients}
 }
 
 // LOGO for Chatto

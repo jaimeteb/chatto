@@ -12,8 +12,6 @@ import (
 
 	"github.com/ajg/form"
 	"github.com/gorilla/mux"
-	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/fsm"
 	"github.com/kimrgrey/go-telegram"
 )
 
@@ -189,36 +187,16 @@ func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 
 // ServeBot function
 func ServeBot(path *string) {
-	domain := fsm.Create(path)
-	classifier := clf.Create(path)
-
-	extension, err := fsm.LoadExtension(path)
-	if err != nil {
-		log.Println("Using bot without extensions.")
-	}
-
-	clients := LoadClients(path)
-
-	var machines fsm.StoreFSM
-	// REDIS
-	if redisHost := os.Getenv("REDIS_HOST"); redisHost != "" {
-		machines = &fsm.RedisStoreFSM{R: fsm.RDB}
-		log.Println("Registered RedisStoreFSM")
-	} else {
-		machines = &fsm.CacheStoreFSM{}
-		log.Println("Registered CacheStoreFSM")
-	}
-
-	bot := Bot{machines, domain, classifier, extension, clients}
+	bot := LoadBot(path)
 
 	// log.Println("\n" + LOGO)
 	log.Println("Server started")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/endpoints/rest", bot.restEndpointHandler)
-	r.HandleFunc("/endpoints/telegram", bot.telegramEndpointHandler)
-	r.HandleFunc("/endpoints/twilio", bot.twilioEndpointHandler)
-	r.HandleFunc("/predict", bot.predictHandler)
-	r.HandleFunc("/senders/{sender}", bot.detailsHandler)
+	r.HandleFunc("/endpoints/rest", bot.restEndpointHandler).Methods("POST")
+	r.HandleFunc("/endpoints/telegram", bot.telegramEndpointHandler).Methods("POST")
+	r.HandleFunc("/endpoints/twilio", bot.twilioEndpointHandler).Methods("POST")
+	r.HandleFunc("/predict", bot.predictHandler).Methods("POST")
+	r.HandleFunc("/senders/{sender}", bot.detailsHandler).Methods("GET")
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", chattoPort), r))
 }
