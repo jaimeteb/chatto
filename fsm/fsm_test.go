@@ -31,10 +31,10 @@ func TestFSM(t *testing.T) {
 	}
 
 	machine := FSM{State: 0}
-	extension, err := LoadExtension(&path)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+	extension := LoadExtensions(&path)
+	// if err != nil {
+	// 	t.Errorf(err.Error())
+	// }
 
 	resp1 := machine.ExecuteCmd("turn_on", "turn_on", domain, extension)
 	if resp1 != "Turning on." {
@@ -137,7 +137,7 @@ func TestExt(t *testing.T) {
 		"ext_any": greetFunc,
 	}
 
-	listener := &Listener{ExtensionMap: myExtMap}
+	listener := &ListenerRPC{ExtensionMap: myExtMap}
 
 	req1 := &Request{
 		FSM: &FSM{

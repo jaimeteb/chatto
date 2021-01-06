@@ -1,0 +1,10 @@
+# name: "trivia_bot"
+extensions:
+  type: REST
+  # host: localhost
+  # port: 8770
+  url: http://localhost:8770
+# store:
+#   type: REDIS
+#   host: 
+#   password: 

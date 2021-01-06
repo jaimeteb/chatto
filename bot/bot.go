@@ -98,8 +98,8 @@ func LoadBot(path *string) Bot {
 	classifier := clf.Create(path)
 
 	// Load Extensions
-	extension, err := fsm.LoadExtension(path)
-	if err != nil {
+	extension := fsm.LoadExtensions(path)
+	if extension == nil {
 		log.Println("Using bot without extensions.")
 	}
 

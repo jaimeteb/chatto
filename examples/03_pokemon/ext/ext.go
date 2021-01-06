@@ -54,7 +54,7 @@ var myExtMap = fsm.ExtensionMap{
 }
 
 func main() {
-	if err := fsm.ServeExtension(myExtMap); err != nil {
+	if err := fsm.ServeExtensionRPC(myExtMap); err != nil {
 		log.Fatalln(err)
 	}
 }

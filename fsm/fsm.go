@@ -2,7 +2,6 @@ package fsm
 
 import (
 	"log"
-	"net/rpc"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -50,7 +49,6 @@ type Domain struct {
 type DomainNoFuncs struct {
 	StateTable      map[string]int
 	CommandList     []string
-	SlotTable       map[CmdStateTuple]Slot
 	DefaultMessages map[string]interface{}
 }
 
@@ -75,7 +73,6 @@ func (d *Domain) NoFuncs() *DomainNoFuncs {
 	return &DomainNoFuncs{
 		StateTable:      d.StateTable,
 		CommandList:     d.CommandList,
-		SlotTable:       d.SlotTable,
 		DefaultMessages: d.DefaultMessages,
 	}
 }
@@ -130,32 +127,13 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 		switch r := response.(type) {
 		case string:
 			if strings.HasPrefix(r, "ext_") {
-				response = RunExtFunc(r, txt, dom, m, ext)
+				response = ext.RunExtFunc(r, txt, dom, m)
 			}
 		}
 	}
 
 	log.Printf("FSM | transitioned %v -> %v\n", previousState, m.State)
 	return
-}
-
-// RunExtFunc gets an extension function and executes it
-func RunExtFunc(extName, text string, dom Domain, m *FSM, client *rpc.Client) string {
-	req := Request{
-		FSM: m,
-		Req: extName,
-		Txt: text,
-		Dom: dom.NoFuncs(),
-	}
-	res := Response{}
-	err := client.Call("Listener.GetFunc", &req, &res)
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-
-	*m = *res.FSM
-	return res.Res
 }
 
 // Load loads configuration from yaml
