@@ -15,3 +15,8 @@ classification:
       - "stop"  
       - "end the quiz"  
       - "end trivia"  
+
+pipeline:
+  remove_symbols: false
+  lower: true
+  threshold: 0.1

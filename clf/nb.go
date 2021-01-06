@@ -10,6 +10,7 @@ import (
 // Classification models a classification yaml file
 type Classification struct {
 	Classification []TrainingTexts `yaml:"classification"`
+	Pipeline       PipelineConfig  `yaml:"pipeline"`
 }
 
 // TrainingTexts models texts used for training the classifier
@@ -68,7 +69,8 @@ func Create(path *string) Classifier {
 	}
 
 	classifier := bayesian.NewClassifier(classes...)
-	pipeline := LoadPipeline(path)
+	pipeline := classification.Pipeline
+
 	log.Println("Pipeline:")
 	log.Printf("* RemoveSymbols: \t%v\n", pipeline.RemoveSymbols)
 	log.Printf("* Lower: \t\t%v\n", pipeline.Lower)
