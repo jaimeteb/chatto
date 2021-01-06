@@ -22,7 +22,12 @@ func LoadPipeline(path *string) PipelineConfig {
 	config.AddConfigPath(*path)
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Println(err)
+		switch err.(type) {
+		case viper.ConfigFileNotFoundError:
+			log.Println("No Pipeline configuration file found, using default")
+		default:
+			log.Println(err)
+		}
 		return PipelineConfig{true, true, 0.3}
 	}
 

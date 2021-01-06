@@ -41,10 +41,10 @@ func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	switch r := resp.(type) {
 	case []interface{}:
 		for _, text := range r {
-			ans = append(ans, Message{Sender: "botto", Text: text.(string)})
+			ans = append(ans, Message{Sender: b.Name, Text: text.(string)})
 		}
 	case interface{}:
-		ans = append(ans, Message{Sender: "botto", Text: r.(string)})
+		ans = append(ans, Message{Sender: b.Name, Text: r.(string)})
 	default:
 		errMsg := fmt.Sprintf("Message type unsupported: %T", r)
 		http.Error(w, errors.New(errMsg).Error(), http.StatusInternalServerError)

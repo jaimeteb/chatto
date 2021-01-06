@@ -2,10 +2,11 @@ package bot
 
 import (
 	"log"
-	"os"
+	"strings"
 
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/spf13/viper"
 )
 
 // Message models and incoming/outgoing message
@@ -55,7 +56,7 @@ type TwilioMessageIn struct {
 
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
-	// Machines   map[string]*fsm.FSM
+	Name       string
 	Machines   fsm.StoreFSM
 	Domain     fsm.Domain
 	Classifier clf.Classifier
@@ -68,6 +69,13 @@ type Prediction struct {
 	Original    string  `json:"original"`
 	Predicted   string  `json:"predicted"`
 	Probability float64 `json:"probability"`
+}
+
+// Config struct models the bot.yml configuration file
+type Config struct {
+	Name       string               `mapstructure:"bot_name"`
+	Extensions fsm.ExtensionsConfig `mapstructure:"extensions"`
+	Store      fsm.StoreConfig      `mapstructure:"store"`
 }
 
 // Answer takes a user input and executes a transition on the FSM if possible
@@ -92,31 +100,57 @@ func (b Bot) Answer(mess Message) interface{} {
 	return resp
 }
 
+// LoadBotConfig loads bot configuration from bot.yml
+func LoadBotConfig(path *string) Config {
+	config := viper.New()
+	config.SetConfigName("bot")
+	config.AddConfigPath(*path)
+	config.AutomaticEnv()
+	replacer := strings.NewReplacer(".", "_")
+	config.SetEnvKeyReplacer(replacer)
+
+	if err := config.ReadInConfig(); err != nil {
+		log.Println(err)
+		return Config{}
+	}
+
+	var bc Config
+	if err := config.Unmarshal(&bc); err != nil {
+		log.Println(err)
+		return Config{}
+	}
+
+	return bc
+}
+
+// LoadName loads the bot name from the configuration file
+func LoadName(bcName string) (name string) {
+	name = "botto"
+	if bcName != "" {
+		name = bcName
+	}
+	log.Printf("My name is '%v'\n", name)
+	return
+}
+
 // LoadBot loads all configurations and returns a Bot
 func LoadBot(path *string) Bot {
+	bc := LoadBotConfig(path)
+
+	// Load Name
+	name := LoadName(bc.Name)
+	// Load Domain
 	domain := fsm.Create(path)
+	// Load Classifier
 	classifier := clf.Create(path)
-
 	// Load Extensions
-	extension := fsm.LoadExtensions(path)
-	if extension == nil {
-		log.Println("Using bot without extensions.")
-	}
-
+	extension := fsm.LoadExtensions(bc.Extensions)
 	// Load clients
 	clients := LoadClients(path)
+	// Load Store
+	machines := fsm.LoadStore(bc.Store)
 
-	var machines fsm.StoreFSM
-	// REDIS
-	if redisHost := os.Getenv("REDIS_HOST"); redisHost != "" {
-		machines = &fsm.RedisStoreFSM{R: fsm.RDB}
-		log.Println("Registered RedisStoreFSM")
-	} else {
-		machines = &fsm.CacheStoreFSM{}
-		log.Println("Registered CacheStoreFSM")
-	}
-
-	return Bot{machines, domain, classifier, extension, clients}
+	return Bot{name, machines, domain, classifier, extension, clients}
 }
 
 // LOGO for Chatto

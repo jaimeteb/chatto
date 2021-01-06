@@ -4,20 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 
-	"github.com/go-redis/redis/v8"
+	redis "github.com/go-redis/redis/v8"
 )
 
 var ctx = context.Background()
 
-// RDB is the Redis client to be used in the chatbot
-var RDB = redis.NewClient(&redis.Options{
-	Addr:     fmt.Sprintf("%v:6379", os.Getenv("REDIS_HOST")),
-	Password: os.Getenv("REDIS_PASS"),
-	DB:       0,
-})
+// StoreConfig struct models a Store configuration in bot.yml
+type StoreConfig struct {
+	Type     string `mapstructure:"type"`
+	Host     string `mapstructure:"host"`
+	Password string `mapstructure:"password"`
+}
 
 // StoreFSM interface for FSM Store modes
 type StoreFSM interface {
@@ -97,4 +96,28 @@ func (s *RedisStoreFSM) Set(user string, m *FSM) {
 			log.Println("Error setting slots:", err)
 		}
 	}
+}
+
+// LoadStore loads a Store according to the configuration
+func LoadStore(sc StoreConfig) StoreFSM {
+	var machines StoreFSM
+	switch sc.Type {
+	case "REDIS":
+		RDB := redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%v:6379", sc.Host),
+			Password: sc.Password,
+			DB:       0,
+		})
+		if _, err := RDB.Ping(context.Background()).Result(); err != nil {
+			machines = &CacheStoreFSM{}
+			log.Println("Couldn't connect to Redis, using CacheStoreFSM instead")
+		} else {
+			machines = &RedisStoreFSM{R: RDB}
+			log.Println("Registered RedisStoreFSM")
+		}
+	default:
+		machines = &CacheStoreFSM{}
+		log.Println("Registered CacheStoreFSM")
+	}
+	return machines
 }

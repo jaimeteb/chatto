@@ -7,14 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
-
-	"github.com/spf13/viper"
 )
-
-// BotConfig struct models the bot.yml configuration file
-type BotConfig struct {
-	Extensions ExtensionsConfig `mapstructure:"extensions"`
-}
 
 // ExtensionsConfig struct models the extensions object in BotConfig
 type ExtensionsConfig struct {
@@ -124,42 +117,31 @@ func (e *ExtensionREST) GetAllFuncs() []string {
 }
 
 // LoadExtensions loads the extensions configuration and connects to the server
-func LoadExtensions(path *string) Extension {
-	config := viper.New()
-	config.SetConfigName("bot")
-	config.AddConfigPath(*path)
+func LoadExtensions(botCfg ExtensionsConfig) (extension Extension) {
+	extension = nil
 
-	if err := config.ReadInConfig(); err != nil {
-		log.Println(err)
-		return nil
-	}
-
-	var botCfg BotConfig
-	if err := config.Unmarshal(&botCfg); err != nil {
-		log.Println(err)
-		return nil
-	}
-
-	switch botCfg.Extensions.Type {
+	switch botCfg.Type {
 	case "RPC":
-		client, err := rpc.Dial("tcp", fmt.Sprintf("%v:%v", botCfg.Extensions.Host, botCfg.Extensions.Port))
+		client, err := rpc.Dial("tcp", fmt.Sprintf("%v:%v", botCfg.Host, botCfg.Port))
 		if err != nil {
-			return nil
+			break
 		}
 		ext := ExtensionRPC{client}
-		log.Println("Loaded extensions:")
+		log.Println("Loaded extensions (RPC):")
 		for i, fun := range ext.GetAllFuncs() {
 			log.Printf("%v\t%v\n", i, fun)
 		}
-		return &ext
+		extension = &ext
 	case "REST":
-		ext := ExtensionREST{botCfg.Extensions.URL}
-		log.Println("Loaded extensions:")
+		ext := ExtensionREST{botCfg.URL}
+		log.Println("Loaded extensions (REST):")
 		for i, fun := range ext.GetAllFuncs() {
 			log.Printf("%v\t%v\n", i, fun)
 		}
-		return &ext
-	default:
-		return nil
+		extension = &ext
 	}
+	if extension == nil {
+		log.Println("Using bot without extensions.")
+	}
+	return
 }

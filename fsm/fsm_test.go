@@ -31,7 +31,7 @@ func TestFSM(t *testing.T) {
 	}
 
 	machine := FSM{State: 0}
-	extension := LoadExtensions(&path)
+	extension := LoadExtensions(ExtensionsConfig{})
 	// if err != nil {
 	// 	t.Errorf(err.Error())
 	// }
