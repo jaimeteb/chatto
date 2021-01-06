@@ -3,13 +3,15 @@ classification:
     texts:
       - "turn on"
       - "on"
-
   - command: "turn_off"
     texts:
       - "turn off"
       - "off"
-
   - command: "hello_universe"
     texts:
       - "hello"
       - "universe"
+pipeline:
+  remove_symbols: true
+  lower: true
+  threshold: 0.1

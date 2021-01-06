@@ -137,6 +137,7 @@ func ServeExtensionRPC(extMap ExtensionMap) error {
 // ServeExtensionREST serves the registered extension functions as a REST API
 func ServeExtensionREST(extMap ExtensionMap) error {
 	port := flag.Int("port", 8770, "Port to run extension server on")
+	flag.Parse()
 
 	l := ListenerREST{ExtensionMap: extMap}
 

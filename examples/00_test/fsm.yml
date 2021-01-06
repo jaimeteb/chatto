@@ -26,3 +26,4 @@ functions:
 defaults:
   unknown: "Can't do that."
   unsure: "???"
+  error: "Error"

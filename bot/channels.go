@@ -46,7 +46,12 @@ func LoadClients(path *string) map[string]interface{} {
 	clients := make(map[string]interface{})
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Warn(err)
+		switch err.(type) {
+		case viper.ConfigFileNotFoundError:
+			log.Warn("File chn.yml not found, skipping channels")
+		default:
+			log.Warn(err)
+		}
 		return clients
 	}
 

@@ -1,0 +1,8 @@
+bot_name: "test_bot"
+extensions:
+  type: REST
+  url: http://localhost:8888
+store:
+  type: REDIS
+  host: localhost
+  password: pass
