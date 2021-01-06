@@ -1,8 +1,9 @@
 package bot
 
 import (
-	"log"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/kevinburke/twilio-go"
 	"github.com/kimrgrey/go-telegram"
@@ -45,13 +46,13 @@ func LoadClients(path *string) map[string]interface{} {
 	clients := make(map[string]interface{})
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Println(err)
+		log.Warn(err)
 		return clients
 	}
 
 	var end Clients
 	if err := config.Unmarshal(&end); err != nil {
-		log.Println(err)
+		log.Warn(err)
 		return clients
 	}
 
@@ -59,14 +60,14 @@ func LoadClients(path *string) map[string]interface{} {
 	if end.Telegram != (TelegramConfig{}) {
 		telegramClient := telegram.NewClient(end.Telegram.BotKey)
 		clients["telegram"] = telegramClient
-		log.Printf("Added Telegram client: %v\n", telegramClient.GetMe())
+		log.Info("Added Telegram client: %v\n", telegramClient.GetMe())
 	}
 
 	// TWILIO
 	if end.Twilio != (TwilioConfig{}) {
 		twilioClient := twilio.NewClient(end.Twilio.AccountSid, end.Twilio.AuthToken, nil)
 		clients["twilio"] = Twilio{twilioClient, end.Twilio.Number}
-		log.Printf("Added Twilio client: %v\n", twilioClient.AccountSid)
+		log.Info("Added Twilio client: %v\n", twilioClient.AccountSid)
 	}
 
 	return clients

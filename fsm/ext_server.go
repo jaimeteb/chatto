@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/rpc"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 )
@@ -51,8 +52,8 @@ func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
 	res.FSM = extRes.FSM
 	res.Res = extRes.Res
 
-	log.Printf("Request:\t%v,\t%v", req.FSM, req.Req)
-	log.Printf("Response:\t%v,\t%v", *res.FSM, res.Res)
+	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Req)
+	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Res)
 	return nil
 }
 
@@ -63,7 +64,7 @@ func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error 
 		allFuncs = append(allFuncs, funcName)
 	}
 	res.Res = allFuncs
-	log.Println(res)
+	log.Debug(res)
 	return nil
 }
 
@@ -79,8 +80,8 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 
 	res := l.ExtensionMap[req.Req](&req)
 
-	log.Printf("Request:\t%v,\t%v", req.FSM, req.Req)
-	log.Printf("Response:\t%v,\t%v", *res.FSM, res.Res)
+	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Req)
+	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Res)
 
 	js, err := json.Marshal(res)
 	if err != nil {
@@ -117,17 +118,17 @@ func ServeExtensionRPC(extMap ExtensionMap) error {
 
 	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", *host, *port))
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return err
 	}
 
 	inbound, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return err
 	}
 
-	log.Printf("RPC extension server started. Using port %v\n", *port)
+	log.Infof("RPC extension server started. Using port %v\n", *port)
 	rpc.Register(&ListenerRPC{ExtensionMap: extMap})
 	rpc.Accept(inbound)
 	return nil
@@ -143,7 +144,7 @@ func ServeExtensionREST(extMap ExtensionMap) error {
 	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")
 	r.HandleFunc("/ext/get_all_funcs", l.GetAllFuncs).Methods("GET")
 
-	log.Printf("REST extension server started. Using port %v\n", *port)
+	log.Infof("REST extension server started. Using port %v\n", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
 	return nil
 }

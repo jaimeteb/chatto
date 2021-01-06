@@ -5,11 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var localEndpoint = fmt.Sprintf("http://localhost:%v/endpoints/rest", chattoPort)
@@ -24,14 +25,14 @@ func SendAndReceive(mess *Message) *[]Message {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err.Error())
+		log.Warn(err.Error())
 		return &[]Message{}
 	}
 	defer resp.Body.Close()
 
 	ans := &[]Message{}
 	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
-		log.Println(err.Error())
+		log.Warn(err.Error())
 		return &[]Message{}
 	}
 	return ans
@@ -43,16 +44,16 @@ func CLI() {
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("you:\t| ")
+		log.Info("you:\t| ")
 		cmd, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println(err)
+			log.Error(err)
 		}
 
 		// resp := bot.Answer(Message{"cli", strings.TrimSuffix(cmd, "\n")})
 		respMess := SendAndReceive(&Message{"cli", strings.TrimSuffix(cmd, "\n")})
 		for _, msg := range *respMess {
-			fmt.Printf("botto:\t| %v\n", msg.Text)
+			log.Info("botto:\t| %v\n", msg.Text)
 		}
 	}
 }

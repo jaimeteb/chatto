@@ -1,13 +1,33 @@
 package bot
 
 import (
-	"log"
+	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/spf13/viper"
 )
+
+func init() {
+	lvl := os.Getenv("LOG_LEVEL")
+	switch lvl {
+	case "DEBUG":
+		log.SetLevel(log.DebugLevel)
+	case "INFO":
+		log.SetLevel(log.InfoLevel)
+	case "WARN":
+		log.SetLevel(log.WarnLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
+	log.SetFormatter(&log.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+		FullTimestamp:   true,
+	})
+}
 
 // Message models and incoming/outgoing message
 type Message struct {
@@ -110,13 +130,13 @@ func LoadBotConfig(path *string) Config {
 	config.SetEnvKeyReplacer(replacer)
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Println(err)
+		log.Warn(err)
 		return Config{}
 	}
 
 	var bc Config
 	if err := config.Unmarshal(&bc); err != nil {
-		log.Println(err)
+		log.Warn(err)
 		return Config{}
 	}
 
@@ -129,7 +149,7 @@ func LoadName(bcName string) (name string) {
 	if bcName != "" {
 		name = bcName
 	}
-	log.Printf("My name is '%v'\n", name)
+	log.Infof("My name is '%v'\n", name)
 	return
 }
 

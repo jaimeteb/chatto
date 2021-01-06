@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/rpc"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ExtensionsConfig struct models the extensions object in BotConfig
@@ -45,7 +46,7 @@ func (e *ExtensionRPC) RunExtFunc(extName, text string, dom Domain, m *FSM) inte
 	res := Response{}
 	err := (*e).Client.Call("ListenerRPC.GetFunc", &req, &res)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return ""
 	}
 
@@ -57,7 +58,7 @@ func (e *ExtensionRPC) RunExtFunc(extName, text string, dom Domain, m *FSM) inte
 func (e *ExtensionRPC) GetAllFuncs() []string {
 	res := new(GetAllFuncsResponse)
 	if err := e.Client.Call("ListenerRPC.GetAllFuncs", new(Request), &res); err != nil {
-		log.Println(err)
+		log.Error(err)
 		return make([]string, 0)
 	}
 	return res.Res
@@ -74,7 +75,7 @@ func (e *ExtensionREST) RunExtFunc(extName, text string, dom Domain, m *FSM) int
 
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return ""
 	}
 
@@ -83,14 +84,14 @@ func (e *ExtensionREST) RunExtFunc(extName, text string, dom Domain, m *FSM) int
 
 	resp, err := http.Post(fmt.Sprintf("%v/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return ""
 	}
 
 	defer resp.Body.Close()
 	res := Response{}
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		log.Println(err)
+		log.Error(err)
 		return ""
 	}
 
@@ -102,14 +103,14 @@ func (e *ExtensionREST) RunExtFunc(extName, text string, dom Domain, m *FSM) int
 func (e *ExtensionREST) GetAllFuncs() []string {
 	resp, err := http.Get(fmt.Sprintf("%v/ext/get_all_funcs", e.URL))
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 		return make([]string, 0)
 	}
 
 	defer resp.Body.Close()
 	var res []string
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		log.Println(err)
+		log.Error(err)
 		return make([]string, 0)
 	}
 
@@ -127,21 +128,21 @@ func LoadExtensions(botCfg ExtensionsConfig) (extension Extension) {
 			break
 		}
 		ext := ExtensionRPC{client}
-		log.Println("Loaded extensions (RPC):")
+		log.Info("Loaded extensions (RPC):")
 		for i, fun := range ext.GetAllFuncs() {
-			log.Printf("%v\t%v\n", i, fun)
+			log.Infof("%v\t%v\n", i, fun)
 		}
 		extension = &ext
 	case "REST":
 		ext := ExtensionREST{botCfg.URL}
-		log.Println("Loaded extensions (REST):")
+		log.Info("Loaded extensions (REST):")
 		for i, fun := range ext.GetAllFuncs() {
-			log.Printf("%v\t%v\n", i, fun)
+			log.Infof("%v\t%v\n", i, fun)
 		}
 		extension = &ext
 	}
 	if extension == nil {
-		log.Println("Using bot without extensions.")
+		log.Info("Using bot without extensions.")
 	}
 	return
 }

@@ -1,11 +1,31 @@
 package fsm
 
 import (
-	"log"
+	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/viper"
 )
+
+func init() {
+	lvl := os.Getenv("LOG_LEVEL")
+	switch lvl {
+	case "DEBUG":
+		log.SetLevel(log.DebugLevel)
+	case "INFO":
+		log.SetLevel(log.InfoLevel)
+	case "WARN":
+		log.SetLevel(log.WarnLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
+	log.SetFormatter(&log.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+		FullTimestamp:   true,
+	})
+}
 
 // Config models the yaml configuration
 type Config struct {
@@ -132,7 +152,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 		}
 	}
 
-	log.Printf("FSM | transitioned %v -> %v\n", previousState, m.State)
+	log.Debugf("FSM | transitioned %v -> %v\n", previousState, m.State)
 	return
 }
 
@@ -143,12 +163,12 @@ func Load(path *string) Config {
 	config.AddConfigPath(*path)
 
 	if err := config.ReadInConfig(); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	var botConfig Config
 	if err := config.Unmarshal(&botConfig); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	return botConfig
@@ -187,9 +207,9 @@ func Create(path *string) Domain {
 	domain.DefaultMessages = config.Defaults
 	domain.SlotTable = slotTable
 
-	log.Println("Loaded states:")
+	log.Info("Loaded states:")
 	for state, i := range stateTable {
-		log.Printf("%v\t%v\n", i, state)
+		log.Infof("%v\t%v\n", i, state)
 	}
 
 	return domain

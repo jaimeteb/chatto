@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/ajg/form"
 	"github.com/gorilla/mux"
@@ -71,7 +72,7 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(telegramMess)
+	log.Debug(telegramMess)
 	sender := strconv.Itoa(telegramMess.Message.From.ID)
 	mess := Message{
 		Sender: sender,
@@ -91,7 +92,7 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 		telegramClient := b.Clients["telegram"].(*telegram.Client)
 		apiResp := new(interface{})
 		telegramClient.Call("SendMessage", respValues, apiResp)
-		log.Println(*apiResp)
+		log.Debug(*apiResp)
 	}
 
 	switch r := resp.(type) {
@@ -113,11 +114,11 @@ func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	var twilioMessage TwilioMessageIn
 	if err := decoder.Decode(&twilioMessage); err != nil {
 		http.Error(w, "Form could not be decoded", http.StatusBadRequest)
-		log.Println(err.Error())
+		log.Error(err.Error())
 		return
 	}
 
-	log.Println(twilioMessage)
+	log.Debug(twilioMessage)
 	sender := twilioMessage.From
 	text := twilioMessage.Body
 	mess := Message{
@@ -130,7 +131,7 @@ func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	send := func(s, t string) {
 		twilio := b.Clients["twilio"].(Twilio)
 		msg, err := twilio.Client.Messages.SendMessage(twilio.Number, s, t, nil) // TODO
-		log.Println(msg, err)
+		log.Debug(msg, err)
 	}
 
 	switch r := resp.(type) {
@@ -190,7 +191,7 @@ func ServeBot(path *string) {
 	bot := LoadBot(path)
 
 	// log.Println("\n" + LOGO)
-	log.Println("Server started")
+	log.Info("Server started")
 
 	r := mux.NewRouter()
 	r.HandleFunc("/endpoints/rest", bot.restEndpointHandler).Methods("POST")

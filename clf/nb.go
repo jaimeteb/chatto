@@ -1,7 +1,7 @@
 package clf
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/navossoc/bayesian"
 	"github.com/spf13/viper"
@@ -32,7 +32,7 @@ func (c *Classifier) Predict(text string) (string, float64) {
 	class := string(c.Classes[likely])
 	prob := probs[likely]
 
-	log.Printf("CLF\t| \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)
+	log.Debugf("CLF | \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)
 	if prob < c.Pipeline.Threshold {
 		return "", -1.0
 	}
@@ -47,12 +47,12 @@ func Load(path *string) Classification {
 	config.AddConfigPath(*path)
 
 	if err := config.ReadInConfig(); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	var botClassif Classification
 	if err := config.Unmarshal(&botClassif); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	return botClassif
@@ -71,10 +71,10 @@ func Create(path *string) Classifier {
 	classifier := bayesian.NewClassifier(classes...)
 	pipeline := classification.Pipeline
 
-	log.Println("Pipeline:")
-	log.Printf("* RemoveSymbols: \t%v\n", pipeline.RemoveSymbols)
-	log.Printf("* Lower: \t\t%v\n", pipeline.Lower)
-	log.Printf("* Threshold: \t%v\n", pipeline.Threshold)
+	log.Info("Pipeline:")
+	log.Infof("* RemoveSymbols: \t%v\n", pipeline.RemoveSymbols)
+	log.Infof("* Lower: \t\t%v\n", pipeline.Lower)
+	log.Infof("* Threshold: \t%v\n", pipeline.Threshold)
 
 	for _, cls := range classification.Classification {
 		for _, txt := range cls.Texts {
@@ -86,7 +86,7 @@ func Create(path *string) Classifier {
 
 	log.Println("Loaded commands for classifier:")
 	for i, c := range classes {
-		log.Printf("%v\t%v\n", i, c)
+		log.Infof("%v\t%v\n", i, c)
 	}
 
 	return Classifier{*classifier, classes, pipeline}

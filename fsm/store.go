@@ -3,8 +3,9 @@ package fsm
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	redis "github.com/go-redis/redis/v8"
 )
@@ -59,17 +60,17 @@ func (s *RedisStoreFSM) Get(user string) *FSM {
 
 	state, err := s.R.Get(ctx, user+":state").Result()
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	i, err := strconv.Atoi(state)
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	m.State = i
 
 	slots, err := s.R.HGetAll(ctx, user+":slots").Result()
 	if err != nil {
-		log.Println(err)
+		log.Error(err)
 	}
 	m.Slots = slots
 
@@ -84,7 +85,7 @@ func (s *CacheStoreFSM) Set(user string, m *FSM) {
 // Set method for RedisStoreFSM
 func (s *RedisStoreFSM) Set(user string, m *FSM) {
 	if err := s.R.Set(ctx, user+":state", m.State, 0).Err(); err != nil {
-		log.Println("Error setting state:", err)
+		log.Error("Error setting state:", err)
 	}
 	if len(m.Slots) > 0 {
 		kvs := make([]string, 0)
@@ -93,7 +94,7 @@ func (s *RedisStoreFSM) Set(user string, m *FSM) {
 		}
 
 		if err := s.R.HSet(ctx, user+":slots", kvs).Err(); err != nil {
-			log.Println("Error setting slots:", err)
+			log.Error("Error setting slots:", err)
 		}
 	}
 }
@@ -110,14 +111,14 @@ func LoadStore(sc StoreConfig) StoreFSM {
 		})
 		if _, err := RDB.Ping(context.Background()).Result(); err != nil {
 			machines = &CacheStoreFSM{}
-			log.Println("Couldn't connect to Redis, using CacheStoreFSM instead")
+			log.Warn("Couldn't connect to Redis, using CacheStoreFSM instead")
 		} else {
 			machines = &RedisStoreFSM{R: RDB}
-			log.Println("Registered RedisStoreFSM")
+			log.Info("Registered RedisStoreFSM")
 		}
 	default:
 		machines = &CacheStoreFSM{}
-		log.Println("Registered CacheStoreFSM")
+		log.Info("Registered CacheStoreFSM")
 	}
 	return machines
 }
