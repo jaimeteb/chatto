@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -15,15 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/kimrgrey/go-telegram"
 )
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
-
-var chattoPort = getEnv("CHATTO_PORT", "4770")
 
 func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
@@ -187,10 +177,10 @@ func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeBot function
-func ServeBot(path *string) {
+func ServeBot(path *string, port *int) {
 	bot := LoadBot(path)
 
-	// log.Println("\n" + LOGO)
+	// log.Info("\n" + LOGO)
 	log.Info("Server started")
 
 	r := mux.NewRouter()
@@ -199,5 +189,5 @@ func ServeBot(path *string) {
 	r.HandleFunc("/endpoints/twilio", bot.twilioEndpointHandler).Methods("POST")
 	r.HandleFunc("/predict", bot.predictHandler).Methods("POST")
 	r.HandleFunc("/senders/{sender}", bot.detailsHandler).Methods("GET")
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", chattoPort), r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
 }

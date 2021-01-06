@@ -8,11 +8,12 @@ import (
 
 func main() {
 	cli := flag.Bool("cli", false, "Run in CLI mode.")
+	port := flag.Int("port", 4770, "Specify port to use.")
 	path := flag.String("path", ".", "Path to YAML files.")
 	flag.Parse()
 
 	if *cli {
-		go bot.CLI()
+		go bot.CLI(port)
 	}
-	bot.ServeBot(path)
+	bot.ServeBot(path, port)
 }

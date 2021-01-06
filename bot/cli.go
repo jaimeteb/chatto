@@ -13,13 +13,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var localEndpoint = fmt.Sprintf("http://localhost:%v/endpoints/rest", chattoPort)
-
 // SendAndReceive send a message to localhost endpoint and receives an answer
-func SendAndReceive(mess *Message) *[]Message {
+func SendAndReceive(mess *Message, url string) *[]Message {
 	jsonMess, _ := json.Marshal(mess)
 
-	req, err := http.NewRequest("POST", localEndpoint, bytes.NewBuffer(jsonMess))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMess))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -39,8 +37,10 @@ func SendAndReceive(mess *Message) *[]Message {
 }
 
 // CLI runs a bot in a command line interface
-func CLI() {
+func CLI(port *int) {
 	time.Sleep(time.Second * 10)
+
+	localEndpoint := fmt.Sprintf("http://localhost:%v/endpoints/rest", *port)
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -50,10 +50,9 @@ func CLI() {
 			log.Error(err)
 		}
 
-		// resp := bot.Answer(Message{"cli", strings.TrimSuffix(cmd, "\n")})
-		respMess := SendAndReceive(&Message{"cli", strings.TrimSuffix(cmd, "\n")})
+		respMess := SendAndReceive(&Message{"cli", strings.TrimSuffix(cmd, "\n")}, localEndpoint)
 		for _, msg := range *respMess {
-			log.Info("botto:\t| %v\n", msg.Text)
+			log.Infof("botto:\t| %v\n", msg.Text)
 		}
 	}
 }
