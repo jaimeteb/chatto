@@ -29,10 +29,10 @@ func init() {
 
 // Config models the yaml configuration
 type Config struct {
-	States    []string               `yaml:"states"`
-	Commands  []string               `yaml:"commands"`
-	Functions []Function             `yaml:"functions"`
-	Defaults  map[string]interface{} `yaml:"defaults"`
+	States    []string   `yaml:"states"`
+	Commands  []string   `yaml:"commands"`
+	Functions []Function `yaml:"functions"`
+	Defaults  Defaults   `yaml:"defaults"`
 }
 
 // Function models a function in yaml
@@ -55,13 +55,20 @@ type Slot struct {
 	Mode string `yaml:"mode"`
 }
 
+// Defaults models the domain's default messages
+type Defaults struct {
+	Unknown string `yaml:"unknown"`
+	Unsure  string `yaml:"unsure"`
+	Error   string `yaml:"error"`
+}
+
 // Domain models the final configuration of an FSM
 type Domain struct {
 	StateTable      map[string]int
 	CommandList     []string
 	TransitionTable map[CmdStateTuple]TransitionFunc
 	SlotTable       map[CmdStateTuple]Slot
-	DefaultMessages map[string]interface{}
+	DefaultMessages Defaults
 }
 
 // DomainNoFuncs models the final configuration of an FSM without functions
@@ -69,7 +76,7 @@ type Domain struct {
 type DomainNoFuncs struct {
 	StateTable      map[string]int
 	CommandList     []string
-	DefaultMessages map[string]interface{}
+	DefaultMessages Defaults
 }
 
 // CmdStateTuple is a tuple of Command and State
@@ -139,9 +146,9 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 	// log.Println(m.Slots)
 
 	if cmd == "" {
-		response = dom.DefaultMessages["unsure"] // Threshold not met
+		response = dom.DefaultMessages.Unsure // Threshold not met
 	} else if trans == nil {
-		response = dom.DefaultMessages["unknown"] // Unknown transition
+		response = dom.DefaultMessages.Unknown // Unknown transition
 	} else {
 		response = trans(m)
 		switch r := response.(type) {

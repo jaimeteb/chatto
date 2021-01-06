@@ -56,3 +56,4 @@ functions:
 defaults:
   unknown: "Not sure I understood, try again please."
   unsure: "Not sure I understood, try again please."
+  error: "I'm sorry, there was an error."

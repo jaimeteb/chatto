@@ -47,7 +47,7 @@ func (e *ExtensionRPC) RunExtFunc(extName, text string, dom Domain, m *FSM) inte
 	err := (*e).Client.Call("ListenerRPC.GetFunc", &req, &res)
 	if err != nil {
 		log.Error(err)
-		return ""
+		return dom.DefaultMessages.Error
 	}
 
 	*m = *res.FSM
@@ -76,7 +76,7 @@ func (e *ExtensionREST) RunExtFunc(extName, text string, dom Domain, m *FSM) int
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
 		log.Error(err)
-		return ""
+		return dom.DefaultMessages.Error
 	}
 
 	// TODO: if fail -> don't change states
@@ -85,14 +85,14 @@ func (e *ExtensionREST) RunExtFunc(extName, text string, dom Domain, m *FSM) int
 	resp, err := http.Post(fmt.Sprintf("%v/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		log.Error(err)
-		return ""
+		return dom.DefaultMessages.Error
 	}
 
 	defer resp.Body.Close()
 	res := Response{}
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		log.Error(err)
-		return ""
+		return dom.DefaultMessages.Error
 	}
 
 	*m = *res.FSM
