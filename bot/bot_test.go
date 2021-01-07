@@ -1,99 +1,87 @@
 package bot
 
 import (
-	"io/ioutil"
-	"os"
+	"bytes"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
-
-	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/fsm"
 )
 
-var fsmYaml = `
-states:
-  - "off"
-  - "on"
-commands:
-  - "turn_on"
-  - "turn_off"
-functions:
-  - tuple:
-      command: "turn_on"
-      state: "off"
-    transition: "on"
-    message: "Turning on."
-  - tuple:
-      command: "turn_off"
-      state: "on"
-    transition: "off"
-    message: "Turning off."
-defaults:
-  unknown: "Can't do that."
-  unsure: "???"
-`
+func TestBot1(t *testing.T) {
+	path := "../examples/00_test/"
 
-var clfYaml = `
-classification:
-  - command: "turn_on"
-    texts:
-      - "turn on"
-      - "on"
+	bot := LoadBot(&path)
+	if bot.Name != "test_bot" {
+		t.Errorf("bot name is incorrect, got: %v, want: %v.", bot.Name, "test_bot")
+	}
 
-  - command: "turn_off"
-    texts:
-      - "turn off"
-      - "off"
-`
+	ans := bot.Answer(Message{
+		Sender: "bar",
+		Text:   "on",
+	})
 
-func writeDummyFileClf() error {
-	clfFile := []byte(clfYaml)
-	return ioutil.WriteFile("clf.yml", clfFile, 0644)
+	if ans.(string) != "Turning on." {
+		t.Errorf("answer is incorrect, got: %v, want: %v.", ans.(string), "Turning on.")
+	}
 }
 
-func removeDummyFileClf() error {
-	return os.Remove("clf.yml")
+func TestBot2(t *testing.T) {
+	path := "../examples/00_test/"
+	bot := LoadBot(&path)
+
+	bot.Answer(Message{
+		Sender: "baz",
+		Text:   "on",
+	})
+
+	jsonStr := []byte(`{"sender": "42", "text": "on"}`)
+	req, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr))
+	w := httptest.NewRecorder()
+	bot.restEndpointHandler(w, req)
+
+	jsonStr2 := []byte(`{"update_id": 1, "message": {"message_id": 0, "from": {"id": 42, "first_name": "", "username": ""}, "date": 0, "text": "off"}}`)
+	req2, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr2))
+	w2 := httptest.NewRecorder()
+	bot.telegramEndpointHandler(w2, req2)
+
+	formData := url.Values{
+		"From":             {"42"},
+		"Body":             {"?"},
+		"To":               {""},
+		"MediaUrl":         {""},
+		"MediaContentType": {""},
+		"MessageSid":       {""},
+		"SmsStatus":        {""},
+		"AccountSid":       {""},
+		"Sid":              {""},
+		"SmsSid":           {""},
+		"SmsMessageSid":    {""},
+		"NumMedia":         {"0"},
+		"NumSegments":      {"0"},
+		"ApiVersion":       {""},
+	}
+	req3, _ := http.NewRequest("POST", "", strings.NewReader(formData.Encode()))
+	w3 := httptest.NewRecorder()
+	bot.twilioEndpointHandler(w3, req3)
+
+	req4, _ := http.NewRequest("GET", "/senders/42", nil)
+	w4 := httptest.NewRecorder()
+	bot.detailsHandler(w4, req4)
+
+	jsonStr5 := []byte(`{"text": "."}`)
+	req5, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr5))
+	w5 := httptest.NewRecorder()
+	bot.predictHandler(w5, req5)
+
 }
 
-func writeDummyFileFSM() error {
-	fsmFile := []byte(fsmYaml)
-	return ioutil.WriteFile("fsm.yml", fsmFile, 0644)
-}
+func TestBotNoClients(t *testing.T) {
+	path := "../examples/01_moodbot/"
 
-func removeDummyFileFSM() error {
-	return os.Remove("fsm.yml")
-}
-
-func TestBot(t *testing.T) {
-	if err := writeDummyFileClf(); err != nil {
-		t.Errorf(err.Error())
-	}
-	if err := writeDummyFileFSM(); err != nil {
-		t.Errorf(err.Error())
-	}
-
-	here := "."
-	bc := LoadBotConfig(&here)
-	domain := fsm.Create(&here)
-	classifier := clf.Create(&here)
-	extension := fsm.LoadExtensions(bc.Extensions)
-	machines := &fsm.CacheStoreFSM{}
-	endpoints := make(map[string]interface{})
-	bot := Bot{"botto", machines, domain, classifier, extension, endpoints}
-
-	resp1 := bot.Answer(Message{"foo", "on"})
-	if resp1 != "Turning on." {
-		t.Errorf("resp1 is incorrect, got: %v, want: %v.", resp1, "Turning on.")
-	}
-
-	resp2 := bot.Answer(Message{"foo", "on"})
-	if resp2 != "Can't do that." {
-		t.Errorf("resp2 is incorrect, got: %v, want: %v.", resp2, "Can't do that.")
-	}
-
-	if err := removeDummyFileClf(); err != nil {
-		t.Errorf(err.Error())
-	}
-	if err := removeDummyFileFSM(); err != nil {
-		t.Errorf(err.Error())
+	bot := LoadBot(&path)
+	if len(bot.Clients) != 0 {
+		t.Errorf("bot.Clients is incorrect, got: %v, want: %v.", len(bot.Clients), "0")
 	}
 }

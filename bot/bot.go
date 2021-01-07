@@ -135,10 +135,7 @@ func LoadBotConfig(path *string) Config {
 	}
 
 	var bc Config
-	if err := config.Unmarshal(&bc); err != nil {
-		log.Warn(err)
-		return Config{}
-	}
+	config.Unmarshal(&bc)
 
 	return bc
 }

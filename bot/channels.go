@@ -65,14 +65,14 @@ func LoadClients(path *string) map[string]interface{} {
 	if end.Telegram != (TelegramConfig{}) {
 		telegramClient := telegram.NewClient(end.Telegram.BotKey)
 		clients["telegram"] = telegramClient
-		log.Info("Added Telegram client: %v\n", telegramClient.GetMe())
+		log.Infof("Added Telegram client: %v\n", telegramClient.GetMe())
 	}
 
 	// TWILIO
 	if end.Twilio != (TwilioConfig{}) {
 		twilioClient := twilio.NewClient(end.Twilio.AccountSid, end.Twilio.AuthToken, nil)
 		clients["twilio"] = Twilio{twilioClient, end.Twilio.Number}
-		log.Info("Added Twilio client: %v\n", twilioClient.AccountSid)
+		log.Infof("Added Twilio client: %v\n", twilioClient.AccountSid)
 	}
 
 	return clients
