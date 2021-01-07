@@ -25,7 +25,7 @@ func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Println(mess.Sender, mess.Text)
+	// log.Info(mess.Sender, mess.Text)
 	resp := b.Answer(mess)
 
 	ans := make([]Message, 0)

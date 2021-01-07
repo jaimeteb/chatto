@@ -143,7 +143,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 			m.Slots[slot.Name] = txt
 		}
 	}
-	// log.Println(m.Slots)
+	// log.Info(m.Slots)
 
 	if cmd == "" {
 		response = dom.DefaultMessages.Unsure // Threshold not met

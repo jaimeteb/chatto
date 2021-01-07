@@ -73,7 +73,7 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req Request
 	if err := decoder.Decode(&req); err != nil {
-		// log.Println(err)
+		// log.Info(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
