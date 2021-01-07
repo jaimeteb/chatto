@@ -38,13 +38,13 @@ functions:
       from: "yes_should_it"
       into: "initial"
     command: "no"
-    message: "Use WD-40."
+    message: "Use duct tape."
 
   - transition:
       from: "no_should_it"
       into: "initial"
     command: "yes"
-    message: "Use duct tape."
+    message: "Use WD-40."
 
   - transition:
       from: "no_should_it"

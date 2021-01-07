@@ -130,7 +130,12 @@ func LoadBotConfig(path *string) Config {
 	config.SetEnvKeyReplacer(replacer)
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Warn(err)
+		switch err.(type) {
+		case viper.ConfigFileNotFoundError:
+			log.Warn("File bot.yml not found, using default values")
+		default:
+			log.Warn(err)
+		}
 		return Config{}
 	}
 

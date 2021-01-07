@@ -1,0 +1,4 @@
+extensions:
+  type: RPC
+  host: localhost
+  port: 8770
