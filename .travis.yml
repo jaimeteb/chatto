@@ -8,12 +8,13 @@ install:
 
 before_script:
   - sudo redis-server /etc/redis/redis.conf --port 6379 --requirepass 'pass'
-  - export REDIS_HOST=localhost
-  - export REDIS_PASS=pass
+  # - export REDIS_HOST=localhost
+  # - export REDIS_PASS=pass
 
 script:
  - go run examples/00_test/ext/ext.go &
- - go test ./fsm ./clf -cover -coverprofile=coverage.txt
+ - go run examples/03_pokemon/ext/ext.go -port 6770 &
+ - go test ./fsm ./clf ./bot -cover -coverprofile=coverage.txt
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
