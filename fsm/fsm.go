@@ -153,7 +153,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 		response = trans(m)
 		switch r := response.(type) {
 		case string:
-			if strings.HasPrefix(r, "ext_") {
+			if strings.HasPrefix(r, "ext_") && ext != nil {
 				response = ext.RunExtFunc(r, txt, dom, m)
 			}
 		}
