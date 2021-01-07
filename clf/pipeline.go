@@ -28,10 +28,7 @@ func Pipeline(text *string, pl *PipelineConfig) []string {
 
 // RemoveSymbols removes symbols from string
 func RemoveSymbols(text string) string {
-	re, err := regexp.Compile(`[^\w]`)
-	if err != nil {
-		return text
-	}
+	re, _ := regexp.Compile(`[^\w]`)
 	return re.ReplaceAllString(text, " ")
 }
 

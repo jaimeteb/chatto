@@ -14,4 +14,4 @@ classification:
 pipeline:
   remove_symbols: true
   lower: true
-  threshold: 0.1
+  threshold: 0.8

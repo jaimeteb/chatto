@@ -51,9 +51,7 @@ func Load(path *string) Classification {
 	}
 
 	var botClassif Classification
-	if err := config.Unmarshal(&botClassif); err != nil {
-		log.Panic(err)
-	}
+	config.Unmarshal(&botClassif)
 
 	return botClassif
 }
