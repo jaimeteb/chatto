@@ -15,7 +15,6 @@ services:
   ext:
     image: odise/busybox-curl # Busy box with certificates
     command: ext/ext
-    env_file: .env
     expose:
       - 8770
     volumes:
@@ -24,6 +23,6 @@ services:
   redis:
     image: bitnami/redis:6.0
     environment:
-      - REDIS_PASSWORD=pass
+      - REDIS_PASSWORD=${STORE_PASSWORD}
     expose:
       - 6379
