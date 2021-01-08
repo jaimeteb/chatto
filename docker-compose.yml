@@ -5,7 +5,7 @@ services:
     image: jaimeteb/chatto:${CHATTO_VERSION}
     env_file: .env
     ports:
-      - ${CHATTO_PORT}:${CHATTO_PORT}
+      - "4770:4770"
     volumes:
       - ${CHATTO_DATA}:/chatto/data
     depends_on:
@@ -16,14 +16,14 @@ services:
     image: odise/busybox-curl # Busy box with certificates
     command: ext/ext
     env_file: .env
-    ports:
-      - ${EXTENSION_PORT}:${EXTENSION_PORT}
+    expose:
+      - 8770
     volumes:
       - ${CHATTO_DATA}/ext:/ext
 
   redis:
     image: bitnami/redis:6.0
     environment:
-      - REDIS_PASSWORD=${REDIS_PASS}
+      - REDIS_PASSWORD=pass
     expose:
       - 6379
