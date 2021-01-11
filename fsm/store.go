@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 
@@ -11,6 +12,7 @@ import (
 )
 
 var ctx = context.Background()
+var mutex = &sync.RWMutex{}
 
 // StoreConfig struct models a Store configuration in bot.yml
 type StoreConfig struct {
@@ -36,7 +38,9 @@ type RedisStoreFSM struct {
 
 // Exists for CacheStoreFSM
 func (s *CacheStoreFSM) Exists(user string) (e bool) {
+	mutex.Lock()
 	_, ok := (*s)[user]
+	mutex.Unlock()
 	return ok
 }
 
@@ -51,7 +55,10 @@ func (s *RedisStoreFSM) Exists(user string) (e bool) {
 
 // Get method for CacheStoreFSM
 func (s *CacheStoreFSM) Get(user string) *FSM {
-	return (*s)[user]
+	mutex.Lock()
+	v := (*s)[user]
+	mutex.Unlock()
+	return v
 }
 
 // Get method for RedisStoreFSM
@@ -79,7 +86,9 @@ func (s *RedisStoreFSM) Get(user string) *FSM {
 
 // Set method for CacheStoreFSM
 func (s *CacheStoreFSM) Set(user string, m *FSM) {
+	mutex.Lock()
 	(*s)[user] = m
+	mutex.Unlock()
 }
 
 // Set method for RedisStoreFSM

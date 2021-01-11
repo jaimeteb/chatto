@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,15 +45,17 @@ func CLI(port *int) {
 
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		log.Info("you:\t| ")
+		color.Magenta("you: ")
 		cmd, err := reader.ReadString('\n')
 		if err != nil {
 			log.Error(err)
+			continue
 		}
 
 		respMess := SendAndReceive(&Message{"cli", strings.TrimSuffix(cmd, "\n")}, localEndpoint)
+		color.Cyan("botto :")
 		for _, msg := range *respMess {
-			log.Infof("botto:\t| %v\n", msg.Text)
+			fmt.Println(msg.Text)
 		}
 	}
 }

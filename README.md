@@ -15,6 +15,10 @@ Simple chatbot framework written in Go, with configurations in YAML. The aim of 
 
 The inspiration for this project originally came from [Flottbot](https://github.com/target/flottbot) and my experience using [Rasa](https://github.com/RasaHQ/rasa).
 
+<p align="center">
+<img src="https://media.giphy.com/media/DFIxYClozxyMg9wnil/giphy.gif" alt="demo" width="480"/>
+</p>
+
 ## Contents
 
 * [Installation](#install)
@@ -370,7 +374,7 @@ The bot will respond as such:
 
 To enable the CLI mode, run chatto using the `-cli` flag.
 
-This will launch a command line interface where you can send and receive messages from your bot. This is a useful mode when debugging.
+This will launch a command line interface where you can send and receive messages from your bot. This is a useful mode when debugging (see the quick demo at the top of this file.)
 
 <a name="predict"></a>
 ### Prediction

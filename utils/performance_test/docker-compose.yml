@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  master:
+    image: locustio/locust
+    ports:
+     - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --master -H http://chatto:4770
+  
+  worker:
+    image: locustio/locust
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --worker --master-host master
+
+  chatto:
+    image: jaimeteb/chatto:latest
+    ports:
+      - "4770:4770"
+    volumes:
+      - ../examples/01_moodbot:/chatto/data

@@ -1,3 +1,5 @@
 chatto
 coverage.txt
 *.so
+.vscode/
+*.pyc
