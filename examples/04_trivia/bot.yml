@@ -6,3 +6,7 @@ store:
   type: REDIS
   host: localhost
   password: pass
+  ttl: 30
+  # type: CACHE
+  # ttl: 30
+  # purge: 60

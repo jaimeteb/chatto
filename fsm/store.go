@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
+	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 
 	redis "github.com/go-redis/redis/v8"
@@ -17,6 +19,8 @@ var mutex = &sync.RWMutex{}
 // StoreConfig struct models a Store configuration in bot.yml
 type StoreConfig struct {
 	Type     string `mapstructure:"type"`
+	TTL      int    `mapstructure:"ttl"`
+	Purge    int    `mapstructure:"purge"`
 	Host     string `mapstructure:"host"`
 	Password string `mapstructure:"password"`
 }
@@ -29,17 +33,20 @@ type StoreFSM interface {
 }
 
 // CacheStoreFSM struct models an FSM sotred in Cache
-type CacheStoreFSM map[string]*FSM
+type CacheStoreFSM struct {
+	C *cache.Cache
+}
 
 // RedisStoreFSM struct models an FSM sotred on Redis
 type RedisStoreFSM struct {
-	R *redis.Client
+	R   *redis.Client
+	TTL int
 }
 
 // Exists for CacheStoreFSM
 func (s *CacheStoreFSM) Exists(user string) (e bool) {
 	mutex.Lock()
-	_, ok := (*s)[user]
+	_, ok := s.C.Get(user)
 	mutex.Unlock()
 	return ok
 }
@@ -56,9 +63,9 @@ func (s *RedisStoreFSM) Exists(user string) (e bool) {
 // Get method for CacheStoreFSM
 func (s *CacheStoreFSM) Get(user string) *FSM {
 	mutex.Lock()
-	v := (*s)[user]
+	v, _ := s.C.Get(user)
 	mutex.Unlock()
-	return v
+	return v.(*FSM)
 }
 
 // Get method for RedisStoreFSM
@@ -87,13 +94,13 @@ func (s *RedisStoreFSM) Get(user string) *FSM {
 // Set method for CacheStoreFSM
 func (s *CacheStoreFSM) Set(user string, m *FSM) {
 	mutex.Lock()
-	(*s)[user] = m
+	s.C.Set(user, m, 0)
 	mutex.Unlock()
 }
 
 // Set method for RedisStoreFSM
 func (s *RedisStoreFSM) Set(user string, m *FSM) {
-	if err := s.R.Set(ctx, user+":state", m.State, 0).Err(); err != nil {
+	if err := s.R.Set(ctx, user+":state", m.State, time.Duration(s.TTL)*time.Second).Err(); err != nil {
 		log.Error("Error setting state:", err)
 	}
 	if len(m.Slots) > 0 {
@@ -105,12 +112,23 @@ func (s *RedisStoreFSM) Set(user string, m *FSM) {
 		if err := s.R.HSet(ctx, user+":slots", kvs).Err(); err != nil {
 			log.Error("Error setting slots:", err)
 		}
+		if err := s.R.Expire(ctx, user+":slots", time.Duration(s.TTL)*time.Second).Err(); err != nil {
+			log.Error("Error expiring slots:", err)
+		}
 	}
 }
 
 // LoadStore loads a Store according to the configuration
 func LoadStore(sc StoreConfig) StoreFSM {
 	var machines StoreFSM
+
+	if sc.TTL == 0 {
+		sc.TTL = -1
+	}
+	if sc.Purge == 0 {
+		sc.Purge = -1
+	}
+
 	switch sc.Type {
 	case "REDIS":
 		RDB := redis.NewClient(&redis.Options{
@@ -119,15 +137,30 @@ func LoadStore(sc StoreConfig) StoreFSM {
 			DB:       0,
 		})
 		if _, err := RDB.Ping(context.Background()).Result(); err != nil {
-			machines = &CacheStoreFSM{}
+			machines = &CacheStoreFSM{
+				C: cache.New(
+					time.Duration(sc.TTL)*time.Second,
+					time.Duration(sc.Purge)*time.Second,
+				),
+			}
 			log.Warn("Couldn't connect to Redis, using CacheStoreFSM instead")
+			log.Infof("* TTL:    %v\n", sc.TTL)
+			log.Infof("* Purge:  %v\n", sc.Purge)
 		} else {
-			machines = &RedisStoreFSM{R: RDB}
+			machines = &RedisStoreFSM{R: RDB, TTL: sc.TTL}
 			log.Info("Registered RedisStoreFSM")
+			log.Infof("* TTL:    %v\n", sc.TTL)
 		}
 	default:
-		machines = &CacheStoreFSM{}
+		machines = &CacheStoreFSM{
+			C: cache.New(
+				time.Duration(sc.TTL)*time.Second,
+				time.Duration(sc.Purge)*time.Second,
+			),
+		}
 		log.Info("Registered CacheStoreFSM")
+		log.Infof("* TTL:    %v\n", sc.TTL)
+		log.Infof("* Purge:  %v\n", sc.Purge)
 	}
 	return machines
 }
