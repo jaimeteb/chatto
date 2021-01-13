@@ -57,9 +57,9 @@ type Slot struct {
 
 // Defaults models the domain's default messages
 type Defaults struct {
-	Unknown string `yaml:"unknown"`
-	Unsure  string `yaml:"unsure"`
-	Error   string `yaml:"error"`
+	Unknown string `yaml:"unknown" json:"unknown"`
+	Unsure  string `yaml:"unsure" json:"unsure"`
+	Error   string `yaml:"error" json:"error"`
 }
 
 // Domain models the final configuration of an FSM
@@ -74,9 +74,9 @@ type Domain struct {
 // DomainNoFuncs models the final configuration of an FSM without functions
 // to be used in extensions
 type DomainNoFuncs struct {
-	StateTable      map[string]int
-	CommandList     []string
-	DefaultMessages Defaults
+	StateTable      map[string]int `json:"state_table"`
+	CommandList     []string       `json:"command_list"`
+	DefaultMessages Defaults       `json:"default_messages"`
 }
 
 // CmdStateTuple is a tuple of Command and State

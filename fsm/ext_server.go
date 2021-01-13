@@ -15,16 +15,16 @@ import (
 
 // Request struct for extension functions
 type Request struct {
-	FSM *FSM
-	Req string
-	Txt string
-	Dom *DomainNoFuncs
+	FSM *FSM           `json:"fsm"`
+	Req string         `json:"req"`
+	Txt string         `json:"txt"`
+	Dom *DomainNoFuncs `json:"dom"`
 }
 
 // Response struct for extension functions
 type Response struct {
-	FSM *FSM
-	Res string
+	FSM *FSM   `json:"fsm"`
+	Res string `json:"res"`
 }
 
 // GetAllFuncsResponse struct for GetAllFuncs function
