@@ -2,17 +2,18 @@ from flask import Flask, Response, request, jsonify
 
 app = Flask(__name__)
 
-wrong_option = {
-    "fsm": {
-        "state": data.get("dom").get("question_1"),
-        "slots": data.get("fsm").get("slots"),
-    },
-    "res": "Select one of the options."
-}
+def wrong_option(data):
+    return {
+        "fsm": {
+            "state": data.get("dom").get("question_1"),
+            "slots": data.get("fsm").get("slots"),
+        },
+        "res": "Select one of the options."
+    }
 
 def validate_ans_1(data: dict) -> dict:
     if data.get("txt") not in ["1", "2", "3"]:
-        return jsonify(wrong_option)
+        return jsonify(wrong_option(data))
 
     return jsonify({
         "fsm": data.get("fsm"),
@@ -25,7 +26,7 @@ def validate_ans_1(data: dict) -> dict:
 
 def validate_ans_2(data: dict) -> dict:
     if data.get("txt") not in ["1", "2", "3"]:
-        return jsonify(wrong_option)
+        return jsonify(wrong_option(data))
 
     return jsonify({
         "fsm": data.get("fsm"),
@@ -38,7 +39,7 @@ def validate_ans_2(data: dict) -> dict:
 
 def score(data: dict) -> dict:
     if data.get("txt") not in ["1", "2", "3"]:
-        return jsonify(wrong_option)
+        return jsonify(wrong_option(data))
     
     slots = data.get("fsm").get("slots", {})
     answer_1 = slots.get("answer_1")
