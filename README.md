@@ -173,7 +173,7 @@ defaults:
 <a name="slots"></a>
 ### Slots
 
-You can save information from the user's input by using slots. In the **fsm.yml**, slots are declared as such:
+You can save information from the user's input by using slots. In the **fsm.yml** file, slots are declared as such:
 
 ```yaml
   - transition:
@@ -319,14 +319,14 @@ twilio:
 <a name="telegram"></a>
 #### Telegram
 
-You can connect your chatto bot to [Telegram](https://core.telegram.org/bots) by providing yout Telegram Bot Key, either directly in the **chn.yml** file or by setting the **TELEGRAM_BOT_KEY** environment variable.
+You can connect your chatto bot to [Telegram](https://core.telegram.org/bots) by providing your Telegram Bot Key, either directly in the **chn.yml** file or by setting the **TELEGRAM_BOT_KEY** environment variable.
 
 You must set the bot's webhook to the ***/endpoints/telegram*** endpoint in order to receive messages.
 
 <a name="twilio"></a>
 #### Twilio
 
-Similarly, connect your bot to [Twilio](https://www.twilio.com/messaging-api) by adding your credentials to the file or by setting the corresponding environment variables (**TWILIO_ACCOUNT_SID**, etc.)
+Similarly, connect your bot to [Twilio](https://www.twilio.com/messaging-api) by adding your credentials to the file or by setting the corresponding environment variables (**TWILIO_ACCOUNT_SID**, etc.).
 
 You must set the webhooks to the ***/endpoints/twilio*** endpoint in order to receive messages.
 
@@ -338,7 +338,7 @@ Apart from the [channels](#channels), once your chatto bot is running, you can i
 <a name="http"></a>
 ### HTTP Endpoint
 
-Chatto will run on port 4770 bu default. You can specify a different one with the `-port` flag.
+Chatto will run on port 4770 by default. You can specify a different one with the `-port` flag.
 
 Send a *POST* request to */endpoints/rest* with the following body structure:
 
