@@ -1,3 +1,4 @@
+[![Documentation](https://img.shields.io/static/v1?label=&message=Documentation&color=red)](https://chatto.jaimeteb.com)
 [![Build Status](https://travis-ci.com/jaimeteb/chatto.svg?branch=master)](https://travis-ci.com/jaimeteb/chatto)
 [![codecov](https://codecov.io/gh/jaimeteb/chatto/branch/master/graph/badge.svg)](https://codecov.io/gh/jaimeteb/chatto)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jaimeteb/chatto)](https://goreportcard.com/report/github.com/jaimeteb/chatto)
@@ -11,7 +12,7 @@
 <img src="https://user-images.githubusercontent.com/17936011/89082867-e3c0d300-d354-11ea-9def-008c403a4497.png" alt="botto" width="150"/>
 </p>
 
-Simple chatbot framework written in Go, with configurations in YAML. The aim of this project is to create very simple text-based chatbots using a few configuration files. 
+Simple chatbot framework written in Go, with configurations in YAML. The aim of this project is to create very simple text-based chatbots using a few configuration files.
 
 The inspiration for this project originally came from [Flottbot](https://github.com/target/flottbot) and my experience using [Rasa](https://github.com/RasaHQ/rasa).
 
@@ -22,67 +23,63 @@ The inspiration for this project originally came from [Flottbot](https://github.
 ## Contents
 
 * [Installation](#install)
-* [Usage](#usage)
-  * [How does it work?](#how)
-* [Classifier](#clf)
-  * [Pipeline](#pipeline)
-* [Finite State Machine](#fsm)
-  * [*Any*](#any)
-  * [Default Messages](#defaults)
-  * [Slots](#slots)
-* [Extensions](#ext)
-* [Bot Configuration](#botconfig)
-  * [Extensions](#botconfigext)
-  * [Store](#store)
-  * [Channels](#channels)
-    * [Telegram](#telegram)  
-    * [Twilio](#twilio)
-* [Endpoints](#endpoints)
-  * [HTTP Endpoint](#http)  
-  * [CLI](#cli)
-  * [Prediction](#predict)
+* [Documentation](#docs)
+* [Your first bot](#yourfirstbot)
+    * [The **clf.yml** file](#yourfirstbotclf)
+    * [The **fsm.yml** file](#yourfirstbotfsm)
+    * [Run your bot](#yourfirstbotrun)
+* [Usage](#usage)  
+    * [CLI](#usagecli)
+    * [Docker Compose](#usagecompose)
 * [Examples](#examples)  
 
 <a name="install"></a>
 ## Installation
 
-Run `go get -u github.com/jaimeteb/chatto`.
-
-<a name="usage"></a>
-## Usage
-
-Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
-
 ```
-chatto -path ./your/data
+go get -u github.com/jaimeteb/chatto
 ```
 
-To run on Docker, use:
-```bash
-docker run \
-  -p 4770:4770 \
-  -e CHATTO_DATA=./your/data \
-  -v $PWD/your/data:/chatto/data \
-  jaimeteb/chatto
+Via Docker:
+
+```
+docker pull jaimeteb/chatto:latest
 ```
 
-<a name="how"></a>
-### How does it work?
+<a name="docs"></a>
+## Documentation
+
+See the [**Documentation**](https://chatto.jaimeteb.com) for **examples**, **configuration guides** and **reference**.
+
+<p align="center">
+<img src="https://i.imgur.com/RkgEfX2.jpg" href="https://chatto.jaimeteb.com" alt="docs"/>
+</p>
+
+<a name="yourfirstbot"></a>
+## Your first bot
 
 Chatto combines the consistency of a finite-state-machine with the flexibility of machine learning. It has three main components: the classifier, the finite-state-machine and the extensions.
 
-A very basic directory structure for chatto would be the following:
+A very basic directory structure for Chatto would be the following:
 
 ```
-data
-├── clf.yml
-└── fsm.yml
+.
+└──data
+   ├── clf.yml
+   └── fsm.yml
 ```
 
-<a name="clf"></a>
-## Classifier
+Start by creating the `data` directory as well as the YAML files.
 
-Currently, chatto uses a [Naïve-Bayes classifier](github.com/navossoc/bayesian) to take the user input and decide a command to execute on the finite-state-machine. The training text for the classifier is provided in the **clf.yml** file:
+```console
+mkdir data
+touch data/clf.yml data/fsm.yml
+```
+
+<a name="yourfirstbotclf"></a>
+### The **clf.yml** file
+
+The **clf.yml** file defines how the user messages will be classified into *commands* (intents). Start with this very simple configuration:
 
 ```yaml
 classification:
@@ -97,29 +94,16 @@ classification:
       - "off"
 ```
 
-Under **classification** you can list the commands and their respective training data under **texts**.
+<a name="yourfirstbotfsm"></a>
+### The **fsm.yml** file
 
-<a name="pipeline"></a>
-### Pipeline
-
-You can optionally configure the pipeline steps (currently: removal of symbols, conversion into lowercase and classification threshold) adding the *pipeline* object to the **clf.yml** file:
-```yaml
-pipeline:
-  remove_symbols: true
-  lower: true
-  threshold: 0.3
-```
-
-<a name="fsm"></a>
-## Finite State Machine
-
-The FSM (finite-state-machine) is based on the one shown in [this article](https://levelup.gitconnected.com/implement-a-finite-state-machine-in-golang-f0438b6bc0a8). The states, commands, default messages and transitions are described in the **fsm.yml** file:
+The **fsm.yml** file defines the transitions between states, the commands that make these transitions, and the messages to be sent in them. Start with this file contents:
 
 ```yaml
 states:
   - "off"
   - "on"
-  
+
 commands:
   - "turn_on"
   - "turn_off"
@@ -143,274 +127,163 @@ defaults:
   unknown: "Can't do that."
 ```
 
-Under **functions** you can list the transitions available for the FSM. The object **transition** describes the states of the transition (**from** one state **into** another) if **command** is executed; **message** is the message (or messages) to send to the user.
+<a name="yourfirstbotrun"></a>
+### Run your first bot
 
-<a name="any"></a>
-### *Any*
-
-The special state **any** can help you go from any state into another, if the command is executed. You don't have to declare the **any** state in the states list.
-
-Also, the special command **any** is used to transition between two states, regardless of the command predicted. This command doesn't have to be declared.
-
-<a name="defaults"></a>
-### Default Messages
-
-In the **fsm.yml** file, the *defaults* section is used to set the messages that will be returned when the following events happen:
-
-- **unknown**: The current state does not transition into another one with the predicted command.
-- **unsure**: The command prediction confidence was below the threshold.
-- **error**: An error ocurred during the execution of an extension.
-
-Here's an example of default messages:
-
-```yaml
-defaults:
-  unknown: "Can't do that transition."
-  unsure: "Sorry, I didn't understand that."
-  error: "An error ocurred."
-```
-
-<a name="slots"></a>
-### Slots
-
-You can save information from the user's input by using slots. In the **fsm.yml** file, slots are declared as such:
-
-```yaml
-  - transition:
-      from: ask_name
-      into: ask_age
-    command: say_name
-    slot:
-      name: name
-      mode: whole_text
-    message: "How old are you?"
-```
-
-In this example, in the transition from **ask_name** to **ask_age**, when **say_name** is executed, a slot called **name** will be saved, in other words, the user's message is stored in memory.
-
-At the time, only **whole_text** mode is supported, which saves the entire input in the slot.
-
-<a name="ext"></a>
-## Extensions
-
-The extensions in chatto are pieces of Go code that can be executed instead of messages, and can also alter the state of the conversation. In the **fsm.yml** file, the extensions' names must begin by **"ext_"**.
-Extensions are executed as services in a separate Go file, for example **ext.go**.
-
-The format for a chatto extension is as follows:
-
-```go
-package main
-
-import (
-	"log"
-
-	"github.com/jaimeteb/chatto/fsm"
-)
-
-func greetFunc(req *fsm.Request) (res *fsm.Response) {
-	return &fsm.Response{
-		FSM: req.FSM,
-		Res: "Hello Universe",
-	}
-}
-
-var myExtMap = fsm.ExtensionMap{
-	"ext_any": greetFunc,
-}
-
-func main() {
-	log.Fatal(fsm.ServeExtensionREST(myExtMap))
-}
-```
-
-You must use either `ServeExtensionRPC` or `ServeExtensionREST` in the main function in order to run the extension server and pass your own **fsm.ExtensionMap**, which maps the extension names to their respective functions.
-
-There are currently two ways to serve the extensions:
-
-- **RPC**: By using `fsm.ServeExtensionRPC(fsm.ExtensionMap)`
-- **REST**: By using `fsm.ServeExtensionREST(fsm.ExtensionMap)`
-
-When running the extensions, use the flag ```-port``` to specify a service port (extensions will use port 8770 by default).
-
-The extension functions must have the ```func(*fsm.Request) *fsm.Response``` signature, where:
-* Request contains:
-  * The current FSM
-  * The requested extension
-  * The input text from the user
-  * The Domain (*fsm.yml* data)
-* Response must contain:
-  * The resulting FSM
-  * The message to be sent to the user
-
-In this example, **ext_any** simply returns "Hello Universe" and does not modify the current FSM.
-
-<a name="botconfig"></a>
-## Bot Configuration
-
-The **bot.yml** file is used to configure the name of the bot, how and where the extensions will be consumed, and how will the FSMs will be stored.
-
-```yaml
-bot_name: "test_bot"
-extensions:
-  type: REST
-  url: http://localhost:8770
-store:
-  type: REDIS
-  host: localhost
-  password: pass
-```
-
-<a name="botconfigext"></a>
-### Extensions
-
-To configure the extensions, the following parameters are required for RPC and REST types respectively:
-
-- For type **RPC**:
-  - Host
-  - Port
-- For type **REST**:
-  - URL
-
-<a name="store"></a>
-### Store
-
-The FSMs for the bot can be stored locally (default type **CACHE**) or in Redis. In order to use Redis, provide the following values, as shown in the example above:
-
-- For type **REDIS**:
-  - Host
-  - Password
-
-You can leave the values empty and set them with environment variables, for example:
-
-```yaml
-extensions:
-  type: RPC
-  host: 
-  port: 
-store:
-  type: REDIS
-  host: 
-  password: 
-```
-
-And set the environment variables:
-
-```
-EXTENSIONS_HOST=localhost
-EXTENSIONS_PORT=8770
-STORE_HOST=localhost
-STORE_PASSWORD=pass
-```
-
-<a name="channels"></a>
-### Channels
-
-In the **chn.yml** you can insert the credentials for a Telegram Bot and/or a Twilio phone number.
-
-```yaml
-telegram:
-  bot_key: MY_BOT_KEY
-twilio:
-  account_sid: MY_ACCOUNT_SID
-  auth_token: MY_AUTH_TOKEN
-  number: MY_NUMBER
-```
-
-<a name="telegram"></a>
-#### Telegram
-
-You can connect your chatto bot to [Telegram](https://core.telegram.org/bots) by providing your Telegram Bot Key, either directly in the **chn.yml** file or by setting the **TELEGRAM_BOT_KEY** environment variable.
-
-You must set the bot's webhook to the ***/endpoints/telegram*** endpoint in order to receive messages.
-
-<a name="twilio"></a>
-#### Twilio
-
-Similarly, connect your bot to [Twilio](https://www.twilio.com/messaging-api) by adding your credentials to the file or by setting the corresponding environment variables (**TWILIO_ACCOUNT_SID**, etc.).
-
-You must set the webhooks to the ***/endpoints/twilio*** endpoint in order to receive messages.
-
-<a name="endpoints"></a>
-## Endpoints
-
-Apart from the [channels](#channels), once your chatto bot is running, you can interact with it via the HTTP endpoints.
-
-<a name="http"></a>
-### HTTP Endpoint
-
-Chatto will run on port 4770 by default. You can specify a different one with the `-port` flag.
-
-Send a *POST* request to */endpoints/rest* with the following body structure:
-
-```json
-{
-    "sender": "foo",
-    "text": "bar"
-}
-```
-
-Example with cURL:
+To run your bot in a CLI, simply run:
 
 ```bash
-curl --request POST 'http://localhost:4770/endpoints/rest' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "sender": "foo",
-    "text": "bar"
-}'
+chatto -cli -path data/
 ```
 
-The bot will respond as such:
+Or if you're using Docker, run:
 
-```json
-{
-    "sender": "botto",
-    "text": "some answer"
-}
+```bash
+docker run \
+    -it \
+    -e CHATTO_DATA=./data \
+    -v $PWD/data:/chatto/data \
+    jaimeteb/chatto:latest \
+    chatto -cli -path data
 ```
 
-<a name="cli"></a>
+That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **off**. However, you cannot go from **on** into **on**, or from **off** into **off** either.
+
+Here is a diagram for this simple Finite State Machine:
+
+![ON/OFF Finite State Machine](https://uploads.gamedev.net/monthly_06_2013/ccs-209764-0-84996300-1370053229.jpg)
+
+
+<a name="usage"></a>
+## Usage
+
+> You can integrate yout bot with [**Telegram and Twilio**](https://chatto.jaimeteb.com/botconfiguration/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
+
+Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
+
+```bash
+chatto -path ./your/data
+```
+
+To run on Docker, use:
+```bash
+docker run \
+  -p 4770:4770 \
+  -e CHATTO_DATA=./your/data \
+  -v $PWD/your/data:/chatto/data \
+  jaimeteb/chatto
+```
+
+> You can set a log level with the environment variable `LOG_LEVEL`.
+
+<a name="usagecli"></a>
 ### CLI
 
-To enable the CLI mode, run chatto using the `-cli` flag.
-
-This will launch a command line interface where you can send and receive messages from your bot. This is a useful mode when debugging (see the quick demo at the top of this file.)
-
-<a name="predict"></a>
-### Prediction
-
-You can test the command predictions with a *POST* request to the */predict* endpoint with the following body structure:
-
-```json
-{
-    "text": "good"
-}
-```
-
-Example with cURL:
+You can use Chatto in a CLI mode by adding the `-cli` flag.
 
 ```bash
-curl --request POST 'http://localhost:4770/predict' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "text": "foo"
-}'
+chatto -cli -path ./your/data
 ```
 
-The resulting prediction will look like this:
+On Docker:
 
-```json
-{
-    "original": "foo",
-    "predicted": "good",
-    "probability": 0.3274336283185841
-}
+```bash
+docker run \
+    -it \
+    -e CHATTO_DATA=./your/data \
+    -v $PWD./your/data:/chatto/data \
+    jaimeteb/chatto:latest \
+    chatto -cli -path data
 ```
+
+<a name="usagecompose"></a>
+### Docker Compose
+
+You can use Chatto on Docker Compose as well. A `docker-compose.yml` would look like this:
+
+```yaml
+version: "3"
+
+services:
+  chatto:
+    image: jaimeteb/chatto:${CHATTO_VERSION}
+    env_file: .env
+    ports:
+      - "4770:4770"
+    volumes:
+      - ${CHATTO_DATA}:/chatto/data
+    depends_on:
+      - ext
+      - redis
+
+  ext:
+    image: odise/busybox-curl # Busy box with certificates
+    command: ext/ext
+    expose:
+      - 8770
+    volumes:
+      - ${CHATTO_DATA}/ext:/ext
+
+  redis:
+    image: bitnami/redis:6.0
+    environment:
+      - REDIS_PASSWORD=${STORE_PASSWORD}
+    expose:
+      - 6379
+```
+
+This requires a `.env` file to contain the necessary environment variables:
+
+```
+# Chatto configuration
+CHATTO_VERSION=latest
+CHATTO_DATA=./your/data
+
+# Extension configuration
+EXTENSIONS_URL=http://ext:8770
+
+# Redis
+STORE_HOST=redis
+STORE_PASSWORD=pass
+
+# Logs
+LOG_LEVEL=DEBUG
+```
+
+The directory structure with all the files would look like this:
+
+```
+.
+├── data
+│   ├── ext
+│   │   ├── ext
+│   │   └── ext.go
+│   ├── bot.yml
+│   ├── chn.yml
+│   ├── clf.yml
+|   └── fsm.yml
+├── docker-compose.yml
+└── .env
+```
+
+Finally, run:
+
+```bash
+docker-compose up -d redis ext
+docker-compose up -d chatto
+```
+
+> The [extensions](/extensions) server has to be executed according to its language.<br><br>For this `docker-compose.yml` file, you'd have to build the Go extension first:<br><br>```go build -o data/ext/ext data/ext/ext.go```
+
+> The [extensions](/extensions) server has to be running before Chatto initializes.
+
 
 <a name="examples"></a>
 ## Examples
 
 I have provided some config files under *examples*. Clone the repository and run `chatto` with the `-path` of your desired example to test them out (for the ones that use extensions, run their respective extensions first).
+
+More about these examples in the [**Documentation**](https://chatto.jaimeteb.com/examples/moodbot)
 
 1. [**Mood Bot**](/examples/01_moodbot) - A chatto version of [Rasa's Mood Bot](https://github.com/RasaHQ/rasa/tree/master/examples/moodbot) Greet the bot to start the conversation.
 2. [**Engineering Flowchart**](/examples/02_repair) - Tell the bot you want to repair something.
