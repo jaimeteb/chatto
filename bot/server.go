@@ -74,10 +74,12 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	send := func(s, t string) {
 		chatID := []string{s}
 		text := []string{t}
+		parseMode := []string{"Markdown"}
 
 		respValues := url.Values{
-			"chat_id": chatID,
-			"text":    text,
+			"chat_id":    chatID,
+			"text":       text,
+			"parse_mode": parseMode,
 		}
 		telegramClient := b.Clients["telegram"].(*telegram.Client)
 		apiResp := new(interface{})
