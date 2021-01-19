@@ -23,8 +23,8 @@ type Request struct {
 
 // Response struct for extension functions
 type Response struct {
-	FSM *FSM   `json:"fsm"`
-	Res string `json:"res"`
+	FSM *FSM        `json:"fsm"`
+	Res interface{} `json:"res"`
 }
 
 // GetAllFuncsResponse struct for GetAllFuncs function
