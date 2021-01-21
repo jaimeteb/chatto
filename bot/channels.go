@@ -60,48 +60,47 @@ type RESTClient struct {
 
 // Client interface implements a SendMessage method that sends message through an API client
 type Client interface {
-	SendMessage(msg cmn.Message) error
+	SendMessage(msg cmn.Message, recipient string) error
 	RecieveMessage(w http.ResponseWriter, r *http.Request) (cmn.Message, error)
 }
 
 // SendMessage for Twilio
-func (t *TwilioClient) SendMessage(msg cmn.Message) error {
+func (t *TwilioClient) SendMessage(msg cmn.Message, recipient string) error {
 	var imageURL []*url.URL
 
 	if msg.Image != "" {
 		u, _ := url.Parse(msg.Image)
 		imageURL = append(imageURL, u)
 	}
-	ret, err := t.Client.Messages.SendMessage(t.Number, msg.Sender, msg.Text, imageURL)
+	ret, err := t.Client.Messages.SendMessage(t.Number, recipient, msg.Text, imageURL)
 	log.Debug(ret, err)
 	return err
 }
 
 // RecieveMessage for Twilio
 func (t *TwilioClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cmn.Message, error) {
-	decoder := json.NewDecoder(r.Body)
-	var telegramMess TelegramMessageIn
-
-	err := decoder.Decode(&telegramMess)
-	if err != nil {
+	decoder := form.NewDecoder(r.Body)
+	var twilioMessage TwilioMessageIn
+	if err := decoder.Decode(&twilioMessage); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return cmn.Message{}, err
 	}
 
-	log.Debug(telegramMess)
-	sender := strconv.Itoa(telegramMess.Message.From.ID)
+	log.Debug(twilioMessage)
+	sender := twilioMessage.From
+	text := twilioMessage.Body
 	mess := cmn.Message{
 		Sender: sender,
-		Text:   telegramMess.Message.Text,
+		Text:   text,
 	}
 
 	return mess, nil
 }
 
 // SendMessage for Telegram
-func (t *TelegramClient) SendMessage(msg cmn.Message) error {
+func (t *TelegramClient) SendMessage(msg cmn.Message, recipient string) error {
 	respValues := url.Values{}
-	respValues.Add("chat_id", msg.Sender)
+	respValues.Add("chat_id", recipient)
 	respValues.Add("parse_mode", "Markdown")
 
 	var method string
@@ -123,26 +122,27 @@ func (t *TelegramClient) SendMessage(msg cmn.Message) error {
 
 // RecieveMessage for Telegram
 func (t *TelegramClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cmn.Message, error) {
-	decoder := form.NewDecoder(r.Body)
-	var twilioMessage TwilioMessageIn
-	if err := decoder.Decode(&twilioMessage); err != nil {
+	decoder := json.NewDecoder(r.Body)
+	var telegramMess TelegramMessageIn
+
+	err := decoder.Decode(&telegramMess)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return cmn.Message{}, err
 	}
 
-	log.Debug(twilioMessage)
-	sender := twilioMessage.From
-	text := twilioMessage.Body
+	log.Debug(telegramMess)
+	sender := strconv.Itoa(telegramMess.Message.From.ID)
 	mess := cmn.Message{
 		Sender: sender,
-		Text:   text,
+		Text:   telegramMess.Message.Text,
 	}
 
 	return mess, nil
 }
 
 // SendMessage for REST
-func (c *RESTClient) SendMessage(msg cmn.Message) error {
+func (c *RESTClient) SendMessage(msg cmn.Message, recipient string) error {
 	return nil
 }
 
@@ -161,7 +161,7 @@ func (c *RESTClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cmn
 }
 
 // SendMessages sends messages through the clients
-func SendMessages(msgs interface{}, client Client, w http.ResponseWriter) error {
+func SendMessages(msgs interface{}, client Client, recipient string, w http.ResponseWriter) error {
 	ans := make([]map[string]string, 0)
 
 	// Create slice of messages
@@ -176,7 +176,7 @@ func SendMessages(msgs interface{}, client Client, w http.ResponseWriter) error 
 		switch m := msgElem.(type) {
 		case cmn.Message:
 			ans = append(ans, m.Out())
-			if err := client.SendMessage(m); err != nil {
+			if err := client.SendMessage(m, recipient); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
@@ -185,14 +185,14 @@ func SendMessages(msgs interface{}, client Client, w http.ResponseWriter) error 
 				Text: m,
 			}
 			ans = append(ans, msg.Out())
-			if err := client.SendMessage(msg); err != nil {
+			if err := client.SendMessage(msg, recipient); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}
 		case map[interface{}]interface{}, map[string]interface{}, map[string]string:
 			msg := cmn.MessageFromMap(m)
 			ans = append(ans, msg.Out())
-			if err := client.SendMessage(msg); err != nil {
+			if err := client.SendMessage(msg, recipient); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return err
 			}

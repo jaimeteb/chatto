@@ -20,7 +20,7 @@ func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := b.Answer(mess)
 
-	if err := SendMessages(resp, &b.Clients.REST, w); err != nil {
+	if err := SendMessages(resp, &b.Clients.REST, mess.Sender, w); err != nil {
 		log.Error(err)
 		return
 	}
@@ -35,7 +35,7 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := b.Answer(mess)
 
-	if err := SendMessages(resp, &b.Clients.Telegram, w); err != nil {
+	if err := SendMessages(resp, &b.Clients.Telegram, mess.Sender, w); err != nil {
 		log.Error(err)
 		return
 	}
@@ -50,7 +50,7 @@ func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := b.Answer(mess)
 
-	if err := SendMessages(resp, &b.Clients.Twilio, w); err != nil {
+	if err := SendMessages(resp, &b.Clients.Twilio, mess.Sender, w); err != nil {
 		log.Error(err)
 		return
 	}
