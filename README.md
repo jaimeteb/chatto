@@ -109,7 +109,7 @@ commands:
   - "turn_off"
 
 functions:
- - transition:
+  - transition:
       from: "off"
       into: "on"
     command: "turn_on"
