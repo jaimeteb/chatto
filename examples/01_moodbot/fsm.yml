@@ -29,7 +29,10 @@ functions:
       from: ask_mood
       into: say_bad
     command: bad
-    message: "Oh don't be sad :(\nDid that help?"
+    message:
+      - "Oh don't be sad :("
+      - image: https://i.imgur.com/8MU0IUT.jpeg
+      - "Did that help?"
 
   - transition:
       from: say_bad

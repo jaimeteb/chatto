@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	cmn "github.com/jaimeteb/chatto/common"
 )
 
 func TestBot1(t *testing.T) {
@@ -17,7 +19,7 @@ func TestBot1(t *testing.T) {
 		t.Errorf("bot name is incorrect, got: %v, want: %v.", bot.Name, "test_bot")
 	}
 
-	ans := bot.Answer(Message{
+	ans := bot.Answer(cmn.Message{
 		Sender: "bar",
 		Text:   "on",
 	})
@@ -31,7 +33,7 @@ func TestBot2(t *testing.T) {
 	path := "../examples/00_test/"
 	bot := LoadBot(&path)
 
-	bot.Answer(Message{
+	bot.Answer(cmn.Message{
 		Sender: "baz",
 		Text:   "on",
 	})
@@ -81,7 +83,7 @@ func TestBotNoClients(t *testing.T) {
 	path := "../examples/01_moodbot/"
 
 	bot := LoadBot(&path)
-	if len(bot.Clients) != 0 {
-		t.Errorf("bot.Clients is incorrect, got: %v, want: %v.", len(bot.Clients), "0")
+	if bot.Clients.Telegram.Client != nil || bot.Clients.Twilio.Client != nil {
+		t.Errorf("bot.Clients is incorrect, got: %v, want: %v.", bot.Clients, "{}")
 	}
 }

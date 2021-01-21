@@ -2,140 +2,56 @@ package bot
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strconv"
 
+	cmn "github.com/jaimeteb/chatto/common"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ajg/form"
 	"github.com/gorilla/mux"
-	"github.com/kimrgrey/go-telegram"
 )
 
 func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var mess Message
-
-	err := decoder.Decode(&mess)
+	mess, err := b.Clients.REST.RecieveMessage(w, r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Error(err)
 		return
 	}
 
-	// log.Info(mess.Sender, mess.Text)
 	resp := b.Answer(mess)
 
-	ans := make([]Message, 0)
-	switch r := resp.(type) {
-	case []interface{}:
-		for _, text := range r {
-			ans = append(ans, Message{Sender: b.Name, Text: text.(string)})
-		}
-	case interface{}:
-		ans = append(ans, Message{Sender: b.Name, Text: r.(string)})
-	default:
-		errMsg := fmt.Sprintf("Message type unsupported: %T", r)
-		http.Error(w, errors.New(errMsg).Error(), http.StatusInternalServerError)
+	if err := SendMessages(resp, &b.Clients.REST, w); err != nil {
+		log.Error(err)
 		return
 	}
-
-	js, err := json.Marshal(ans)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
 }
 
 func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var telegramMess TelegramMessageIn
-
-	err := decoder.Decode(&telegramMess)
+	mess, err := b.Clients.Telegram.RecieveMessage(w, r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Error(err)
 		return
-	}
-
-	log.Debug(telegramMess)
-	sender := strconv.Itoa(telegramMess.Message.From.ID)
-	mess := Message{
-		Sender: sender,
-		Text:   telegramMess.Message.Text,
 	}
 
 	resp := b.Answer(mess)
 
-	send := func(s, t string) {
-		chatID := []string{s}
-		text := []string{t}
-		parseMode := []string{"Markdown"}
-
-		respValues := url.Values{
-			"chat_id":    chatID,
-			"text":       text,
-			"parse_mode": parseMode,
-		}
-		telegramClient := b.Clients["telegram"].(*telegram.Client)
-		apiResp := new(interface{})
-		telegramClient.Call("SendMessage", respValues, apiResp)
-		log.Debug(*apiResp)
-	}
-
-	switch r := resp.(type) {
-	case []interface{}:
-		for _, text := range r {
-			send(sender, text.(string))
-		}
-	case interface{}:
-		send(sender, r.(string))
-	default:
-		errMsg := fmt.Sprintf("Message type unsupported: %T", r)
-		http.Error(w, errors.New(errMsg).Error(), http.StatusInternalServerError)
+	if err := SendMessages(resp, &b.Clients.Telegram, w); err != nil {
+		log.Error(err)
 		return
 	}
 }
 
 func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	decoder := form.NewDecoder(r.Body)
-	var twilioMessage TwilioMessageIn
-	if err := decoder.Decode(&twilioMessage); err != nil {
-		http.Error(w, "Form could not be decoded", http.StatusBadRequest)
-		log.Error(err.Error())
+	mess, err := b.Clients.Twilio.RecieveMessage(w, r)
+	if err != nil {
+		log.Error(err)
 		return
-	}
-
-	log.Debug(twilioMessage)
-	sender := twilioMessage.From
-	text := twilioMessage.Body
-	mess := Message{
-		Sender: sender,
-		Text:   text,
 	}
 
 	resp := b.Answer(mess)
 
-	send := func(s, t string) {
-		twilio := b.Clients["twilio"].(Twilio)
-		msg, err := twilio.Client.Messages.SendMessage(twilio.Number, s, t, nil) // TODO
-		log.Debug(msg, err)
-	}
-
-	switch r := resp.(type) {
-	case []interface{}:
-		for _, text := range r {
-			send(sender, text.(string))
-		}
-	case interface{}:
-		send(sender, r.(string))
-	default:
-		errMsg := fmt.Sprintf("Message type unsupported: %T", r)
-		http.Error(w, errors.New(errMsg).Error(), http.StatusInternalServerError)
+	if err := SendMessages(resp, &b.Clients.Twilio, w); err != nil {
+		log.Error(err)
 		return
 	}
 }
@@ -156,7 +72,7 @@ func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var mess Message
+	var mess cmn.Message
 
 	err := decoder.Decode(&mess)
 	if err != nil {
@@ -164,7 +80,7 @@ func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inputText := mess.Text.(string)
+	inputText := mess.Text
 	prediction, prob := b.Classifier.Predict(inputText)
 	ans := Prediction{inputText, prediction, prob}
 

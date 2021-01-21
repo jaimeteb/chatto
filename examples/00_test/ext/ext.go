@@ -3,13 +3,17 @@ package main
 import (
 	"log"
 
+	cmn "github.com/jaimeteb/chatto/common"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
 func greetFunc(req *fsm.Request) (res *fsm.Response) {
 	return &fsm.Response{
 		FSM: req.FSM,
-		Res: "Hello Universe",
+		Res: cmn.Message{
+			Text:  "Hello Universe",
+			Image: "https://i.imgur.com/pPdjh6x.jpg",
+		},
 	}
 }
 

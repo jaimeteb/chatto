@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	cmn "github.com/jaimeteb/chatto/common"
 	log "github.com/sirupsen/logrus"
 )
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
-func SendAndReceive(mess *Message, url string) *[]Message {
+func SendAndReceive(mess *cmn.Message, url string) *[]cmn.Message {
 	jsonMess, _ := json.Marshal(mess)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMess))
@@ -25,14 +26,14 @@ func SendAndReceive(mess *Message, url string) *[]Message {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Warn(err.Error())
-		return &[]Message{}
+		return &[]cmn.Message{}
 	}
 	defer resp.Body.Close()
 
-	ans := &[]Message{}
+	ans := &[]cmn.Message{}
 	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
 		log.Warn(err.Error())
-		return &[]Message{}
+		return &[]cmn.Message{}
 	}
 	return ans
 }
@@ -52,7 +53,10 @@ func CLI(port *int) {
 			continue
 		}
 
-		respMess := SendAndReceive(&Message{"cli", strings.TrimSuffix(cmd, "\n")}, localEndpoint)
+		respMess := SendAndReceive(&cmn.Message{
+			Sender: "cli",
+			Text:   strings.TrimSuffix(cmd, "\n"),
+		}, localEndpoint)
 		color.Cyan("botto :")
 		for _, msg := range *respMess {
 			fmt.Println(msg.Text)

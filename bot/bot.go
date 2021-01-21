@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/jaimeteb/chatto/clf"
+	cmn "github.com/jaimeteb/chatto/common"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/spf13/viper"
 )
@@ -27,12 +28,6 @@ func init() {
 		TimestampFormat: "2006-01-02 15:04:05",
 		FullTimestamp:   true,
 	})
-}
-
-// Message models and incoming/outgoing message
-type Message struct {
-	Sender string      `json:"sender"`
-	Text   interface{} `json:"text"`
 }
 
 // TelegramMessageIn models a telegram incoming message
@@ -81,7 +76,7 @@ type Bot struct {
 	Domain     fsm.Domain
 	Classifier clf.Classifier
 	Extension  fsm.Extension
-	Clients    map[string]interface{}
+	Clients    Clients
 }
 
 // Prediction models a classifier prediction and its orignal string
@@ -99,7 +94,7 @@ type Config struct {
 }
 
 // Answer takes a user input and executes a transition on the FSM if possible
-func (b Bot) Answer(mess Message) interface{} {
+func (b Bot) Answer(mess cmn.Message) interface{} {
 	if !b.Machines.Exists(mess.Sender) {
 		b.Machines.Set(
 			mess.Sender,
@@ -110,7 +105,7 @@ func (b Bot) Answer(mess Message) interface{} {
 		)
 	}
 
-	inputMessage := mess.Text.(string)
+	inputMessage := mess.Text
 	cmd, _ := b.Classifier.Predict(inputMessage)
 
 	m := b.Machines.Get(mess.Sender)
