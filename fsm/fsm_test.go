@@ -2,6 +2,8 @@ package fsm
 
 import (
 	"testing"
+
+	"github.com/jaimeteb/chatto/ext"
 )
 
 func TestFSM1(t *testing.T) {
@@ -9,36 +11,36 @@ func TestFSM1(t *testing.T) {
 	domain := Create(&path)
 
 	machine := FSM{State: 0}
-	extensionREST := LoadExtensions(ExtensionsConfig{
-		Type: "REST",
-		URL:  "http://localhost:8770",
-	})
-	extensionREST2 := LoadExtensions(ExtensionsConfig{
-		Type: "REST",
-		URL:  "http://localhost:8771",
-	})
+	// extensionREST := ext.LoadExtensions(ext.ExtensionsConfig{
+	// 	Type: "REST",
+	// 	URL:  "http://localhost:8770",
+	// })
+	// extensionREST2 := ext.LoadExtensions(ext.ExtensionsConfig{
+	// 	Type: "REST",
+	// 	URL:  "http://localhost:8771",
+	// })
 
-	resp1 := machine.ExecuteCmd("turn_on", "turn_on", domain, nil)
+	resp1, _ := machine.ExecuteCmd("turn_on", "turn_on", domain)
 	if resp1 != "Turning on." {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp1, "Turning on.")
 	}
 
-	resp2 := machine.ExecuteCmd("turn_on", "turn_on", domain, nil)
+	resp2, _ := machine.ExecuteCmd("turn_on", "turn_on", domain)
 	if resp2 != "Can't do that." {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Can't do that.")
 	}
 
-	resp3 := machine.ExecuteCmd("hello_universe", "hello", domain, extensionREST)
+	resp3, _ := machine.ExecuteCmd("hello_universe", "hello", domain)
 	if resp3 != "Hello Universe" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp3, "Hello Universe")
 	}
 
-	resp4 := machine.ExecuteCmd("hello_universe", "hello", domain, extensionREST2)
+	resp4, _ := machine.ExecuteCmd("hello_universe", "hello", domain)
 	if resp4 != "Error" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp4, "Error")
 	}
 
-	resp5 := machine.ExecuteCmd("", "f o o", domain, extensionREST)
+	resp5, _ := machine.ExecuteCmd("", "f o o", domain)
 	if resp5 != "???" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp5, "???")
 	}
@@ -51,7 +53,7 @@ func TestFSM2(t *testing.T) {
 		State: 1,
 		Slots: make(map[string]string),
 	}
-	machine.ExecuteCmd("start", "1", domain, nil)
+	machine.ExecuteCmd("start", "1", domain)
 }
 
 func TestCacheStore(t *testing.T) {
@@ -133,13 +135,13 @@ func TestRedisStoreFail(t *testing.T) {
 }
 
 func TestFSM3(t *testing.T) {
-	extensionRPC := LoadExtensions(ExtensionsConfig{
+	extensionRPC := ext.LoadExtensions(ext.ExtensionsConfig{
 		Type: "RPC",
 		Host: "localhost",
 		Port: 6770,
 	})
 	switch extensionRPC.(type) {
-	case *ExtensionRPC:
+	case *ext.ExtensionRPC:
 		break
 	default:
 		t.Error("incorrect, want: *ExtensionRPC")
@@ -151,9 +153,9 @@ func TestFSM3(t *testing.T) {
 		State: 1,
 		Slots: make(map[string]string),
 	}
-	machine.ExecuteCmd("search_pokemon", "search ditto", domain, extensionRPC)
+	machine.ExecuteCmd("search_pokemon", "search ditto", domain)
 
-	extensionRPC2 := LoadExtensions(ExtensionsConfig{
+	extensionRPC2 := ext.LoadExtensions(ext.ExtensionsConfig{
 		Type: "RPC",
 		Host: "localhost",
 		Port: 6771,

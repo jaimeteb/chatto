@@ -3,15 +3,16 @@ package main
 import (
 	"log"
 
+	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
-func validateAnswer1(req *fsm.Request) (res *fsm.Response) {
+func validateAnswer1(req *ext.Request) (res *ext.Response) {
 	txt := req.Txt
 	dom := req.Dom
 
 	if !(txt == "1" || txt == "2" || txt == "3") {
-		return &fsm.Response{
+		return &ext.Response{
 			FSM: &fsm.FSM{
 				State: dom.StateTable["question_1"],
 				Slots: req.FSM.Slots,
@@ -20,7 +21,7 @@ func validateAnswer1(req *fsm.Request) (res *fsm.Response) {
 		}
 	}
 
-	return &fsm.Response{
+	return &ext.Response{
 		FSM: req.FSM,
 		Res: "Question 2:\n" +
 			"What is the capital of the state of Utah?\n" +
@@ -30,12 +31,12 @@ func validateAnswer1(req *fsm.Request) (res *fsm.Response) {
 	}
 }
 
-func validateAnswer2(req *fsm.Request) (res *fsm.Response) {
+func validateAnswer2(req *ext.Request) (res *ext.Response) {
 	txt := req.Txt
 	dom := req.Dom
 
 	if !(txt == "1" || txt == "2" || txt == "3") {
-		return &fsm.Response{
+		return &ext.Response{
 			FSM: &fsm.FSM{
 				State: dom.StateTable["question_2"],
 				Slots: req.FSM.Slots,
@@ -44,7 +45,7 @@ func validateAnswer2(req *fsm.Request) (res *fsm.Response) {
 		}
 	}
 
-	return &fsm.Response{
+	return &ext.Response{
 		FSM: req.FSM,
 		Res: "Question 3:\n" +
 			"Who painted Starry Night?\n" +
@@ -54,13 +55,13 @@ func validateAnswer2(req *fsm.Request) (res *fsm.Response) {
 	}
 }
 
-func calculateScore(req *fsm.Request) (res *fsm.Response) {
+func calculateScore(req *ext.Request) (res *ext.Response) {
 	txt := req.Txt
 	dom := req.Dom
 	slt := req.FSM.Slots
 
 	if !(txt == "1" || txt == "2" || txt == "3") {
-		return &fsm.Response{
+		return &ext.Response{
 			FSM: &fsm.FSM{
 				State: dom.StateTable["question_3"],
 				Slots: req.FSM.Slots,
@@ -96,20 +97,20 @@ func calculateScore(req *fsm.Request) (res *fsm.Response) {
 		message = "You got 3/3 answers right.\nYou are good! Congrats!"
 	}
 
-	return &fsm.Response{
+	return &ext.Response{
 		FSM: req.FSM,
 		Res: message,
 	}
 }
 
-var myExtMap = fsm.ExtensionMap{
+var myExtMap = ext.ExtensionMap{
 	"ext_val_ans_1": validateAnswer1,
 	"ext_val_ans_2": validateAnswer2,
 	"ext_score":     calculateScore,
 }
 
 func main() {
-	if err := fsm.ServeExtensionREST(myExtMap); err != nil {
+	if err := ext.ServeExtensionREST(myExtMap); err != nil {
 		log.Fatalln(err)
 	}
 }

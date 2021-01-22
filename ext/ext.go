@@ -1,4 +1,4 @@
-package fsm
+package ext
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/rpc"
 
+	"github.com/jaimeteb/chatto/fsm"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,11 +32,11 @@ type ExtensionREST struct {
 // Extension interface models an extension that can be either RPC or REST
 type Extension interface {
 	GetAllFuncs() []string
-	RunExtFunc(extName, text string, dom Domain, m *FSM) interface{}
+	RunExtFunc(extName, text string, dom fsm.Domain, m *fsm.FSM) interface{}
 }
 
 // RunExtFunc runs an extension function over RPC
-func (e *ExtensionRPC) RunExtFunc(extName, text string, dom Domain, m *FSM) interface{} {
+func (e *ExtensionRPC) RunExtFunc(extName, text string, dom fsm.Domain, m *fsm.FSM) interface{} {
 	req := Request{
 		FSM: m,
 		Req: extName,
@@ -65,7 +66,7 @@ func (e *ExtensionRPC) GetAllFuncs() []string {
 }
 
 // RunExtFunc runs an extension function over REST
-func (e *ExtensionREST) RunExtFunc(extName, text string, dom Domain, m *FSM) interface{} {
+func (e *ExtensionREST) RunExtFunc(extName, text string, dom fsm.Domain, m *fsm.FSM) interface{} {
 	req := Request{
 		FSM: m,
 		Req: extName,

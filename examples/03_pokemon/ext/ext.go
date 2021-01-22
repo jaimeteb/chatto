@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/asmcos/requests"
+	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
 )
 
-func searchPokemon(req *fsm.Request) (res *fsm.Response) {
+func searchPokemon(req *ext.Request) (res *ext.Response) {
 	m := req.FSM
 
 	pokemon := m.Slots["pokemon"]
@@ -40,7 +41,7 @@ func searchPokemon(req *fsm.Request) (res *fsm.Response) {
 		}
 	}
 
-	return &fsm.Response{
+	return &ext.Response{
 		FSM: &fsm.FSM{
 			State: intoState,
 			Slots: req.FSM.Slots,
@@ -49,12 +50,12 @@ func searchPokemon(req *fsm.Request) (res *fsm.Response) {
 	}
 }
 
-var myExtMap = fsm.ExtensionMap{
+var myExtMap = ext.ExtensionMap{
 	"ext_search_pokemon": searchPokemon,
 }
 
 func main() {
-	if err := fsm.ServeExtensionRPC(myExtMap); err != nil {
+	if err := ext.ServeExtensionRPC(myExtMap); err != nil {
 		log.Fatalln(err)
 	}
 }

@@ -113,7 +113,7 @@ func NewTransitionFunc(s int, r interface{}) TransitionFunc {
 }
 
 // ExecuteCmd executes a command in FSM
-func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response interface{}) {
+func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain) (response interface{}, runExt string) {
 	var trans TransitionFunc
 	var tuple CmdStateTuple
 
@@ -153,8 +153,8 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain, ext Extension) (response i
 		response = trans(m)
 		switch r := response.(type) {
 		case string:
-			if strings.HasPrefix(r, "ext_") && ext != nil {
-				response = ext.RunExtFunc(r, txt, dom, m)
+			if strings.HasPrefix(r, "ext_") {
+				runExt = r
 			}
 		}
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/jaimeteb/chatto/clf"
 	cmn "github.com/jaimeteb/chatto/common"
+	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/spf13/viper"
 )
@@ -75,7 +76,7 @@ type Bot struct {
 	Machines   fsm.StoreFSM
 	Domain     fsm.Domain
 	Classifier clf.Classifier
-	Extension  fsm.Extension
+	Extension  ext.Extension
 	Clients    Clients
 }
 
@@ -89,7 +90,7 @@ type Prediction struct {
 // Config struct models the bot.yml configuration file
 type Config struct {
 	Name       string               `mapstructure:"bot_name"`
-	Extensions fsm.ExtensionsConfig `mapstructure:"extensions"`
+	Extensions ext.ExtensionsConfig `mapstructure:"extensions"`
 	Store      fsm.StoreConfig      `mapstructure:"store"`
 }
 
@@ -109,7 +110,10 @@ func (b Bot) Answer(mess cmn.Message) interface{} {
 	cmd, _ := b.Classifier.Predict(inputMessage)
 
 	m := b.Machines.Get(mess.Sender)
-	resp := m.ExecuteCmd(cmd, inputMessage, b.Domain, b.Extension)
+	resp, runExt := m.ExecuteCmd(cmd, inputMessage, b.Domain)
+	if runExt != "" && b.Extension != nil {
+		resp = b.Extension.RunExtFunc(runExt, inputMessage, b.Domain, m)
+	}
 	b.Machines.Set(mess.Sender, m)
 
 	return resp
@@ -161,7 +165,7 @@ func LoadBot(path *string) Bot {
 	// Load Classifier
 	classifier := clf.Create(path)
 	// Load Extensions
-	extension := fsm.LoadExtensions(bc.Extensions)
+	extension := ext.LoadExtensions(bc.Extensions)
 	// Load clients
 	clients := LoadClients(path)
 	// Load Store

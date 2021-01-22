@@ -4,11 +4,11 @@ import (
 	"log"
 
 	cmn "github.com/jaimeteb/chatto/common"
-	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/ext"
 )
 
-func greetFunc(req *fsm.Request) (res *fsm.Response) {
-	return &fsm.Response{
+func greetFunc(req *ext.Request) (res *ext.Response) {
+	return &ext.Response{
 		FSM: req.FSM,
 		Res: cmn.Message{
 			Text:  "Hello Universe",
@@ -17,12 +17,12 @@ func greetFunc(req *fsm.Request) (res *fsm.Response) {
 	}
 }
 
-var myExtMap = fsm.ExtensionMap{
+var myExtMap = ext.ExtensionMap{
 	"ext_any": greetFunc,
 }
 
 func main() {
-	if err := fsm.ServeExtensionREST(myExtMap); err != nil {
+	if err := ext.ServeExtensionREST(myExtMap); err != nil {
 		log.Fatalln(err)
 	}
 }

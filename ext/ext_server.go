@@ -1,4 +1,4 @@
-package fsm
+package ext
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/rpc"
 
+	"github.com/jaimeteb/chatto/fsm"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
@@ -15,15 +16,15 @@ import (
 
 // Request struct for extension functions
 type Request struct {
-	FSM *FSM           `json:"fsm"`
-	Req string         `json:"req"`
-	Txt string         `json:"txt"`
-	Dom *DomainNoFuncs `json:"dom"`
+	FSM *fsm.FSM           `json:"fsm"`
+	Req string             `json:"req"`
+	Txt string             `json:"txt"`
+	Dom *fsm.DomainNoFuncs `json:"dom"`
 }
 
 // Response struct for extension functions
 type Response struct {
-	FSM *FSM        `json:"fsm"`
+	FSM *fsm.FSM    `json:"fsm"`
 	Res interface{} `json:"res"`
 }
 
