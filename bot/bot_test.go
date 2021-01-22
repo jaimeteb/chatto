@@ -79,11 +79,50 @@ func TestBot2(t *testing.T) {
 
 }
 
-func TestBotNoClients(t *testing.T) {
+func TestBotNoClientsAndImages(t *testing.T) {
 	path := "../examples/01_moodbot/"
 
 	bot := LoadBot(&path)
 	if bot.Clients.Telegram.Client != nil || bot.Clients.Twilio.Client != nil {
 		t.Errorf("bot.Clients is incorrect, got: %v, want: %v.", bot.Clients, "{}")
 	}
+
+	wREST := httptest.NewRecorder()
+	messages := []interface{}{
+		cmn.Message{
+			Text: "only text",
+		},
+		cmn.Message{
+			Text:  "text and image",
+			Image: "https://i.imgur.com/8MU0IUT.jpeg",
+		},
+		"string in the wild",
+		map[string]interface{}{
+			"text": "text in map",
+		},
+		map[interface{}]interface{}{
+			"text": "text in interface map",
+		},
+	}
+	SendMessages(messages, &bot.Clients.REST, "8809", wREST)
+
+	SendMessages(new(interface{}), &bot.Clients.REST, "8809", wREST)
+}
+
+func TestServeBot(t *testing.T) {
+	path := "../examples/00_test/"
+	port := 9999
+
+	go ServeBot(&path, &port)
+}
+
+func TestExtFromBot(t *testing.T) {
+	path := "../examples/00_test/"
+	bot := LoadBot(&path)
+	bot.Clients = Clients{}
+	bot.Answer(cmn.Message{
+		Sender: "ext_tester",
+		Text:   "hello",
+		Image:  "",
+	})
 }
