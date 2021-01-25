@@ -2,6 +2,7 @@ package bot
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 	"github.com/ajg/form"
 	cmn "github.com/jaimeteb/chatto/common"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 
 	"github.com/kevinburke/twilio-go"
 	"github.com/kimrgrey/go-telegram"
@@ -22,6 +24,7 @@ import (
 type ClientsConfig struct {
 	Telegram TelegramConfig `mapstructure:"telegram"`
 	Twilio   TwilioConfig   `mapstructure:"twilio"`
+	Slack    SlackConfig    `mapstructure:"slack"`
 }
 
 // TelegramConfig models Telegram configuration
@@ -36,11 +39,17 @@ type TwilioConfig struct {
 	Number     string `mapstructure:"number"`
 }
 
+// SlackConfig contains the Slack token
+type SlackConfig struct {
+	Token string `mapstructure:"token"`
+}
+
 // Clients struct combines all available clients
 type Clients struct {
 	Telegram TelegramClient
 	Twilio   TwilioClient
 	REST     RESTClient
+	Slack    SlackClient
 }
 
 // TwilioClient contains a Twilio client as well as the Twilio number
@@ -56,6 +65,11 @@ type TelegramClient struct {
 
 // RESTClient contains a REST client
 type RESTClient struct {
+}
+
+// SlackClient contains a Slack Client
+type SlackClient struct {
+	Client *slack.Client
 }
 
 // Client interface implements a SendMessage method that sends message through an API client
@@ -160,6 +174,62 @@ func (c *RESTClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cmn
 	return mess, nil
 }
 
+// SendMessage for Slack
+func (s *SlackClient) SendMessage(msg cmn.Message, recipient string) error {
+	slackMsgOptions := []slack.MsgOption{}
+
+	if msg.Text != "" {
+		text := slack.MsgOptionText(msg.Text, false)
+		slackMsgOptions = append(slackMsgOptions, text)
+	}
+	if msg.Image != "" {
+		image := slack.MsgOptionAttachments(slack.Attachment{ImageURL: msg.Image})
+		slackMsgOptions = append(slackMsgOptions, image)
+	}
+
+	ret, _, err := s.Client.PostMessage(recipient, slackMsgOptions...)
+	log.Debugf("%v - %v\n", ret, err)
+
+	return nil
+}
+
+// RecieveMessage for Slack
+func (s *SlackClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cmn.Message, error) {
+	log.Debug(r.Body)
+
+	var event SlackMessage
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&event); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return cmn.Message{}, err
+	}
+
+	if event.Type == "url_verification" {
+		js, err := json.Marshal(map[string]string{"challenge": event.Challenge})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+		return cmn.Message{}, errors.New("performed url_verification")
+	}
+
+	if event.Event.BotID != "" {
+		return cmn.Message{}, nil
+	}
+
+	log.Debug(event.Type)
+	log.Debugf("%+v\n", event.Event)
+
+	msg := cmn.Message{
+		Sender: event.Event.Channel,
+		Text:   event.Event.Text,
+	}
+
+	return msg, nil
+}
+
 // SendMessages sends messages through the clients
 func SendMessages(msgs interface{}, client Client, recipient string, w http.ResponseWriter) error {
 	ans := make([]map[string]string, 0)
@@ -254,6 +324,13 @@ func LoadClients(path *string) Clients {
 		twilioClient := twilio.NewClient(end.Twilio.AccountSid, end.Twilio.AuthToken, nil)
 		cts.Twilio = TwilioClient{twilioClient, end.Twilio.Number}
 		log.Infof("Added Twilio client: %v\n", twilioClient.AccountSid)
+	}
+
+	// SLACK
+	if end.Slack != (SlackConfig{}) {
+		slackClient := slack.New(end.Slack.Token)
+		cts.Slack = SlackClient{slackClient}
+		log.Infof("Added Slack client: %v...\n", end.Slack.Token[:10])
 	}
 
 	return cts
