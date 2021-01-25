@@ -77,6 +77,15 @@ func TestBot2(t *testing.T) {
 	w5 := httptest.NewRecorder()
 	bot.predictHandler(w5, req5)
 
+	jsonStr6 := []byte(`{"event": {"channel": "43", "text": "on"}}`)
+	req6, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr6))
+	w6 := httptest.NewRecorder()
+	bot.slackEndpointHandler(w6, req6)
+
+	jsonStr7 := []byte(`{"challenge": "challenge"}`)
+	req7, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr7))
+	w7 := httptest.NewRecorder()
+	bot.slackEndpointHandler(w7, req7)
 }
 
 func TestBotNoClientsAndImages(t *testing.T) {
