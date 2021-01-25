@@ -2,7 +2,6 @@ package bot
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -178,13 +177,18 @@ func (c *RESTClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cmn
 func (s *SlackClient) SendMessage(msg cmn.Message, recipient string) error {
 	slackMsgOptions := []slack.MsgOption{}
 
-	if msg.Text != "" {
+	if msg.Image != "" {
+		var imageText *slack.TextBlockObject
+		if msg.Text != "" {
+			imageText = slack.NewTextBlockObject("plain_text", msg.Text, false, false)
+		} else {
+			imageText = nil
+		}
+		image := slack.MsgOptionBlocks(slack.NewImageBlock(msg.Image, "image", "1", imageText))
+		slackMsgOptions = append(slackMsgOptions, image)
+	} else if msg.Text != "" {
 		text := slack.MsgOptionText(msg.Text, false)
 		slackMsgOptions = append(slackMsgOptions, text)
-	}
-	if msg.Image != "" {
-		image := slack.MsgOptionAttachments(slack.Attachment{ImageURL: msg.Image})
-		slackMsgOptions = append(slackMsgOptions, image)
 	}
 
 	ret, _, err := s.Client.PostMessage(recipient, slackMsgOptions...)
@@ -212,7 +216,7 @@ func (s *SlackClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cm
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(js)
-		return cmn.Message{}, errors.New("performed url_verification")
+		return cmn.Message{}, nil
 	}
 
 	if event.Event.BotID != "" {

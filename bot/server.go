@@ -61,6 +61,8 @@ func (b Bot) slackEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error(err)
 		return
+	} else if (mess == cmn.Message{}) {
+		return
 	}
 
 	resp := b.Answer(mess)
