@@ -8,10 +8,10 @@ import (
 )
 
 func validateAnswer1(req *ext.Request) (res *ext.Response) {
-	txt := req.Txt
+	ans := req.FSM.Slots["answer_1"]
 	dom := req.Dom
 
-	if !(txt == "1" || txt == "2" || txt == "3") {
+	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &ext.Response{
 			FSM: &fsm.FSM{
 				State: dom.StateTable["question_1"],
@@ -32,10 +32,10 @@ func validateAnswer1(req *ext.Request) (res *ext.Response) {
 }
 
 func validateAnswer2(req *ext.Request) (res *ext.Response) {
-	txt := req.Txt
+	ans := req.FSM.Slots["answer_2"]
 	dom := req.Dom
 
-	if !(txt == "1" || txt == "2" || txt == "3") {
+	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &ext.Response{
 			FSM: &fsm.FSM{
 				State: dom.StateTable["question_2"],
@@ -56,11 +56,11 @@ func validateAnswer2(req *ext.Request) (res *ext.Response) {
 }
 
 func calculateScore(req *ext.Request) (res *ext.Response) {
-	txt := req.Txt
+	ans := req.FSM.Slots["answer_1"]
 	dom := req.Dom
 	slt := req.FSM.Slots
 
-	if !(txt == "1" || txt == "2" || txt == "3") {
+	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &ext.Response{
 			FSM: &fsm.FSM{
 				State: dom.StateTable["question_3"],

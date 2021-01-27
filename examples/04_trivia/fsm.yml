@@ -27,7 +27,8 @@ functions:
     message: ext_val_ans_1
     slot:
       name: answer_1
-      mode: whole_text
+      mode: regex
+      regex: "[0-9]+"
 
   - transition:
       from: question_2
@@ -36,7 +37,8 @@ functions:
     message: ext_val_ans_2
     slot:
       name: answer_2
-      mode: whole_text
+      mode: regex
+      regex: "[0-9]+"
 
   - transition:
       from: question_3
@@ -45,7 +47,8 @@ functions:
     message: ext_score
     slot:
       name: answer_3
-      mode: whole_text
+      mode: regex
+      regex: "[0-9]+"
 
   - transition:
       from: any

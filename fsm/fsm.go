@@ -1,6 +1,7 @@
 package fsm
 
 import (
+	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -32,8 +33,9 @@ type Transition struct {
 
 // Slot models a slot configuration
 type Slot struct {
-	Name string `yaml:"name"`
-	Mode string `yaml:"mode"`
+	Name  string `yaml:"name"`
+	Mode  string `yaml:"mode"`
+	Regex string `yaml:"regex"`
 }
 
 // Defaults models the domain's default messages
@@ -122,9 +124,16 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain) (response interface{}, run
 		switch slot.Mode {
 		case "whole_text":
 			m.Slots[slot.Name] = txt
+		case "regex":
+			if r, err := regexp.Compile(slot.Regex); err == nil {
+				match := r.FindAllString(txt, 1)
+				if len(match) > 0 {
+					m.Slots[slot.Name] = match[0]
+				}
+			}
 		}
 	}
-	// log.Info(m.Slots)
+	// log.Debug(m.Slots)
 
 	if cmd == "" {
 		response = dom.DefaultMessages.Unsure // Threshold not met
