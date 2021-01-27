@@ -32,12 +32,13 @@ type ExtensionREST struct {
 // Extension interface models an extension that can be either RPC or REST
 type Extension interface {
 	GetAllFuncs() []string
-	RunExtFunc(extName, text string, dom fsm.Domain, m *fsm.FSM) interface{}
+	RunExtFunc(sender, extName, text string, dom fsm.Domain, m *fsm.FSM) interface{}
 }
 
 // RunExtFunc runs an extension function over RPC
-func (e *ExtensionRPC) RunExtFunc(extName, text string, dom fsm.Domain, m *fsm.FSM) interface{} {
+func (e *ExtensionRPC) RunExtFunc(sender, extName, text string, dom fsm.Domain, m *fsm.FSM) interface{} {
 	req := Request{
+		Sen: sender,
 		FSM: m,
 		Req: extName,
 		Txt: text,
@@ -66,8 +67,9 @@ func (e *ExtensionRPC) GetAllFuncs() []string {
 }
 
 // RunExtFunc runs an extension function over REST
-func (e *ExtensionREST) RunExtFunc(extName, text string, dom fsm.Domain, m *fsm.FSM) interface{} {
+func (e *ExtensionREST) RunExtFunc(sender, extName, text string, dom fsm.Domain, m *fsm.FSM) interface{} {
 	req := Request{
+		Sen: sender,
 		FSM: m,
 		Req: extName,
 		Txt: text,

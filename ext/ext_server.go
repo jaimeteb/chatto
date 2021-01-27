@@ -18,6 +18,7 @@ import (
 type Request struct {
 	FSM *fsm.FSM           `json:"fsm"`
 	Req string             `json:"req"`
+	Sen string             `json:"sen"`
 	Txt string             `json:"txt"`
 	Dom *fsm.DomainNoFuncs `json:"dom"`
 }

@@ -20,12 +20,12 @@ func TestRESTExt(t *testing.T) {
 		URL:  "http://localhost:8771",
 	})
 
-	resp1 := extensionREST1.RunExtFunc("ext_any", "hello", fsm.Domain{}, &fsm.FSM{})
+	resp1 := extensionREST1.RunExtFunc("", "ext_any", "hello", fsm.Domain{}, &fsm.FSM{})
 	if resp1.(map[string]interface{})["text"] != "Hello Universe" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp1, "Hello Universe")
 	}
 
-	resp2 := extensionREST2.RunExtFunc("ext_any", "hello", fsm.Domain{DefaultMessages: fsm.Defaults{Error: "Error"}}, &fsm.FSM{})
+	resp2 := extensionREST2.RunExtFunc("", "ext_any", "hello", fsm.Domain{DefaultMessages: fsm.Defaults{Error: "Error"}}, &fsm.FSM{})
 	if resp2.(string) != "Error" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Error")
 	}
@@ -64,12 +64,12 @@ func TestRPCExt(t *testing.T) {
 			"pokemon": "pikachu",
 		},
 	}
-	resp1 := extensionRPC1.RunExtFunc("ext_search_pokemon", "pikachu", testDom, &testFSM)
+	resp1 := extensionRPC1.RunExtFunc("", "ext_search_pokemon", "pikachu", testDom, &testFSM)
 	if resp1.(string) == "Error" {
 		t.Errorf("resp is incorrect, got: %v", resp1)
 	}
 
-	resp2 := extensionRPC1.RunExtFunc("ext_any", "hello", fsm.Domain{DefaultMessages: fsm.Defaults{Error: "Error"}}, &fsm.FSM{})
+	resp2 := extensionRPC1.RunExtFunc("", "ext_any", "hello", fsm.Domain{DefaultMessages: fsm.Defaults{Error: "Error"}}, &fsm.FSM{})
 	if resp2.(string) != "Error" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Error")
 	}

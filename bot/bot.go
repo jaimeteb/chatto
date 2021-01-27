@@ -73,7 +73,7 @@ func (b Bot) Answer(mess cmn.Message) interface{} {
 	m := b.Machines.Get(mess.Sender)
 	resp, runExt := m.ExecuteCmd(cmd, inputMessage, b.Domain)
 	if runExt != "" && b.Extension != nil {
-		resp = b.Extension.RunExtFunc(runExt, inputMessage, b.Domain, m)
+		resp = b.Extension.RunExtFunc(mess.Sender, runExt, inputMessage, b.Domain, m)
 	}
 	b.Machines.Set(mess.Sender, m)
 
