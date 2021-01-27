@@ -1,4 +1,4 @@
-package clf
+package common
 
 import (
 	"os"
@@ -6,16 +6,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func init() {
-	lvl := os.Getenv("LOG_LEVEL")
-	switch lvl {
-	case "DEBUG":
+// SetLogger configures the logrus logger and sets the log level
+func SetLogger() {
+	if debug := os.Getenv("DEBUG"); debug == "true" {
 		log.SetLevel(log.DebugLevel)
-	case "INFO":
-		log.SetLevel(log.InfoLevel)
-	case "WARN":
-		log.SetLevel(log.WarnLevel)
-	default:
+	} else {
 		log.SetLevel(log.InfoLevel)
 	}
 	log.SetFormatter(&log.TextFormatter{

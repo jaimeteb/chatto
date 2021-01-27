@@ -4,7 +4,12 @@ import (
 	"flag"
 
 	"github.com/jaimeteb/chatto/bot"
+	cmn "github.com/jaimeteb/chatto/common"
 )
+
+func init() {
+	cmn.SetLogger()
+}
 
 func main() {
 	cli := flag.Bool("cli", false, "Run in CLI mode.")
