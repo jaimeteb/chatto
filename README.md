@@ -157,7 +157,7 @@ Here is a diagram for this simple Finite State Machine:
 <a name="usage"></a>
 ## Usage
 
-> You can integrate yout bot with [**Telegram and Twilio**](https://chatto.jaimeteb.com/botconfiguration/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
+> You can integrate yout bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
 
 Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
 
@@ -173,8 +173,6 @@ docker run \
   -v $PWD/your/data:/chatto/data \
   jaimeteb/chatto
 ```
-
-> You can set a log level with the environment variable `LOG_LEVEL`.
 
 <a name="usagecli"></a>
 ### CLI
@@ -247,7 +245,7 @@ STORE_HOST=redis
 STORE_PASSWORD=pass
 
 # Logs
-LOG_LEVEL=DEBUG
+DEBUG=true
 ```
 
 The directory structure with all the files would look like this:
