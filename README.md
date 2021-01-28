@@ -284,6 +284,6 @@ I have provided some config files under *examples*. Clone the repository and run
 More about these examples in the [**Documentation**](https://chatto.jaimeteb.com/examples/moodbot)
 
 1. [**Mood Bot**](/examples/01_moodbot) - A chatto version of [Rasa's Mood Bot](https://github.com/RasaHQ/rasa/tree/master/examples/moodbot) Greet the bot to start the conversation.
-2. [**Engineering Flowchart**](/examples/02_repair) - Tell the bot you want to repair something.
-3. [**Pokemon**](/examples/03_pokemon) - Search for Pokémon by name or number.
+3. [**Pokemon Search**](/examples/03_pokemon) - Search for Pokémon by name or number.
+2. [**Miscellaneous Bot**](/examples/02_misc) - Weather forecast, random jokes and quotes, and more!
 4. [**Trivia Quiz**](/examples/04_trivia) - Type *start* to take a quick trivia quiz.
