@@ -1,0 +1,45 @@
+classification:
+  - command: "hi"
+    texts:
+      - "hi"
+      - "hello"
+      - "hey"
+      - "start"
+
+  - command: "weather"
+    texts:
+      - "what's the weather like today?"
+      - "tell me the weather"
+      - "weather forecast"
+      - "what's the low temperature tonight"
+      - "what storms are nearby"
+      - "is it sunny or cloudy?"
+
+  - command: "joke"
+    texts:
+      - "tell me a joke"
+      - "tell me a funny joke"
+      - "funny story"
+      - "are you funny?"
+      - "give me a good joke"
+      - "amuse me"
+
+  - command: "misc"
+    texts:
+      - "how tall is the tallest man in the world"
+      - "why is the sky blue?"
+      - "what is the capital city of Denmark"
+      - "who is the president of South Africa?"
+      - "what's the biggest animal in the world"
+      - "Who won the last fifa world cup?"
+      - "how does a camera work"
+      - "how do you say dog in German?"
+      - "what is the longest river in the world"
+      - "why are the kardashians so famous"
+      - "when did mexico gain independence"
+      - "when did ps4 come out"
+
+pipeline:
+  remove_symbols: true
+  lower: true
+  threshold: 0.3
