@@ -48,6 +48,13 @@ type jokeResponse struct {
 	Joke string `json:"joke"`
 }
 
+var quoteURL = "http://api.quotable.io/random"
+
+type quoteResponse struct {
+	Content string `json:"content"`
+	Author  string `json:"author"`
+}
+
 var serpKey = os.Getenv("SCALE_SERP_API_KEY")
 var serpURL = "https://api.scaleserp.com/search?api_key=%s&q=%s"
 
@@ -148,6 +155,24 @@ func jokeFunc(req *ext.Request) (res *ext.Response) {
 	}
 }
 
+func quoteFunc(req *ext.Request) (res *ext.Response) {
+	resp, err := http.Get(quoteURL)
+	if err != nil {
+		return errFunc(req, err)
+	}
+
+	defer resp.Body.Close()
+	var quoteResp quoteResponse
+	if err := json.NewDecoder(resp.Body).Decode(&quoteResp); err != nil {
+		return errFunc(req, err)
+	}
+
+	return &ext.Response{
+		FSM: req.FSM,
+		Res: fmt.Sprintf("%s\n    - %s", quoteResp.Content, quoteResp.Author),
+	}
+}
+
 func miscFunc(req *ext.Request) (res *ext.Response) {
 	query := url.QueryEscape(strings.ReplaceAll(req.Txt, " ", "+"))
 
@@ -192,6 +217,7 @@ func miscFunc(req *ext.Request) (res *ext.Response) {
 var myExtMap = ext.ExtensionMap{
 	"ext_weather": weatherFunc,
 	"ext_joke":    jokeFunc,
+	"ext_quote":   quoteFunc,
 	"ext_misc":    miscFunc,
 }
 

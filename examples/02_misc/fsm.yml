@@ -7,16 +7,18 @@ commands:
   - "weather"
   - "joke"
   - "misc"
+  - "quote"
 
 functions:
   - transition:
       from: "initial"
       into: "initial"
     command: "hi"
-    message: |
+    message: |-
       Hi! I can do these things:
       * Tell the weather
       * Tell a joke
+      * Get a random quote
       * Answer random questions
 
   - transition:
@@ -36,6 +38,12 @@ functions:
       into: "initial"
     command: "joke"
     message: ext_joke
+
+  - transition:
+      from: "initial"
+      into: "initial"
+    command: "quote"
+    message: ext_quote
 
   - transition:
       from: "initial"

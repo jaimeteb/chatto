@@ -24,6 +24,15 @@ classification:
       - "give me a good joke"
       - "amuse me"
 
+  - command: "quote"
+    texts:
+      - "give me quote"
+      - "inspirational phrase"
+      - "i want a quote"
+      - "quotation"
+      - "random quote by anyone"
+      - "motivation phrases"
+
   - command: "misc"
     texts:
       - "how tall is the tallest man in the world"
