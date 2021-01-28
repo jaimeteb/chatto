@@ -1,0 +1,57 @@
+states:
+  - "initial"
+  - "ask_location"
+
+commands:
+  - "hi"
+  - "weather"
+  - "joke"
+  - "misc"
+  - "quote"
+
+functions:
+  - transition:
+      from: "initial"
+      into: "initial"
+    command: "hi"
+    message: |-
+      Hi! I can do these things:
+      * Tell the weather
+      * Tell a joke
+      * Get a random quote
+      * Answer random questions
+
+  - transition:
+      from: "initial"
+      into: "ask_location"
+    command: "weather"
+    message: "What's your location?"
+
+  - transition:
+      from: "ask_location"
+      into: "initial"
+    command: "any"
+    message: ext_weather
+
+  - transition:
+      from: "initial"
+      into: "initial"
+    command: "joke"
+    message: ext_joke
+
+  - transition:
+      from: "initial"
+      into: "initial"
+    command: "quote"
+    message: ext_quote
+
+  - transition:
+      from: "initial"
+      into: "initial"
+    command: "misc"
+    message: ext_misc
+
+defaults:
+  unknown: "Sorry, I don't know how to do that yet..."
+  unsure: "I'm not sure what you mean by that..."
+  error: "I'm sorry, there was an error."
