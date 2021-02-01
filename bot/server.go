@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	cmn "github.com/jaimeteb/chatto/common"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/gorilla/mux"
+	"github.com/slack-go/slack/slackevents"
+	"github.com/slack-go/slack/socketmode"
 )
 
 func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,6 +112,87 @@ func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func (b Bot) slackSocketmodeHandler() {
+	client := b.Clients.Slack.Socketmode
+
+	go func() {
+		for evt := range client.Events {
+			switch evt.Type {
+			case socketmode.EventTypeConnecting:
+				log.Info("Connecting to Slack with Socket Mode...")
+			case socketmode.EventTypeConnectionError:
+				log.Error("Connection to Slack failed. Retrying later...")
+			case socketmode.EventTypeConnected:
+				log.Info("Connected to Slack with Socket Mode")
+			case socketmode.EventTypeEventsAPI:
+				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
+				if !ok {
+					log.Warnf("Ignored %+v\n", evt)
+
+					continue
+				}
+
+				log.Infof("Event received: %+v\n", eventsAPIEvent)
+
+				client.Ack(*evt.Request)
+
+				switch eventsAPIEvent.Type {
+				case slackevents.CallbackEvent:
+					innerEvent := eventsAPIEvent.InnerEvent
+					switch ev := innerEvent.Data.(type) {
+					case *slackevents.MessageEvent:
+						resp := b.Answer(cmn.Message{Sender: ev.User, Text: ev.Text})
+
+						messages, _, err := Messages(resp)
+						if err != nil {
+							log.Error(err)
+
+							continue
+						}
+
+						for n := range messages {
+							sendErr := b.Clients.Slack.SendMessage(messages[n], ev.User)
+							if sendErr != nil {
+								log.Errorf("Failed posting message: %v", err)
+
+								continue
+							}
+						}
+					case *slackevents.AppMentionEvent:
+						resp := b.Answer(cmn.Message{Sender: ev.User, Text: ev.Text})
+
+						messages, _, err := Messages(resp)
+						if err != nil {
+							log.Error(err)
+
+							continue
+						}
+
+						for n := range messages {
+							sendErr := b.Clients.Slack.SendMessage(messages[n], ev.User)
+							if sendErr != nil {
+								log.Errorf("Failed posting message: %v", err)
+
+								continue
+							}
+						}
+					}
+				default:
+					log.Debugf("Unsupported Events API event received")
+				}
+			case socketmode.EventTypeInteractive:
+				// TODO: Support interactions.
+			case socketmode.EventTypeSlashCommand:
+				// TODO: Support slash commands.
+			default:
+				log.Debugf("Unexpected event type received: %s", evt.Type)
+			}
+		}
+	}()
+
+	client.Run()
+}
+
 // ServeBot function
 func ServeBot(path *string, port *int) {
 	bot := LoadBot(path)
@@ -125,6 +207,10 @@ func ServeBot(path *string, port *int) {
 	r.HandleFunc("/endpoints/telegram", bot.telegramEndpointHandler).Methods("POST")
 	r.HandleFunc("/endpoints/twilio", bot.twilioEndpointHandler).Methods("POST")
 	r.HandleFunc("/endpoints/slack", bot.slackEndpointHandler).Methods("POST")
+
+	if bot.Clients.Slack.Socketmode != nil {
+		go bot.slackSocketmodeHandler()
+	}
 
 	// Prediction and Sender Endpoints
 	r.HandleFunc("/predict", bot.predictHandler).Methods("POST")

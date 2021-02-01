@@ -13,6 +13,7 @@ import (
 	cmn "github.com/jaimeteb/chatto/common"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/socketmode"
 
 	"github.com/kevinburke/twilio-go"
 	"github.com/kimrgrey/go-telegram"
@@ -40,7 +41,8 @@ type TwilioConfig struct {
 
 // SlackConfig contains the Slack token
 type SlackConfig struct {
-	Token string `mapstructure:"token"`
+	Token    string `mapstructure:"token"`
+	AppToken string `mapstructure:"app_token"`
 }
 
 // Clients struct combines all available clients
@@ -68,7 +70,8 @@ type RESTClient struct {
 
 // SlackClient contains a Slack Client
 type SlackClient struct {
-	Client *slack.Client
+	Client     *slack.Client
+	Socketmode *socketmode.Client
 }
 
 // Client interface implements a SendMessage method that sends message through an API client
@@ -234,6 +237,41 @@ func (s *SlackClient) RecieveMessage(w http.ResponseWriter, r *http.Request) (cm
 	return msg, nil
 }
 
+// Messages from the fsm.
+func Messages(msgs interface{}) ([]cmn.Message, []map[string]string, error) {
+	// Create slice of messages
+	msgsArr := make([]interface{}, 0)
+	if rt := reflect.TypeOf(msgs); rt.Kind() == reflect.Slice {
+		msgsArr = msgs.([]interface{})
+	} else {
+		msgsArr = append(msgsArr, msgs)
+	}
+
+	answer := make([]map[string]string, 0, len(msgsArr))
+	messages := make([]cmn.Message, 0, len(msgsArr))
+
+	for _, msgElem := range msgsArr {
+		switch m := msgElem.(type) {
+		case cmn.Message:
+			answer = append(answer, m.Out())
+			messages = append(messages, m)
+		case string:
+			msg := cmn.Message{Text: m}
+			answer = append(answer, msg.Out())
+			messages = append(messages, msg)
+		case map[interface{}]interface{}, map[string]interface{}, map[string]string:
+			msg := cmn.MessageFromMap(m)
+			answer = append(answer, msg.Out())
+			messages = append(messages, msg)
+		default:
+			err := fmt.Errorf("Message type unsupported: %T", m)
+			return nil, nil, err
+		}
+	}
+
+	return messages, answer, nil
+}
+
 // SendMessages sends messages through the clients
 func SendMessages(msgs interface{}, client Client, recipient string, w http.ResponseWriter) error {
 	ans := make([]map[string]string, 0)
@@ -332,8 +370,19 @@ func LoadClients(path *string) Clients {
 
 	// SLACK
 	if end.Slack != (SlackConfig{}) {
-		slackClient := slack.New(end.Slack.Token)
-		cts.Slack = SlackClient{slackClient}
+		var slackOpts []slack.Option
+
+		if end.Slack.AppToken != "" {
+			slackOpts = append(slackOpts, slack.OptionAppLevelToken(end.Slack.AppToken))
+		}
+
+		slackClient := slack.New(end.Slack.Token, slackOpts...)
+		cts.Slack = SlackClient{Client: slackClient}
+
+		if end.Slack.AppToken != "" {
+			cts.Slack.Socketmode = socketmode.New(slackClient)
+		}
+
 		log.Infof("Added Slack client: %v...\n", end.Slack.Token[:10])
 	}
 
