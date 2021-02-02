@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/ajg/form v1.5.1
 	github.com/asmcos/requests v0.0.0-20200816142649-95abc76c8cac
+	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.10.0
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/gorilla/mux v1.8.0

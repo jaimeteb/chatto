@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	cmn "github.com/jaimeteb/chatto/common"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/message"
 )
 
 func TestRESTExt(t *testing.T) {
@@ -79,7 +79,7 @@ func TestRESTExtServer(t *testing.T) {
 	greetFunc := func(req *Request) (res *Response) {
 		return &Response{
 			FSM: req.FSM,
-			Res: cmn.Message{
+			Res: message.Message{
 				Text:  "Hello Universe",
 				Image: "https://i.imgur.com/pPdjh6x.jpg",
 			},
@@ -106,7 +106,7 @@ func TestRPCExtServer(t *testing.T) {
 	greetFunc := func(req *Request) (res *Response) {
 		return &Response{
 			FSM: req.FSM,
-			Res: cmn.Message{
+			Res: message.Message{
 				Text:  "Hello Universe",
 				Image: "https://i.imgur.com/pPdjh6x.jpg",
 			},

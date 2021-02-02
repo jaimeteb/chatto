@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"net/rpc"
 
-	cmn "github.com/jaimeteb/chatto/common"
-	"github.com/jaimeteb/chatto/fsm"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/gorilla/mux"
+	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/logger"
+	log "github.com/sirupsen/logrus"
 )
 
 // Request struct for extension functions
@@ -115,7 +114,7 @@ func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 
 // ServeExtensionRPC serves the registered extension functions over RPC
 func ServeExtensionRPC(extMap ExtensionMap) error {
-	cmn.SetLogger()
+	logger.SetLogger()
 
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
 	port := flag.Int("port", 8770, "Port to run extension server on")
@@ -141,7 +140,7 @@ func ServeExtensionRPC(extMap ExtensionMap) error {
 
 // ServeExtensionREST serves the registered extension functions as a REST API
 func ServeExtensionREST(extMap ExtensionMap) error {
-	cmn.SetLogger()
+	logger.SetLogger()
 
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	flag.Parse()

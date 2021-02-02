@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	cmn "github.com/jaimeteb/chatto/common"
+	"github.com/jaimeteb/chatto/message"
 	log "github.com/sirupsen/logrus"
 )
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
-func SendAndReceive(mess *cmn.Message, url string) *[]cmn.Message {
+func SendAndReceive(mess *message.Message, url string) *[]message.Message {
 	jsonMess, _ := json.Marshal(mess)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMess))
@@ -26,14 +26,14 @@ func SendAndReceive(mess *cmn.Message, url string) *[]cmn.Message {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Warn(err.Error())
-		return &[]cmn.Message{}
+		return &[]message.Message{}
 	}
 	defer resp.Body.Close()
 
-	ans := &[]cmn.Message{}
+	ans := &[]message.Message{}
 	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
 		log.Warn(err.Error())
-		return &[]cmn.Message{}
+		return &[]message.Message{}
 	}
 	return ans
 }
@@ -53,7 +53,7 @@ func CLI(port *int) {
 			continue
 		}
 
-		respMess := SendAndReceive(&cmn.Message{
+		respMess := SendAndReceive(&message.Message{
 			Sender: "cli",
 			Text:   strings.TrimSuffix(cmd, "\n"),
 		}, localEndpoint)

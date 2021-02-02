@@ -6,14 +6,13 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	cmn "github.com/jaimeteb/chatto/common"
+	"github.com/jaimeteb/chatto/channels"
+	"github.com/jaimeteb/chatto/message"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack/slackevents"
-	"github.com/slack-go/slack/socketmode"
 )
 
-func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	mess, err := b.Clients.REST.RecieveMessage(w, r)
+func (b *Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
+	mess, err := b.Channels.REST.ReceiveMessage(w, r)
 	if err != nil {
 		log.Error(err)
 		return
@@ -21,14 +20,17 @@ func (b Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := b.Answer(mess)
 
-	if err := SendMessages(resp, &b.Clients.REST, mess.Sender, w); err != nil {
+	ans, err := channels.SendMessages(resp, b.Channels.REST, mess.Sender)
+	if err != nil {
 		log.Error(err)
 		return
 	}
+
+	writeAnswer(w, ans)
 }
 
-func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	mess, err := b.Clients.Telegram.RecieveMessage(w, r)
+func (b *Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
+	mess, err := b.Channels.Telegram.ReceiveMessage(w, r)
 	if err != nil {
 		log.Error(err)
 		return
@@ -36,14 +38,17 @@ func (b Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := b.Answer(mess)
 
-	if err := SendMessages(resp, &b.Clients.Telegram, mess.Sender, w); err != nil {
+	ans, err := channels.SendMessages(resp, b.Channels.Telegram, mess.Sender)
+	if err != nil {
 		log.Error(err)
 		return
 	}
+
+	writeAnswer(w, ans)
 }
 
-func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	mess, err := b.Clients.Twilio.RecieveMessage(w, r)
+func (b *Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
+	mess, err := b.Channels.Twilio.ReceiveMessage(w, r)
 	if err != nil {
 		log.Error(err)
 		return
@@ -51,30 +56,54 @@ func (b Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := b.Answer(mess)
 
-	if err := SendMessages(resp, &b.Clients.Twilio, mess.Sender, w); err != nil {
-		log.Error(err)
-		return
-	}
-}
-
-func (b Bot) slackEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	mess, err := b.Clients.Slack.RecieveMessage(w, r)
+	ans, err := channels.SendMessages(resp, b.Channels.Twilio, mess.Sender)
 	if err != nil {
 		log.Error(err)
 		return
-	} else if (mess == cmn.Message{}) {
+	}
+
+	writeAnswer(w, ans)
+}
+
+func (b *Bot) slackEndpointHandler(w http.ResponseWriter, r *http.Request) {
+	mess, err := b.Channels.Slack.ReceiveMessage(w, r)
+	if err != nil {
+		log.Error(err)
+		return
+	} else if (mess == message.Message{}) {
 		return
 	}
 
 	resp := b.Answer(mess)
 
-	if err := SendMessages(resp, &b.Clients.Slack, mess.Sender, w); err != nil {
+	ans, err := channels.SendMessages(resp, b.Channels.Slack, mess.Sender)
+	if err != nil {
 		log.Error(err)
 		return
 	}
+
+	writeAnswer(w, ans)
 }
 
-func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
+func (b *Bot) slackMessageEvents() {
+	messageChan := make(chan message.Message)
+
+	go b.Channels.Slack.ReceiveMessages(messageChan)
+
+	go func() {
+		for mess := range messageChan {
+			resp := b.Answer(mess)
+
+			_, err := channels.SendMessages(resp, b.Channels.Slack, mess.Sender)
+			if err != nil {
+				log.Error(err)
+				return
+			}
+		}
+	}()
+}
+
+func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	senderObj := b.Machines.Get(vars["sender"])
 
@@ -88,9 +117,9 @@ func (b Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
+func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var mess cmn.Message
+	var mess message.Message
 
 	err := decoder.Decode(&mess)
 	if err != nil {
@@ -112,93 +141,15 @@ func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func (b Bot) slackSocketmodeHandler() {
-	client := b.Clients.Slack.Socketmode
-
-	go func() {
-		for evt := range client.Events {
-			switch evt.Type {
-			case socketmode.EventTypeConnecting:
-				log.Info("Connecting to Slack with Socket Mode...")
-			case socketmode.EventTypeConnectionError:
-				log.Error("Connection to Slack failed. Retrying later...")
-			case socketmode.EventTypeConnected:
-				log.Info("Connected to Slack with Socket Mode")
-			case socketmode.EventTypeEventsAPI:
-				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
-				if !ok {
-					log.Warnf("Ignored %+v\n", evt)
-
-					continue
-				}
-
-				log.Infof("Event received: %+v\n", eventsAPIEvent)
-
-				client.Ack(*evt.Request)
-
-				switch eventsAPIEvent.Type {
-				case slackevents.CallbackEvent:
-					innerEvent := eventsAPIEvent.InnerEvent
-					switch ev := innerEvent.Data.(type) {
-					case *slackevents.MessageEvent:
-						resp := b.Answer(cmn.Message{Sender: ev.User, Text: ev.Text})
-
-						messages, _, err := Messages(resp)
-						if err != nil {
-							log.Error(err)
-
-							continue
-						}
-
-						for n := range messages {
-							sendErr := b.Clients.Slack.SendMessage(messages[n], ev.User)
-							if sendErr != nil {
-								log.Errorf("Failed posting message: %v", err)
-
-								continue
-							}
-						}
-					case *slackevents.AppMentionEvent:
-						resp := b.Answer(cmn.Message{Sender: ev.User, Text: ev.Text})
-
-						messages, _, err := Messages(resp)
-						if err != nil {
-							log.Error(err)
-
-							continue
-						}
-
-						for n := range messages {
-							sendErr := b.Clients.Slack.SendMessage(messages[n], ev.User)
-							if sendErr != nil {
-								log.Errorf("Failed posting message: %v", err)
-
-								continue
-							}
-						}
-					}
-				default:
-					log.Debugf("Unsupported Events API event received")
-				}
-			case socketmode.EventTypeInteractive:
-				// TODO: Support interactions.
-			case socketmode.EventTypeSlashCommand:
-				// TODO: Support slash commands.
-			default:
-				log.Debugf("Unexpected event type received: %s", evt.Type)
-			}
-		}
-	}()
-
-	client.Run()
-}
-
-// ServeBot function
+// ServeBot starts the bot process which starts the long running processes
 func ServeBot(path *string, port *int) {
 	bot := LoadBot(path)
 
 	// log.Info("\n" + LOGO)
 	log.Info("Server started")
+
+	// Event listeners
+	bot.slackMessageEvents()
 
 	r := mux.NewRouter()
 
@@ -208,13 +159,20 @@ func ServeBot(path *string, port *int) {
 	r.HandleFunc("/endpoints/twilio", bot.twilioEndpointHandler).Methods("POST")
 	r.HandleFunc("/endpoints/slack", bot.slackEndpointHandler).Methods("POST")
 
-	if bot.Clients.Slack.Socketmode != nil {
-		go bot.slackSocketmodeHandler()
-	}
-
 	// Prediction and Sender Endpoints
 	r.HandleFunc("/predict", bot.predictHandler).Methods("POST")
 	r.HandleFunc("/senders/{sender}", bot.detailsHandler).Methods("GET")
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), r))
+}
+
+func writeAnswer(w http.ResponseWriter, ans []map[string]string) {
+	js, err := json.Marshal(ans)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

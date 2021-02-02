@@ -5,10 +5,11 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/jaimeteb/chatto/channels"
 	"github.com/jaimeteb/chatto/clf"
-	cmn "github.com/jaimeteb/chatto/common"
 	"github.com/jaimeteb/chatto/ext"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/message"
 	"github.com/spf13/viper"
 )
 
@@ -19,7 +20,7 @@ type Bot struct {
 	Domain     fsm.Domain
 	Classifier clf.Classifier
 	Extension  ext.Extension
-	Clients    Clients
+	Channels   *channels.Channels
 }
 
 // Prediction models a classifier prediction and its orignal string
@@ -37,7 +38,7 @@ type Config struct {
 }
 
 // Answer takes a user input and executes a transition on the FSM if possible
-func (b Bot) Answer(mess cmn.Message) interface{} {
+func (b Bot) Answer(mess message.Message) interface{} {
 	if !b.Machines.Exists(mess.Sender) {
 		b.Machines.Set(
 			mess.Sender,
@@ -108,12 +109,12 @@ func LoadBot(path *string) Bot {
 	classifier := clf.Create(path)
 	// Load Extensions
 	extension := ext.LoadExtensions(bc.Extensions)
-	// Load clients
-	clients := LoadClients(path)
+	// Load channels
+	chnls := channels.Load(path)
 	// Load Store
 	machines := fsm.LoadStore(bc.Store)
 
-	return Bot{name, machines, domain, classifier, extension, clients}
+	return Bot{name, machines, domain, classifier, extension, chnls}
 }
 
 // LOGO for Chatto

@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 
-	cmn "github.com/jaimeteb/chatto/common"
 	"github.com/jaimeteb/chatto/ext"
+	"github.com/jaimeteb/chatto/message"
 )
 
 func greetFunc(req *ext.Request) (res *ext.Response) {
 	return &ext.Response{
 		FSM: req.FSM,
-		Res: cmn.Message{
+		Res: message.Message{
 			Text:  "Hello Universe",
 			Image: "https://i.imgur.com/pPdjh6x.jpg",
 		},

@@ -8,7 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	cmn "github.com/jaimeteb/chatto/common"
+	"github.com/jaimeteb/chatto/channels"
+	"github.com/jaimeteb/chatto/message"
 )
 
 func TestBot1(t *testing.T) {
@@ -19,7 +20,7 @@ func TestBot1(t *testing.T) {
 		t.Errorf("bot name is incorrect, got: %v, want: %v.", bot.Name, "test_bot")
 	}
 
-	ans := bot.Answer(cmn.Message{
+	ans := bot.Answer(message.Message{
 		Sender: "bar",
 		Text:   "on",
 	})
@@ -33,7 +34,7 @@ func TestBot2(t *testing.T) {
 	path := "../examples/00_test/"
 	bot := LoadBot(&path)
 
-	bot.Answer(cmn.Message{
+	bot.Answer(message.Message{
 		Sender: "baz",
 		Text:   "on",
 	})
@@ -92,16 +93,13 @@ func TestBotNoClientsAndImages(t *testing.T) {
 	path := "../examples/01_moodbot/"
 
 	bot := LoadBot(&path)
-	if bot.Clients.Telegram.Client != nil || bot.Clients.Twilio.Client != nil {
-		t.Errorf("bot.Clients is incorrect, got: %v, want: %v.", bot.Clients, "{}")
-	}
 
 	wREST := httptest.NewRecorder()
 	messages := []interface{}{
-		cmn.Message{
+		message.Message{
 			Text: "only text",
 		},
-		cmn.Message{
+		message.Message{
 			Text:  "text and image",
 			Image: "https://i.imgur.com/8MU0IUT.jpeg",
 		},
@@ -113,9 +111,20 @@ func TestBotNoClientsAndImages(t *testing.T) {
 			"text": "text in interface map",
 		},
 	}
-	SendMessages(messages, &bot.Clients.REST, "8809", wREST)
 
-	SendMessages(new(interface{}), &bot.Clients.REST, "8809", wREST)
+	ans, err := channels.SendMessages(messages, bot.Channels.REST, "8809")
+	if err != nil {
+		t.Error(err)
+	}
+
+	writeAnswer(wREST, ans)
+
+	channels.SendMessages(new(interface{}), bot.Channels.REST, "8809")
+	if err != nil {
+		t.Error(err)
+	}
+
+	writeAnswer(wREST, ans)
 }
 
 func TestServeBot(t *testing.T) {
@@ -128,8 +137,8 @@ func TestServeBot(t *testing.T) {
 func TestExtFromBot(t *testing.T) {
 	path := "../examples/00_test/"
 	bot := LoadBot(&path)
-	bot.Clients = Clients{}
-	bot.Answer(cmn.Message{
+	bot.Channels = &channels.Channels{}
+	bot.Answer(message.Message{
 		Sender: "ext_tester",
 		Text:   "hello",
 		Image:  "",
