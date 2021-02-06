@@ -98,7 +98,7 @@ func (b Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inputText := mess.Text
-	prediction, prob := b.Classifier.Predict(inputText)
+	prediction, prob := b.Classifier.Model.Predict(inputText, b.Classifier.Pipeline)
 	ans := Prediction{inputText, prediction, prob}
 
 	js, err := json.Marshal(ans)

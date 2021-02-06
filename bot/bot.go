@@ -17,7 +17,7 @@ type Bot struct {
 	Name       string
 	Machines   fsm.StoreFSM
 	Domain     fsm.Domain
-	Classifier clf.Classifier
+	Classifier *clf.Classifier
 	Extension  ext.Extension
 	Clients    Clients
 }
@@ -26,7 +26,7 @@ type Bot struct {
 type Prediction struct {
 	Original    string  `json:"original"`
 	Predicted   string  `json:"predicted"`
-	Probability float64 `json:"probability"`
+	Probability float32 `json:"probability"`
 }
 
 // Config struct models the bot.yml configuration file
@@ -49,7 +49,7 @@ func (b Bot) Answer(mess cmn.Message) interface{} {
 	}
 
 	inputMessage := mess.Text
-	cmd, _ := b.Classifier.Predict(inputMessage)
+	cmd, _ := b.Classifier.Model.Predict(inputMessage, b.Classifier.Pipeline)
 
 	m := b.Machines.Get(mess.Sender)
 	resp, runExt := m.ExecuteCmd(cmd, inputMessage, b.Domain)

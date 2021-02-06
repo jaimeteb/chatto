@@ -1,20 +1,20 @@
-package clf
+package pipeline
 
 import (
 	"regexp"
 	"strings"
 )
 
-// PipelineConfig defines a Pipeline configuration
-type PipelineConfig struct {
+// Config defines a Pipeline configuration
+type Config struct {
 	RemoveSymbols bool    `mapstructure:"remove_symbols"`
 	Lower         bool    `mapstructure:"lower"`
 	Threshold     float64 `mapstructure:"threshold"`
 }
 
 // Pipeline performs steps to convert a string into a CLF input
-func Pipeline(text *string, pl *PipelineConfig) []string {
-	newText := *text
+func Pipeline(text string, pl *Config) []string {
+	newText := text
 	if pl.RemoveSymbols {
 		newText = RemoveSymbols(newText)
 	}
@@ -29,7 +29,7 @@ func Pipeline(text *string, pl *PipelineConfig) []string {
 // RemoveSymbols removes symbols from string
 func RemoveSymbols(text string) string {
 	re, _ := regexp.Compile(`[^\w]`)
-	return re.ReplaceAllString(text, " ")
+	return re.ReplaceAllString(text, "")
 }
 
 // Lower converts a string to lowercase
