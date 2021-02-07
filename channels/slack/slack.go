@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/jaimeteb/chatto/channels/options"
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
@@ -52,36 +52,41 @@ func NewChannel(config Config) *Channel {
 	return client
 }
 
-// SendMessage for Slack
-func (c *Channel) SendMessage(msg message.Message, sendOpts options.SendOptions) error {
-	slackMsgOptions := []slack.MsgOption{}
+// SendMessage to Slack with the bots response
+func (c *Channel) SendMessage(response *messages.Response) error {
+	for _, answer := range response.Answers {
+		slackMsgOptions := []slack.MsgOption{}
 
-	if msg.Image != "" {
-		var imageText *slack.TextBlockObject
-		if msg.Text != "" {
-			imageText = slack.NewTextBlockObject("plain_text", msg.Text, false, false)
-		} else {
-			imageText = nil
+		if answer.Image != "" {
+			var imageText *slack.TextBlockObject
+			if answer.Text != "" {
+				imageText = slack.NewTextBlockObject("plain_text", answer.Text, false, false)
+			} else {
+				imageText = nil
+			}
+			image := slack.MsgOptionBlocks(slack.NewImageBlock(answer.Image, "image", "1", imageText))
+			slackMsgOptions = append(slackMsgOptions, image)
+		} else if answer.Text != "" {
+			text := slack.MsgOptionText(answer.Text, false)
+			slackMsgOptions = append(slackMsgOptions, text)
 		}
-		image := slack.MsgOptionBlocks(slack.NewImageBlock(msg.Image, "image", "1", imageText))
-		slackMsgOptions = append(slackMsgOptions, image)
-	} else if msg.Text != "" {
-		text := slack.MsgOptionText(msg.Text, false)
-		slackMsgOptions = append(slackMsgOptions, text)
-	}
 
-	if sendOpts.TS != "" {
-		slackMsgOptions = append(slackMsgOptions, slack.MsgOptionTS(sendOpts.TS))
-	}
+		if response.ReplyOpts.Slack.TS != "" {
+			slackMsgOptions = append(slackMsgOptions, slack.MsgOptionTS(response.ReplyOpts.Slack.TS))
+		}
 
-	ret, _, err := c.client.PostMessage(sendOpts.Recipient, slackMsgOptions...)
-	log.Debugf("%v - %v\n", ret, err)
+		ret, _, err := c.client.PostMessage(response.ReplyOpts.Slack.Channel, slackMsgOptions...)
+		if err != nil {
+			log.Errorf("%s: %+v", err, ret)
+			return err
+		}
+	}
 
 	return nil
 }
 
 // ReceiveMessage for Slack
-func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (message.Message, error) {
+func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error) {
 	log.Debug(r.Body)
 
 	var slackMsg Message
@@ -89,37 +94,48 @@ func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (messag
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&slackMsg); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return message.Message{}, err
+		return nil, err
 	}
 
 	if slackMsg.Type == "url_verification" {
 		js, err := json.Marshal(map[string]string{"challenge": slackMsg.Challenge})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return nil, err
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(js)
-		return message.Message{}, nil
+
+		return &messages.Receive{}, nil
 	}
 
 	if slackMsg.Event.BotID != "" {
-		return message.Message{}, nil
+		return &messages.Receive{}, nil
 	}
 
 	log.Debug(slackMsg.Type)
 	log.Debugf("%+v\n", slackMsg.Event)
 
-	msg := message.Message{
-		Sender: slackMsg.Event.Channel,
-		Text:   slackMsg.Event.Text,
+	receive := &messages.Receive{
+		Question: &query.Question{
+			Text:   slackMsg.Event.Text,
+			Sender: slackMsg.Event.User,
+		},
+		ReplyOpts: &messages.ReplyOpts{
+			Slack: messages.SlackReplyOpts{
+				Channel: slackMsg.Event.Channel,
+				TS:      slackMsg.Event.Timestamp,
+			},
+		},
 	}
 
-	return msg, nil
+	return receive, nil
 }
 
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(messageChan chan message.Message) {
-	defer close(messageChan)
+func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
+	defer close(receiveChan)
 
 	if c.socketclient == nil {
 		return
@@ -153,14 +169,36 @@ func (c *Channel) ReceiveMessages(messageChan chan message.Message) {
 							continue
 						}
 
-						messageChan <- message.Message{Sender: ev.Channel, Text: ev.Text}
+						receiveChan <- messages.Receive{
+							Question: &query.Question{
+								Text:   ev.Text,
+								Sender: ev.User,
+							},
+							ReplyOpts: &messages.ReplyOpts{
+								Slack: messages.SlackReplyOpts{
+									Channel: ev.Channel,
+									TS:      ev.TimeStamp,
+								},
+							},
+						}
 					case *slackevents.AppMentionEvent:
 						if ev.BotID != "" {
 							// Do not interact with bots.
 							continue
 						}
 
-						messageChan <- message.Message{Sender: ev.Channel, Text: ev.Text}
+						receiveChan <- messages.Receive{
+							Question: &query.Question{
+								Text:   ev.Text,
+								Sender: ev.User,
+							},
+							ReplyOpts: &messages.ReplyOpts{
+								Slack: messages.SlackReplyOpts{
+									Channel: ev.Channel,
+									TS:      ev.TimeStamp,
+								},
+							},
+						}
 					}
 				default:
 					log.Debugf("Unsupported Events API event received")

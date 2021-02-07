@@ -1,17 +1,14 @@
 package channels
 
 import (
-	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 
-	"github.com/jaimeteb/chatto/channels/options"
+	"github.com/jaimeteb/chatto/channels/messages"
 	"github.com/jaimeteb/chatto/channels/rest"
 	"github.com/jaimeteb/chatto/channels/slack"
 	"github.com/jaimeteb/chatto/channels/telegram"
 	"github.com/jaimeteb/chatto/channels/twilio"
-	"github.com/jaimeteb/chatto/message"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -25,62 +22,20 @@ type Config struct {
 
 // Channels combines all available channel clients
 type Channels struct {
-	Telegram *telegram.Channel
-	Twilio   *twilio.Channel
-	REST     *rest.Channel
-	Slack    *slack.Channel
+	Telegram Channel
+	Twilio   Channel
+	REST     Channel
+	Slack    Channel
 }
 
 // Channel interface implements a channel to send and receive messages on
 type Channel interface {
-	// SendMessage to the channel
-	SendMessage(msg message.Message, sendOpts options.SendOptions) error
 	// ReceiveMessage from the channel
-	ReceiveMessage(w http.ResponseWriter, r *http.Request) (message.Message, error)
-	// ReceiveMessages starts a long running process, receives message events and sends them to the messageChan
-	ReceiveMessages(messageChan chan message.Message)
-}
-
-// SendMessages through the channel
-func SendMessages(msgs interface{}, chnl Channel, sendOpts options.SendOptions) ([]map[string]string, error) {
-	ans := make([]map[string]string, 0)
-
-	// Create slice of messages
-	msgsArr := make([]interface{}, 0)
-	if rt := reflect.TypeOf(msgs); rt.Kind() == reflect.Slice {
-		msgsArr = msgs.([]interface{})
-	} else {
-		msgsArr = append(msgsArr, msgs)
-	}
-
-	for _, msgElem := range msgsArr {
-		switch m := msgElem.(type) {
-		case message.Message:
-			ans = append(ans, m.Out())
-			if err := chnl.SendMessage(m, sendOpts); err != nil {
-				return nil, err
-			}
-		case string:
-			msg := message.Message{
-				Text: m,
-			}
-			ans = append(ans, msg.Out())
-			if err := chnl.SendMessage(msg, sendOpts); err != nil {
-				return nil, err
-			}
-		case map[interface{}]interface{}, map[string]interface{}, map[string]string:
-			msg := message.FromMap(m)
-			ans = append(ans, msg.Out())
-			if err := chnl.SendMessage(msg, sendOpts); err != nil {
-				return nil, err
-			}
-		default:
-			err := fmt.Errorf("Message type unsupported: %T", m)
-			return nil, err
-		}
-	}
-
-	return ans, nil
+	ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error)
+	// ReceiveMessages from the channel. Starts a long running process, receives questions and sends them to the receiveChan
+	ReceiveMessages(receiveChan chan messages.Receive)
+	// SendMessage to the channel
+	SendMessage(response *messages.Response) error
 }
 
 // Load registered clients/channels in the chn.yml file
@@ -92,7 +47,7 @@ func Load(path *string) *Channels {
 	replacer := strings.NewReplacer(".", "_")
 	config.SetEnvKeyReplacer(replacer)
 
-	chnls := &Channels{}
+	chnls := Channels{}
 
 	if err := config.ReadInConfig(); err != nil {
 		switch err.(type) {
@@ -120,10 +75,13 @@ func Load(path *string) *Channels {
 		chnls.Twilio = twilio.NewChannel(cfg.Twilio)
 	}
 
+	// REST
+	chnls.REST = &rest.Channel{}
+
 	// SLACK
 	if cfg.Slack != (slack.Config{}) {
 		chnls.Slack = slack.NewChannel(cfg.Slack)
 	}
 
-	return chnls
+	return &chnls
 }

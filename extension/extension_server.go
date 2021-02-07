@@ -1,4 +1,4 @@
-package ext
+package extension
 
 import (
 	"encoding/json"
@@ -11,61 +11,62 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/logger"
+	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
 
-// Request struct for extension functions
+// Request for an extension function
 type Request struct {
-	FSM *fsm.FSM           `json:"fsm"`
-	Req string             `json:"req"`
-	Sen string             `json:"sen"`
-	Txt string             `json:"txt"`
-	Dom *fsm.DomainNoFuncs `json:"dom"`
+	FSM       *fsm.FSM        `json:"fsm"`
+	Extension string          `json:"extension"`
+	Question  *query.Question `json:"question"`
+	DB        *fsm.BaseDB     `json:"db"`
 }
 
-// Response struct for extension functions
+// Response from an extension function
 type Response struct {
-	FSM *fsm.FSM    `json:"fsm"`
-	Res interface{} `json:"res"`
+	FSM     *fsm.FSM       `json:"fsm"`
+	Answers []query.Answer `json:"answers"`
 }
 
-// GetAllFuncsResponse struct for GetAllFuncs function
+// GetAllFuncsResponse contains a list of all registered functions
 type GetAllFuncsResponse struct {
-	Res []string
+	Funcs []string
 }
 
-// ExtensionMap maps strings to functions to be used in extensions
-type ExtensionMap map[string]func(*Request) *Response
+// RegisteredFuncs maps strings to functions to be used in extensions
+type RegisteredFuncs map[string]func(*Request) *Response
 
-// ListenerRPC contains the ExtensionMap to be served through RPC
+// ListenerRPC contains the RegisteredFuncs to be served through RPC
 type ListenerRPC struct {
-	ExtensionMap ExtensionMap
+	RegisteredFuncs RegisteredFuncs
 }
 
-// ListenerREST contains the ExtensionMap to be served through REST
+// ListenerREST contains the RegisteredFuncs to be served through REST
 type ListenerREST struct {
-	ExtensionMap ExtensionMap
+	RegisteredFuncs RegisteredFuncs
 }
 
 // GetFunc returns a requested extension function
 func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
-	extRes := l.ExtensionMap[req.Req](req)
+	extRes := l.RegisteredFuncs[req.Extension](req)
 
 	res.FSM = extRes.FSM
-	res.Res = extRes.Res
+	res.Answers = extRes.Answers
 
-	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Req)
-	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Res)
+	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Extension)
+	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Answers)
+
 	return nil
 }
 
-// GetAllFuncs returns all functions registered in an ExtensionMap
+// GetAllFuncs returns all functions registered in an RegisteredFuncs
 func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error {
 	allFuncs := make([]string, 0)
-	for funcName := range l.ExtensionMap {
+	for funcName := range l.RegisteredFuncs {
 		allFuncs = append(allFuncs, funcName)
 	}
-	res.Res = allFuncs
+	res.Funcs = allFuncs
 	log.Debug(res)
 	return nil
 }
@@ -80,10 +81,10 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := l.ExtensionMap[req.Req](&req)
+	res := l.RegisteredFuncs[req.Extension](&req)
 
-	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Req)
-	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Res)
+	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Extension)
+	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Answers)
 
 	js, err := json.Marshal(res)
 	if err != nil {
@@ -95,10 +96,10 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-// GetAllFuncs returns all functions registered in an ExtensionMap as a REST API
+// GetAllFuncs returns all functions registered in an RegisteredFuncs as a REST API
 func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 	allFuncs := make([]string, 0)
-	for funcName := range l.ExtensionMap {
+	for funcName := range l.RegisteredFuncs {
 		allFuncs = append(allFuncs, funcName)
 	}
 
@@ -113,7 +114,7 @@ func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeExtensionRPC serves the registered extension functions over RPC
-func ServeExtensionRPC(extMap ExtensionMap) error {
+func ServeExtensionRPC(extMap RegisteredFuncs) error {
 	logger.SetLogger()
 
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
@@ -133,19 +134,19 @@ func ServeExtensionRPC(extMap ExtensionMap) error {
 	}
 
 	log.Infof("RPC extension server started. Using port %v\n", *port)
-	rpc.Register(&ListenerRPC{ExtensionMap: extMap})
+	rpc.Register(&ListenerRPC{RegisteredFuncs: extMap})
 	rpc.Accept(inbound)
 	return nil
 }
 
 // ServeExtensionREST serves the registered extension functions as a REST API
-func ServeExtensionREST(extMap ExtensionMap) error {
+func ServeExtensionREST(extMap RegisteredFuncs) error {
 	logger.SetLogger()
 
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	flag.Parse()
 
-	l := ListenerREST{ExtensionMap: extMap}
+	l := ListenerREST{RegisteredFuncs: extMap}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")

@@ -10,29 +10,41 @@ import (
 
 	"github.com/jaimeteb/chatto/channels"
 	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/query"
 )
 
 func TestBot1(t *testing.T) {
 	path := "../examples/00_test/"
 
-	bot := LoadBot(&path)
+	bot, err := LoadBot(&path)
+	if err != nil {
+		t.Errorf("failed to load bot: %s", err)
+	}
+
 	if bot.Name != "test_bot" {
 		t.Errorf("bot name is incorrect, got: %v, want: %v.", bot.Name, "test_bot")
 	}
 
-	ans := bot.Answer(message.Message{
+	ans, err := bot.Answer(message.Message{
 		Sender: "bar",
 		Text:   "on",
 	})
+	if err != nil {
+		t.Errorf("failed to get answer from bot: %s", err)
+	}
 
-	if ans.(string) != "Turning on." {
-		t.Errorf("answer is incorrect, got: %v, want: %v.", ans.(string), "Turning on.")
+	if len(ans) != 1 && ans[0].Text != "Turning on." {
+		t.Errorf("answer is incorrect, got: %v, want: %v.", ans, "Turning on.")
 	}
 }
 
 func TestBot2(t *testing.T) {
 	path := "../examples/00_test/"
-	bot := LoadBot(&path)
+
+	bot, err := LoadBot(&path)
+	if err != nil {
+		t.Errorf("failed to load bot: %s", err)
+	}
 
 	bot.Answer(message.Message{
 		Sender: "baz",
@@ -92,7 +104,10 @@ func TestBot2(t *testing.T) {
 func TestBotNoClientsAndImages(t *testing.T) {
 	path := "../examples/01_moodbot/"
 
-	bot := LoadBot(&path)
+	bot, err := LoadBot(&path)
+	if err != nil {
+		t.Errorf("failed to load bot: %s", err)
+	}
 
 	wREST := httptest.NewRecorder()
 	messages := []interface{}{
@@ -112,14 +127,14 @@ func TestBotNoClientsAndImages(t *testing.T) {
 		},
 	}
 
-	ans, err := channels.SendMessages(messages, bot.Channels.REST, "8809")
+	ans, err := bot.Channels.REST.ReceiveMessage(messages, bot.Channels.REST, "8809")
 	if err != nil {
 		t.Error(err)
 	}
 
 	writeAnswer(wREST, ans)
 
-	channels.SendMessages(new(interface{}), bot.Channels.REST, "8809")
+	channels.SendReplies(new(interface{}), bot.Channels.REST, "8809")
 	if err != nil {
 		t.Error(err)
 	}
@@ -136,11 +151,15 @@ func TestServeBot(t *testing.T) {
 
 func TestExtFromBot(t *testing.T) {
 	path := "../examples/00_test/"
-	bot := LoadBot(&path)
+
+	bot, err := LoadBot(&path)
+	if err != nil {
+		t.Errorf("failed to load bot: %s", err)
+	}
+
 	bot.Channels = &channels.Channels{}
-	bot.Answer(message.Message{
+	bot.Answer(&query.Question{
 		Sender: "ext_tester",
 		Text:   "hello",
-		Image:  "",
 	})
 }

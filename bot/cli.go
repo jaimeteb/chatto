@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
-func SendAndReceive(mess *message.Message, url string) *[]message.Message {
-	jsonMess, _ := json.Marshal(mess)
+func SendAndReceive(question *query.Question, url string) []query.Answer {
+	jsonMess, _ := json.Marshal(question)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMess))
 	req.Header.Set("Content-Type", "application/json")
@@ -26,14 +26,14 @@ func SendAndReceive(mess *message.Message, url string) *[]message.Message {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Warn(err.Error())
-		return &[]message.Message{}
+		return []query.Answer{}
 	}
 	defer resp.Body.Close()
 
-	ans := &[]message.Message{}
+	ans := []query.Answer{}
 	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
 		log.Warn(err.Error())
-		return &[]message.Message{}
+		return []query.Answer{}
 	}
 	return ans
 }
@@ -53,12 +53,14 @@ func CLI(port *int) {
 			continue
 		}
 
-		respMess := SendAndReceive(&message.Message{
+		respMess := SendAndReceive(&query.Question{
 			Sender: "cli",
 			Text:   strings.TrimSuffix(cmd, "\n"),
 		}, localEndpoint)
+
 		color.Cyan("botto :")
-		for _, msg := range *respMess {
+
+		for _, msg := range respMess {
 			fmt.Println(msg.Text)
 		}
 	}

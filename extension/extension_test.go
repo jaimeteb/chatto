@@ -1,4 +1,4 @@
-package ext
+package extension
 
 import (
 	"bytes"
@@ -7,48 +7,74 @@ import (
 	"testing"
 
 	"github.com/jaimeteb/chatto/fsm"
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/query"
 )
 
 func TestRESTExt(t *testing.T) {
-	extensionREST1 := LoadExtensions(ExtensionsConfig{
+	extensionREST1, err := LoadExtensions(Config{
 		Type: "REST",
 		URL:  "http://localhost:8770",
 	})
-	extensionREST2 := LoadExtensions(ExtensionsConfig{
+	if err != nil {
+		t.Errorf("unable to load extensionREST1: %s", err)
+	}
+
+	extensionREST2, err := LoadExtensions(Config{
 		Type: "REST",
 		URL:  "http://localhost:8771",
 	})
+	if err != nil {
+		t.Errorf("unable to load extensionREST2: %s", err)
+	}
 
-	resp1 := extensionREST1.RunExtFunc("", "ext_any", "hello", fsm.Domain{}, &fsm.FSM{})
-	if resp1.(map[string]interface{})["text"] != "Hello Universe" {
+	resp1, err := extensionREST1.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", &fsm.DB{}, &fsm.FSM{})
+	if err != nil {
+		t.Errorf("unable to run extensionREST1: %s", err)
+	}
+
+	if len(resp1) == 1 && resp1[0].Text != "Hello Universe" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp1, "Hello Universe")
 	}
 
-	resp2 := extensionREST2.RunExtFunc("", "ext_any", "hello", fsm.Domain{DefaultMessages: fsm.Defaults{Error: "Error"}}, &fsm.FSM{})
-	if resp2.(string) != "Error" {
+	fsmDB := &fsm.DB{}
+	fsmDB.DefaultMessages = fsm.Defaults{Error: "Error"}
+
+	resp2, err := extensionREST2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", fsmDB, &fsm.FSM{})
+	if err != nil {
+		t.Errorf("unable to run extensionREST2: %s", err)
+	}
+
+	if len(resp2) == 1 && resp2[0].Text != "Error" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Error")
 	}
 }
 
 func TestRPCExt(t *testing.T) {
-	extensionRPC1 := LoadExtensions(ExtensionsConfig{
+	extensionRPC1, err := LoadExtensions(Config{
 		Type: "RPC",
 		Host: "localhost",
 		Port: 6770,
 	})
+	if err != nil {
+		t.Errorf("unable to load extensionRPC1: %s", err)
+	}
+
 	switch e := extensionRPC1.(type) {
-	case *ExtensionRPC:
+	case *RPC:
 		break
 	default:
 		t.Errorf("incorrect, got %T, want: *ExtensionRPC", e)
 	}
 
-	extensionRPC2 := LoadExtensions(ExtensionsConfig{
+	extensionRPC2, err := LoadExtensions(Config{
 		Type: "RPC",
 		Host: "localhost",
 		Port: 6771,
 	})
+	if err != nil {
+		t.Errorf("unable to load extensionRPC2: %s", err)
+	}
+
 	switch extensionRPC2.(type) {
 	case nil:
 		break
@@ -56,21 +82,30 @@ func TestRPCExt(t *testing.T) {
 		t.Error("incorrect, want: nil")
 	}
 
-	testDom := fsm.Domain{
-		DefaultMessages: fsm.Defaults{Error: "Error"},
-	}
+	testDB := &fsm.DB{}
+	testDB.DefaultMessages = fsm.Defaults{Error: "Error"}
+
 	testFSM := fsm.FSM{
 		Slots: map[string]string{
 			"pokemon": "pikachu",
 		},
 	}
-	resp1 := extensionRPC1.RunExtFunc("", "ext_search_pokemon", "pikachu", testDom, &testFSM)
-	if resp1.(string) == "Error" {
+
+	resp1, err := extensionRPC1.RunExtFunc(&query.Question{Text: "pikachu"}, "ext_search_pokemon", testDB, &testFSM)
+	if err != nil {
+		t.Errorf("unable to run extensionRPC1: %s", err)
+	}
+
+	if len(resp1) == 1 && resp1[0].Text == "Error" {
 		t.Errorf("resp is incorrect, got: %v", resp1)
 	}
 
-	resp2 := extensionRPC1.RunExtFunc("", "ext_any", "hello", fsm.Domain{DefaultMessages: fsm.Defaults{Error: "Error"}}, &fsm.FSM{})
-	if resp2.(string) != "Error" {
+	resp2, err := extensionRPC2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", testDB, &fsm.FSM{})
+	if err != nil {
+		t.Errorf("unable to run extensionRPC2: %s", err)
+	}
+
+	if len(resp2) == 1 && resp2[0].Text != "Error" {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Error")
 	}
 }
@@ -79,14 +114,14 @@ func TestRESTExtServer(t *testing.T) {
 	greetFunc := func(req *Request) (res *Response) {
 		return &Response{
 			FSM: req.FSM,
-			Res: message.Message{
+			Answers: []query.Answer{{
 				Text:  "Hello Universe",
 				Image: "https://i.imgur.com/pPdjh6x.jpg",
-			},
+			}},
 		}
 	}
 
-	myExtMap := ExtensionMap{
+	myExtMap := RegisteredFuncs{
 		"ext_any": greetFunc,
 	}
 
@@ -106,14 +141,14 @@ func TestRPCExtServer(t *testing.T) {
 	greetFunc := func(req *Request) (res *Response) {
 		return &Response{
 			FSM: req.FSM,
-			Res: message.Message{
+			Answers: []query.Answer{{
 				Text:  "Hello Universe",
 				Image: "https://i.imgur.com/pPdjh6x.jpg",
-			},
+			}},
 		}
 	}
 
-	myExtMap := ExtensionMap{
+	myExtMap := RegisteredFuncs{
 		"ext_any": greetFunc,
 	}
 
@@ -122,7 +157,7 @@ func TestRPCExtServer(t *testing.T) {
 	listener.GetAllFuncs(new(Request), new(GetAllFuncsResponse))
 
 	req := Request{
-		Req: "ext_any",
+		Extension: "ext_any",
 		FSM: &fsm.FSM{
 			State: 0,
 			Slots: make(map[string]string),

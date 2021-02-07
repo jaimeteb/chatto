@@ -7,9 +7,9 @@ import (
 
 	"github.com/jaimeteb/chatto/channels"
 	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/ext"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/query"
 	"github.com/spf13/viper"
 )
 
@@ -17,13 +17,13 @@ import (
 type Bot struct {
 	Name       string
 	Machines   fsm.StoreFSM
-	Domain     fsm.Domain
+	DB         *fsm.DB
 	Classifier clf.Classifier
-	Extension  ext.Extension
+	Extension  extension.Extension
 	Channels   *channels.Channels
 }
 
-// Prediction models a classifier prediction and its orignal string
+// Prediction models a classifier prediction and its original string
 type Prediction struct {
 	Original    string  `json:"original"`
 	Predicted   string  `json:"predicted"`
@@ -32,16 +32,16 @@ type Prediction struct {
 
 // Config struct models the bot.yml configuration file
 type Config struct {
-	Name       string               `mapstructure:"bot_name"`
-	Extensions ext.ExtensionsConfig `mapstructure:"extensions"`
-	Store      fsm.StoreConfig      `mapstructure:"store"`
+	Name       string           `mapstructure:"bot_name"`
+	Extensions extension.Config `mapstructure:"extensions"`
+	Store      fsm.StoreConfig  `mapstructure:"store"`
 }
 
 // Answer takes a user input and executes a transition on the FSM if possible
-func (b Bot) Answer(mess message.Message) interface{} {
-	if !b.Machines.Exists(mess.Sender) {
+func (b Bot) Answer(question *query.Question) ([]query.Answer, error) {
+	if !b.Machines.Exists(question.Sender) {
 		b.Machines.Set(
-			mess.Sender,
+			question.Sender,
 			&fsm.FSM{
 				State: 0,
 				Slots: make(map[string]string),
@@ -49,17 +49,23 @@ func (b Bot) Answer(mess message.Message) interface{} {
 		)
 	}
 
-	inputMessage := mess.Text
-	cmd, _ := b.Classifier.Predict(inputMessage)
+	cmd, _ := b.Classifier.Predict(question.Text)
 
-	m := b.Machines.Get(mess.Sender)
-	resp, runExt := m.ExecuteCmd(cmd, inputMessage, b.Domain)
+	machine := b.Machines.Get(question.Sender)
+
+	reply, runExt := machine.ExecuteCmd(cmd, question.Text, b.DB)
+
+	var err error
 	if runExt != "" && b.Extension != nil {
-		resp = b.Extension.RunExtFunc(mess.Sender, runExt, inputMessage, b.Domain, m)
+		reply, err = b.Extension.RunExtFunc(question, runExt, b.DB, machine)
+		if err != nil {
+			return nil, err
+		}
 	}
-	b.Machines.Set(mess.Sender, m)
 
-	return resp
+	b.Machines.Set(question.Sender, machine)
+
+	return reply, nil
 }
 
 // LoadBotConfig loads bot configuration from bot.yml
@@ -98,23 +104,31 @@ func LoadName(bcName string) (name string) {
 }
 
 // LoadBot loads all configurations and returns a Bot
-func LoadBot(path *string) Bot {
+func LoadBot(path *string) (*Bot, error) {
 	bc := LoadBotConfig(path)
 
 	// Load Name
 	name := LoadName(bc.Name)
-	// Load Domain
-	domain := fsm.Create(path)
+
+	// Load DB
+	db := fsm.Create(path)
+
 	// Load Classifier
 	classifier := clf.Create(path)
+
 	// Load Extensions
-	extension := ext.LoadExtensions(bc.Extensions)
+	extension, err := extension.LoadExtensions(bc.Extensions)
+	if err != nil {
+		return nil, err
+	}
+
 	// Load channels
 	chnls := channels.Load(path)
+
 	// Load Store
 	machines := fsm.LoadStore(bc.Store)
 
-	return Bot{name, machines, domain, classifier, extension, chnls}
+	return &Bot{name, machines, db, classifier, extension, chnls}, nil
 }
 
 // LOGO for Chatto

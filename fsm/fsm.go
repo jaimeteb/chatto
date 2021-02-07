@@ -4,62 +4,33 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/spf13/viper"
 )
 
-// Config models the yaml configuration
-type Config struct {
-	States    []string   `yaml:"states"`
-	Commands  []string   `yaml:"commands"`
-	Functions []Function `yaml:"functions"`
-	Defaults  Defaults   `yaml:"defaults"`
-}
-
-// Function models a function in yaml
-type Function struct {
-	Transition Transition  `yaml:"transition"`
-	Command    string      `yaml:"command"`
-	Slot       Slot        `yaml:"slot"`
-	Message    interface{} `yaml:"message"`
-}
-
-// Transition models a state transition
-type Transition struct {
-	From string `yaml:"from"`
-	Into string `yaml:"into"`
-}
-
-// Slot models a slot configuration
-type Slot struct {
-	Name  string `yaml:"name"`
-	Mode  string `yaml:"mode"`
-	Regex string `yaml:"regex"`
-}
-
-// Defaults models the domain's default messages
-type Defaults struct {
-	Unknown string `yaml:"unknown" json:"unknown"`
-	Unsure  string `yaml:"unsure" json:"unsure"`
-	Error   string `yaml:"error" json:"error"`
-}
-
-// Domain models the final configuration of an FSM
-type Domain struct {
-	StateTable      map[string]int
-	CommandList     []string
-	TransitionTable map[CmdStateTuple]TransitionFunc
-	SlotTable       map[CmdStateTuple]Slot
-	DefaultMessages Defaults
-}
-
-// DomainNoFuncs models the final configuration of an FSM without functions
-// to be used in extensions
-type DomainNoFuncs struct {
+// BaseDB contains the data required for a minimally functioning FSM
+type BaseDB struct {
 	StateTable      map[string]int `json:"state_table"`
 	CommandList     []string       `json:"command_list"`
 	DefaultMessages Defaults       `json:"default_messages"`
+}
+
+// DB contains BaseDB plus the functions required for a fully
+// functioning FSM
+type DB struct {
+	BaseDB
+	TransitionTable map[CmdStateTuple]TransitionFunc
+	SlotTable       map[CmdStateTuple]Slot
+}
+
+// NoFuncs returns a DB without TransitionFunc items in order
+// to serialize it for extensions
+func (d *DB) NoFuncs() *BaseDB {
+	return &BaseDB{
+		StateTable:      d.StateTable,
+		CommandList:     d.CommandList,
+		DefaultMessages: d.DefaultMessages,
+	}
 }
 
 // CmdStateTuple is a tuple of Command and State
@@ -71,33 +42,23 @@ type CmdStateTuple struct {
 // TransitionFunc models a transition function
 type TransitionFunc func(m *FSM) interface{}
 
+// NewTransitionFunc generates a new transition function
+func NewTransitionFunc(state int, r interface{}) TransitionFunc {
+	return func(m *FSM) interface{} {
+		(*m).State = state
+		return r
+	}
+}
+
 // FSM models a Finite State Machine
 type FSM struct {
 	State int               `json:"state"`
 	Slots map[string]string `json:"slots"`
 }
 
-// NoFuncs returns a Domain without TransitionFunc items in order
-// to serialize it for extensions
-func (d *Domain) NoFuncs() *DomainNoFuncs {
-	return &DomainNoFuncs{
-		StateTable:      d.StateTable,
-		CommandList:     d.CommandList,
-		DefaultMessages: d.DefaultMessages,
-	}
-}
-
-// NewTransitionFunc generates a new transition function
-func NewTransitionFunc(s int, r interface{}) TransitionFunc {
-	return func(m *FSM) interface{} {
-		(*m).State = s
-		return r
-	}
-}
-
-// ExecuteCmd executes a command in FSM
-func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain) (response interface{}, runExt string) {
-	var trans TransitionFunc
+// ExecuteCmd executes a command in the FSM
+func (m *FSM) ExecuteCmd(cmd, txt string, machineState *DB) (answers []query.Answer, runExt string) {
+	var transition TransitionFunc
 	var tuple CmdStateTuple
 
 	previousState := m.State
@@ -106,20 +67,20 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain) (response interface{}, run
 	tupleNormal := CmdStateTuple{cmd, m.State}
 	tupleCmdAny := CmdStateTuple{"any", m.State}
 
-	if dom.TransitionTable[tupleFromAny] == nil {
-		if dom.TransitionTable[tupleCmdAny] == nil {
-			trans = dom.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
+	if machineState.TransitionTable[tupleFromAny] == nil {
+		if machineState.TransitionTable[tupleCmdAny] == nil {
+			transition = machineState.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
 			tuple = tupleNormal
 		} else {
-			trans = dom.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
+			transition = machineState.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
 			tuple = tupleCmdAny
 		}
 	} else {
-		trans = dom.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
+		transition = machineState.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
 		tuple = tupleFromAny
 	}
 
-	slot := dom.SlotTable[tuple]
+	slot := machineState.SlotTable[tuple]
 	if slot.Name != "" {
 		switch slot.Mode {
 		case "whole_text":
@@ -136,11 +97,11 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain) (response interface{}, run
 	// log.Debug(m.Slots)
 
 	if cmd == "" {
-		response = dom.DefaultMessages.Unsure // Threshold not met
-	} else if trans == nil {
-		response = dom.DefaultMessages.Unknown // Unknown transition
+		answers = append(answers, query.Answer{Text: machineState.DefaultMessages.Unsure}) // Threshold not met
+	} else if transition == nil {
+		answers = append(answers, query.Answer{Text: machineState.DefaultMessages.Unknown}) // Unknown transition
 	} else {
-		response = trans(m)
+		response := transition(m)
 		switch r := response.(type) {
 		case string:
 			if strings.HasPrefix(r, "ext_") {
@@ -150,64 +111,6 @@ func (m *FSM) ExecuteCmd(cmd, txt string, dom Domain) (response interface{}, run
 	}
 
 	log.Debugf("FSM | transitioned %v -> %v\n", previousState, m.State)
+
 	return
-}
-
-// Load loads configuration from yaml
-func Load(path *string) Config {
-	config := viper.New()
-	config.SetConfigName("fsm")
-	config.AddConfigPath(*path)
-
-	if err := config.ReadInConfig(); err != nil {
-		log.Panic(err)
-	}
-
-	var botConfig Config
-	if err := config.Unmarshal(&botConfig); err != nil {
-		log.Panic(err)
-	}
-
-	return botConfig
-}
-
-// Create loads a domain struct from loaded configuration
-func Create(path *string) Domain {
-	config := Load(path)
-	var domain Domain
-
-	stateTable := make(map[string]int)
-	for i, state := range config.States {
-		stateTable[state] = i
-	}
-	stateTable["any"] = -1 // Add state "any"
-
-	transitionTable := make(map[CmdStateTuple]TransitionFunc)
-	slotTable := make(map[CmdStateTuple]Slot)
-	for _, function := range config.Functions {
-		tuple := CmdStateTuple{
-			Cmd:   function.Command,
-			State: stateTable[function.Transition.From],
-		}
-		transitionTable[tuple] = NewTransitionFunc(
-			stateTable[function.Transition.Into],
-			function.Message,
-		)
-		if function.Slot != (Slot{}) {
-			slotTable[tuple] = function.Slot
-		}
-	}
-
-	domain.StateTable = stateTable
-	domain.CommandList = config.Commands
-	domain.TransitionTable = transitionTable
-	domain.DefaultMessages = config.Defaults
-	domain.SlotTable = slotTable
-
-	log.Info("Loaded states:")
-	for state, i := range stateTable {
-		log.Infof("%v\t%v\n", i, state)
-	}
-
-	return domain
 }

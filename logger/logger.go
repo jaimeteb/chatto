@@ -3,6 +3,8 @@ package logger
 import (
 	"os"
 
+	runtime "github.com/banzaicloud/logrus-runtime-formatter"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,8 +15,13 @@ func SetLogger() {
 	} else {
 		log.SetLevel(log.InfoLevel)
 	}
-	log.SetFormatter(&log.TextFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-		FullTimestamp:   true,
+
+	log.SetFormatter(&runtime.Formatter{
+		ChildFormatter: &log.TextFormatter{
+			TimestampFormat: "2006-01-02 15:04:05",
+			FullTimestamp:   true,
+		},
+		File: true,
+		Line: true,
 	})
 }

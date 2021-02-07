@@ -5,7 +5,8 @@ import (
 	"net/url"
 
 	"github.com/ajg/form"
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/query"
 	"github.com/kevinburke/twilio-go"
 	log "github.com/sirupsen/logrus"
 )
@@ -51,39 +52,53 @@ func NewChannel(config Config) *Channel {
 }
 
 // SendMessage for Twilio
-func (c *Channel) SendMessage(msg message.Message, recipient string) error {
-	var imageURL []*url.URL
+func (c *Channel) SendMessage(response *messages.Response) error {
+	for _, answer := range response.Answers {
+		var imageURL []*url.URL
 
-	if msg.Image != "" {
-		u, _ := url.Parse(msg.Image)
-		imageURL = append(imageURL, u)
+		if answer.Image != "" {
+			u, _ := url.Parse(answer.Image)
+			imageURL = append(imageURL, u)
+		}
+
+		_, err := c.client.Messages.SendMessage(c.number, response.ReplyOpts.Twilio.Recipient, answer.Text, imageURL)
+		if err != nil {
+			return err
+		}
 	}
-	ret, err := c.client.Messages.SendMessage(c.number, recipient, msg.Text, imageURL)
-	log.Debug(ret, err)
-	return err
+
+	return nil
 }
 
 // ReceiveMessage for Twilio
-func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (message.Message, error) {
+func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error) {
 	decoder := form.NewDecoder(r.Body)
+
 	var messageIn MessageIn
+
 	if err := decoder.Decode(&messageIn); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return message.Message{}, err
+		return nil, err
 	}
 
 	log.Debug(messageIn)
-	sender := messageIn.From
-	text := messageIn.Body
-	mess := message.Message{
-		Sender: sender,
-		Text:   text,
+
+	receive := &messages.Receive{
+		Question: &query.Question{
+			Sender: messageIn.From,
+			Text:   messageIn.Body,
+		},
+		ReplyOpts: &messages.ReplyOpts{
+			Twilio: messages.TwilioReplyOpts{
+				Recipient: messageIn.From,
+			},
+		},
 	}
 
-	return mess, nil
+	return receive, nil
 }
 
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(messageChan chan message.Message) {
+func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	// Not implemented
 }

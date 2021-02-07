@@ -6,7 +6,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/query"
 	"github.com/kimrgrey/go-telegram"
 	log "github.com/sirupsen/logrus"
 )
@@ -52,50 +53,63 @@ func NewChannel(config Config) *Channel {
 }
 
 // SendMessage for Telegram
-func (c *Channel) SendMessage(msg message.Message, recipient string) error {
-	respValues := url.Values{}
-	respValues.Add("chat_id", recipient)
-	respValues.Add("parse_mode", "Markdown")
+func (c *Channel) SendMessage(response *messages.Response) error {
+	for _, answer := range response.Answers {
+		respValues := url.Values{}
+		respValues.Add("chat_id", response.ReplyOpts.Telegram.Recipient)
+		respValues.Add("parse_mode", "Markdown")
 
-	var method string
-	if msg.Image != "" {
-		respValues.Add("photo", msg.Image)
-		respValues.Add("caption", msg.Text)
-		method = "SendPhoto"
-	} else {
-		respValues.Add("text", msg.Text)
-		method = "SendMessage"
+		var method string
+
+		if answer.Image != "" {
+			respValues.Add("photo", answer.Image)
+			respValues.Add("caption", answer.Text)
+			method = "SendPhoto"
+		} else {
+			respValues.Add("text", answer.Text)
+			method = "SendMessage"
+		}
+
+		apiResp := new(interface{})
+		c.client.Call(method, respValues, apiResp)
+
+		log.Debug(*apiResp)
 	}
-
-	apiResp := new(interface{})
-	c.client.Call(method, respValues, apiResp)
-	log.Debug(*apiResp)
 
 	return nil
 }
 
 // ReceiveMessage for Telegram
-func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (message.Message, error) {
+func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error) {
 	decoder := json.NewDecoder(r.Body)
 	var messageIn MessageIn
 
 	err := decoder.Decode(&messageIn)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return message.Message{}, err
+		return nil, err
 	}
 
 	log.Debug(messageIn)
+
 	sender := strconv.Itoa(messageIn.Message.From.ID)
-	mess := message.Message{
-		Sender: sender,
-		Text:   messageIn.Message.Text,
+
+	receive := &messages.Receive{
+		Question: &query.Question{
+			Sender: sender,
+			Text:   messageIn.Message.Text,
+		},
+		ReplyOpts: &messages.ReplyOpts{
+			Telegram: messages.TelegramReplyOpts{
+				Recipient: sender,
+			},
+		},
 	}
 
-	return mess, nil
+	return receive, nil
 }
 
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(messageChan chan message.Message) {
+func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	// Not implemented
 }
