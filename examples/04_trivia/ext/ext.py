@@ -5,7 +5,7 @@ app = Flask(__name__)
 def wrong_option(data):
     return {
         "fsm": {
-            "state": data.get("dom").get("question_1"),
+            "state": data.get("db").get("question_1"),
             "slots": data.get("fsm").get("slots"),
         },
         "res": "Select one of the options."

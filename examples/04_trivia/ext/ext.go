@@ -3,13 +3,14 @@ package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/ext"
+	ext "github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/query"
 )
 
 func validateAnswer1(req *ext.Request) (res *ext.Response) {
 	ans := req.FSM.Slots["answer_1"]
-	dom := req.Dom
+	dom := req.DB
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &ext.Response{
@@ -17,23 +18,25 @@ func validateAnswer1(req *ext.Request) (res *ext.Response) {
 				State: dom.StateTable["question_1"],
 				Slots: req.FSM.Slots,
 			},
-			Res: "Select one of the options",
+			Answers: query.Answers("Select one of the options"),
 		}
 	}
 
+	message := "Question 2:\n" +
+		"What is the capital of the state of Utah?\n" +
+		"1. Salt Lake City\n" +
+		"2. Jefferson City\n" +
+		"3. Cheyenne"
+
 	return &ext.Response{
-		FSM: req.FSM,
-		Res: "Question 2:\n" +
-			"What is the capital of the state of Utah?\n" +
-			"1. Salt Lake City\n" +
-			"2. Jefferson City\n" +
-			"3. Cheyenne",
+		FSM:     req.FSM,
+		Answers: query.Answers(message),
 	}
 }
 
 func validateAnswer2(req *ext.Request) (res *ext.Response) {
 	ans := req.FSM.Slots["answer_2"]
-	dom := req.Dom
+	dom := req.DB
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &ext.Response{
@@ -41,23 +44,25 @@ func validateAnswer2(req *ext.Request) (res *ext.Response) {
 				State: dom.StateTable["question_2"],
 				Slots: req.FSM.Slots,
 			},
-			Res: "Select one of the options",
+			Answers: query.Answers("Select one of the options"),
 		}
 	}
 
+	message := "Question 3:\n" +
+		"Who painted Starry Night?\n" +
+		"1. Pablo Picasso\n" +
+		"2. Claude Monet\n" +
+		"3. Vincent Van Gogh"
+
 	return &ext.Response{
-		FSM: req.FSM,
-		Res: "Question 3:\n" +
-			"Who painted Starry Night?\n" +
-			"1. Pablo Picasso\n" +
-			"2. Claude Monet\n" +
-			"3. Vincent Van Gogh",
+		FSM:     req.FSM,
+		Answers: query.Answers(message),
 	}
 }
 
 func calculateScore(req *ext.Request) (res *ext.Response) {
 	ans := req.FSM.Slots["answer_1"]
-	dom := req.Dom
+	dom := req.DB
 	slt := req.FSM.Slots
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
@@ -66,7 +71,7 @@ func calculateScore(req *ext.Request) (res *ext.Response) {
 				State: dom.StateTable["question_3"],
 				Slots: req.FSM.Slots,
 			},
-			Res: "Select one of the options",
+			Answers: query.Answers("Select one of the options"),
 		}
 	}
 
@@ -98,12 +103,12 @@ func calculateScore(req *ext.Request) (res *ext.Response) {
 	}
 
 	return &ext.Response{
-		FSM: req.FSM,
-		Res: message,
+		FSM:     req.FSM,
+		Answers: query.Answers(message),
 	}
 }
 
-var myExtMap = ext.ExtensionMap{
+var myExtMap = ext.RegisteredFuncs{
 	"ext_val_ans_1": validateAnswer1,
 	"ext_val_ans_2": validateAnswer2,
 	"ext_score":     calculateScore,

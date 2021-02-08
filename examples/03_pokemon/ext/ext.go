@@ -5,8 +5,9 @@ import (
 	"log"
 
 	"github.com/asmcos/requests"
-	"github.com/jaimeteb/chatto/ext"
+	ext "github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/query"
 )
 
 func searchPokemon(req *ext.Request) (res *ext.Response) {
@@ -25,11 +26,11 @@ func searchPokemon(req *ext.Request) (res *ext.Response) {
 
 	if err != nil {
 		message = "Something went wrong..."
-		intoState = req.Dom.StateTable["search_pokemon"]
+		intoState = req.DB.StateTable["search_pokemon"]
 	} else {
 		if response.R.StatusCode == 404 {
 			message = "Pokémon not found, try with another input."
-			intoState = req.Dom.StateTable["search_pokemon"]
+			intoState = req.DB.StateTable["search_pokemon"]
 		} else {
 			var json map[string]interface{}
 			response.Json(&json)
@@ -46,11 +47,11 @@ func searchPokemon(req *ext.Request) (res *ext.Response) {
 			State: intoState,
 			Slots: req.FSM.Slots,
 		},
-		Res: message,
+		Answers: query.Answers(message),
 	}
 }
 
-var myExtMap = ext.ExtensionMap{
+var myExtMap = ext.RegisteredFuncs{
 	"ext_search_pokemon": searchPokemon,
 }
 
