@@ -144,12 +144,12 @@ func LoadStore(sc StoreConfig) StoreFSM {
 				),
 			}
 			log.Warn("Couldn't connect to Redis, using CacheStoreFSM instead")
-			log.Infof("* TTL:    %v\n", sc.TTL)
-			log.Infof("* Purge:  %v\n", sc.Purge)
+			log.Infof("* TTL:    %v", sc.TTL)
+			log.Infof("* Purge:  %v", sc.Purge)
 		} else {
 			machines = &RedisStoreFSM{R: RDB, TTL: sc.TTL}
 			log.Info("Registered RedisStoreFSM")
-			log.Infof("* TTL:    %v\n", sc.TTL)
+			log.Infof("* TTL:    %v", sc.TTL)
 		}
 	default:
 		machines = &CacheStoreFSM{
@@ -159,8 +159,8 @@ func LoadStore(sc StoreConfig) StoreFSM {
 			),
 		}
 		log.Info("Registered CacheStoreFSM")
-		log.Infof("* TTL:    %v\n", sc.TTL)
-		log.Infof("* Purge:  %v\n", sc.Purge)
+		log.Infof("* TTL:    %v", sc.TTL)
+		log.Infof("* Purge:  %v", sc.Purge)
 	}
 	return machines
 }

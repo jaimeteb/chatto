@@ -1,28 +1,34 @@
 states:
   - "off"
   - "on"
+
 commands:
   - "turn_on"
   - "turn_off"
   - "hello_universe"
+
 functions:
   - transition:
       from: "off"
       into: "on"
     command: "turn_on"
-    message: "Turning on."
+    message: 
+      - text: "Turning on."
+
   - transition:
       from: "on"
       into: "off"
     command: "turn_off"
     message:
-      - "Turning off."
-      - "❌"
+      - text: "Turning off."
+      - text: "❌"
+
   - transition:
       from: "any"
       into: "off"
     command: "hello_universe"
-    message: "ext_any"
+    extension: "any"
+
 defaults:
   unknown: "Can't do that."
   unsure: "???"

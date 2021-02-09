@@ -144,7 +144,7 @@ func LoadExtensions(extCfg Config) (Extension, error) {
 
 		log.Info("Loaded extensions (RPC):")
 		for i, fun := range allFuncs {
-			log.Infof("%v\t%v\n", i, fun)
+			log.Infof("%v\t%v", i, fun)
 		}
 
 		extension = rpcExtension
@@ -158,7 +158,7 @@ func LoadExtensions(extCfg Config) (Extension, error) {
 
 		log.Info("Loaded extensions (REST):")
 		for i, fun := range allFuncs {
-			log.Infof("%v\t%v\n", i, fun)
+			log.Infof("%v\t%v", i, fun)
 		}
 
 		extension = restExtention

@@ -47,7 +47,7 @@ func NewChannel(config Config) *Channel {
 		client.socketclient = socketmode.New(slackClient)
 	}
 
-	log.Infof("Added Slack client: %v...\n", config.Token[:10])
+	log.Infof("Added Slack client: %v...", config.Token[:10])
 
 	return client
 }
@@ -115,7 +115,7 @@ func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messa
 	}
 
 	log.Debug(slackMsg.Type)
-	log.Debugf("%+v\n", slackMsg.Event)
+	log.Debugf("%+v", slackMsg.Event)
 
 	receive := &messages.Receive{
 		Question: &query.Question{
@@ -153,7 +153,7 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 			case socketmode.EventTypeEventsAPI:
 				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
 				if !ok {
-					log.Warnf("Ignored %+v\n", evt)
+					log.Warnf("Ignored %+v", evt)
 					continue
 				}
 
@@ -169,22 +169,9 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 							continue
 						}
 
-						receiveChan <- messages.Receive{
-							Question: &query.Question{
-								Text:   ev.Text,
-								Sender: ev.User,
-							},
-							ReplyOpts: &messages.ReplyOpts{
-								Slack: messages.SlackReplyOpts{
-									Channel: ev.Channel,
-									TS:      ev.TimeStamp,
-								},
-							},
-						}
-					case *slackevents.AppMentionEvent:
-						if ev.BotID != "" {
-							// Do not interact with bots.
-							continue
+						ts := ev.TimeStamp
+						if ev.ThreadTimeStamp != "" {
+							ts = ev.ThreadTimeStamp
 						}
 
 						receiveChan <- messages.Receive{
@@ -195,7 +182,30 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 							ReplyOpts: &messages.ReplyOpts{
 								Slack: messages.SlackReplyOpts{
 									Channel: ev.Channel,
-									TS:      ev.TimeStamp,
+									TS:      ts,
+								},
+							},
+						}
+					case *slackevents.AppMentionEvent:
+						if ev.BotID != "" {
+							// Do not interact with bots.
+							continue
+						}
+
+						ts := ev.TimeStamp
+						if ev.ThreadTimeStamp != "" {
+							ts = ev.ThreadTimeStamp
+						}
+
+						receiveChan <- messages.Receive{
+							Question: &query.Question{
+								Text:   ev.Text,
+								Sender: ev.User,
+							},
+							ReplyOpts: &messages.ReplyOpts{
+								Slack: messages.SlackReplyOpts{
+									Channel: ev.Channel,
+									TS:      ts,
 								},
 							},
 						}

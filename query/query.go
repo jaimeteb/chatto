@@ -8,7 +8,6 @@ type Question struct {
 
 // Answer from the FSM
 type Answer struct {
-	Sender string `json:"sender"`
-	Text   string `json:"text"`
-	Image  string `json:"image"`
+	Text  string `json:"text"`
+	Image string `json:"image"`
 }

@@ -113,8 +113,8 @@ func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-// ServeExtensionRPC serves the registered extension functions over RPC
-func ServeExtensionRPC(extMap RegisteredFuncs) error {
+// ServeRPC serves the registered extension functions over RPC
+func ServeRPC(extMap RegisteredFuncs) error {
 	logger.SetLogger()
 
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
@@ -133,14 +133,14 @@ func ServeExtensionRPC(extMap RegisteredFuncs) error {
 		return err
 	}
 
-	log.Infof("RPC extension server started. Using port %v\n", *port)
+	log.Infof("RPC extension server started. Using port %v", *port)
 	rpc.Register(&ListenerRPC{RegisteredFuncs: extMap})
 	rpc.Accept(inbound)
 	return nil
 }
 
-// ServeExtensionREST serves the registered extension functions as a REST API
-func ServeExtensionREST(extMap RegisteredFuncs) error {
+// ServeREST serves the registered extension functions as a REST API
+func ServeREST(extMap RegisteredFuncs) error {
 	logger.SetLogger()
 
 	port := flag.Int("port", 8770, "Port to run extension server on")
@@ -152,7 +152,7 @@ func ServeExtensionREST(extMap RegisteredFuncs) error {
 	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")
 	r.HandleFunc("/ext/get_all_funcs", l.GetAllFuncs).Methods("GET")
 
-	log.Infof("REST extension server started. Using port %v\n", *port)
+	log.Infof("REST extension server started. Using port %v", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
 	return nil
 }

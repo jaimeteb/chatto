@@ -3,26 +3,26 @@ package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/ext"
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/query"
 )
 
-func greetFunc(req *ext.Request) (res *ext.Response) {
-	return &ext.Response{
+func greetFunc(req *extension.Request) (res *extension.Response) {
+	return &extension.Response{
 		FSM: req.FSM,
-		Res: message.Message{
+		Answers: []query.Answer{{
 			Text:  "Hello Universe",
 			Image: "https://i.imgur.com/pPdjh6x.jpg",
-		},
+		}},
 	}
 }
 
-var myExtMap = ext.ExtensionMap{
-	"ext_any": greetFunc,
+var myExtMap = extension.RegisteredFuncs{
+	"any": greetFunc,
 }
 
 func main() {
-	if err := ext.ServeExtensionREST(myExtMap); err != nil {
+	if err := extension.ServeREST(myExtMap); err != nil {
 		log.Fatalln(err)
 	}
 }

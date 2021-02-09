@@ -46,7 +46,7 @@ type Channel struct {
 func NewChannel(config Config) *Channel {
 	client := twilio.NewClient(config.AccountSid, config.AuthToken, nil)
 
-	log.Infof("Added Twilio client: %v\n", client.AccountSid)
+	log.Infof("Added Twilio client: %v", client.AccountSid)
 
 	return &Channel{client: client}
 }

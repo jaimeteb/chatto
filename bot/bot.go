@@ -99,7 +99,7 @@ func LoadName(bcName string) (name string) {
 	if bcName != "" {
 		name = bcName
 	}
-	log.Infof("My name is '%v'\n", name)
+	log.Infof("My name is '%v'", name)
 	return
 }
 

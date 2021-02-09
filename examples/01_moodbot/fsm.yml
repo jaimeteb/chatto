@@ -17,34 +17,38 @@ functions:
       from: initial
       into: ask_mood
     command: greet
-    message: "Hello! How are you?"
+    message: 
+      - text: "Hello! How are you?"
 
   - transition:
       from: ask_mood
       into: initial
     command: good
-    message: "Great! :)"
+    message: 
+      - text: "Great! :)"
 
   - transition:
       from: ask_mood
       into: say_bad
     command: bad
     message:
-      - "Oh don't be sad :("
+      - text: "Oh don't be sad :("
       - image: https://i.imgur.com/8MU0IUT.jpeg
-      - "Did that help?"
+      - text: "Did that help?"
 
   - transition:
       from: say_bad
       into: initial
     command: "yes"
-    message: "I'm glad! :)"
+    message:
+      - text: "I'm glad! :)"
 
   - transition:
       from: say_bad
       into: initial
     command: "no"
-    message: "Oh I'm sorry"
+    message: 
+      - text: "Oh I'm sorry"
 
 defaults:
   unknown: "Unknown command, try again please."

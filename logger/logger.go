@@ -10,7 +10,7 @@ import (
 
 // SetLogger configures the logrus logger and sets the log level
 func SetLogger() {
-	if debug := os.Getenv("DEBUG"); debug == "true" {
+	if os.Getenv("DEBUG") == "true" {
 		log.SetLevel(log.DebugLevel)
 	} else {
 		log.SetLevel(log.InfoLevel)

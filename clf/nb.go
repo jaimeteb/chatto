@@ -70,9 +70,9 @@ func Create(path *string) Classifier {
 	pipeline := classification.Pipeline
 
 	log.Info("Pipeline:")
-	log.Infof("* RemoveSymbols: \t%v\n", pipeline.RemoveSymbols)
-	log.Infof("* Lower: \t\t%v\n", pipeline.Lower)
-	log.Infof("* Threshold: \t%v\n", pipeline.Threshold)
+	log.Infof("* RemoveSymbols: \t%v", pipeline.RemoveSymbols)
+	log.Infof("* Lower: \t\t%v", pipeline.Lower)
+	log.Infof("* Threshold: \t%v", pipeline.Threshold)
 
 	for _, cls := range classification.Classification {
 		for _, txt := range cls.Texts {
@@ -84,7 +84,7 @@ func Create(path *string) Classifier {
 
 	log.Info("Loaded commands for classifier:")
 	for i, c := range classes {
-		log.Infof("%v\t%v\n", i, c)
+		log.Infof("%v\t%v", i, c)
 	}
 
 	return Classifier{*classifier, classes, pipeline}

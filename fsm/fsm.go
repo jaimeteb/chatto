@@ -40,13 +40,13 @@ type CmdStateTuple struct {
 }
 
 // TransitionFunc models a transition function
-type TransitionFunc func(m *FSM) interface{}
+type TransitionFunc func(m *FSM) (string, []Message)
 
 // NewTransitionFunc generates a new transition function
-func NewTransitionFunc(state int, r interface{}) TransitionFunc {
-	return func(m *FSM) interface{} {
+func NewTransitionFunc(state int, extension string, message []Message) TransitionFunc {
+	return func(m *FSM) (string, []Message) {
 		(*m).State = state
-		return r
+		return extension, message
 	}
 }
 
@@ -57,7 +57,7 @@ type FSM struct {
 }
 
 // ExecuteCmd executes a command in the FSM
-func (m *FSM) ExecuteCmd(cmd, txt string, machineState *DB) (answers []query.Answer, runExt string) {
+func (m *FSM) ExecuteCmd(cmd, txt string, db *DB) (answers []query.Answer, runExt string) {
 	var transition TransitionFunc
 	var tuple CmdStateTuple
 
@@ -67,20 +67,22 @@ func (m *FSM) ExecuteCmd(cmd, txt string, machineState *DB) (answers []query.Ans
 	tupleNormal := CmdStateTuple{cmd, m.State}
 	tupleCmdAny := CmdStateTuple{"any", m.State}
 
-	if machineState.TransitionTable[tupleFromAny] == nil {
-		if machineState.TransitionTable[tupleCmdAny] == nil {
-			transition = machineState.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
+	if db.TransitionTable[tupleFromAny] == nil {
+		if db.TransitionTable[tupleCmdAny] == nil {
+			transition = db.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
 			tuple = tupleNormal
 		} else {
-			transition = machineState.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
+			transition = db.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
 			tuple = tupleCmdAny
 		}
 	} else {
-		transition = machineState.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
+		transition = db.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
 		tuple = tupleFromAny
 	}
 
-	slot := machineState.SlotTable[tuple]
+	slot := db.SlotTable[tuple]
+
+	// Get slots
 	if slot.Name != "" {
 		switch slot.Mode {
 		case "whole_text":
@@ -94,23 +96,25 @@ func (m *FSM) ExecuteCmd(cmd, txt string, machineState *DB) (answers []query.Ans
 			}
 		}
 	}
-	// log.Debug(m.Slots)
 
+	// Get answers
 	if cmd == "" {
-		answers = append(answers, query.Answer{Text: machineState.DefaultMessages.Unsure}) // Threshold not met
+		answers = append(answers, query.Answer{Text: db.DefaultMessages.Unsure}) // Threshold not met
 	} else if transition == nil {
-		answers = append(answers, query.Answer{Text: machineState.DefaultMessages.Unknown}) // Unknown transition
+		answers = append(answers, query.Answer{Text: db.DefaultMessages.Unknown}) // Unknown transition
 	} else {
-		response := transition(m)
-		switch r := response.(type) {
-		case string:
-			if strings.HasPrefix(r, "ext_") {
-				runExt = r
+		transition, message := transition(m)
+
+		if strings.TrimSpace(transition) != "" {
+			runExt = transition
+		} else {
+			for _, msg := range message {
+				answers = append(answers, query.Answer{Text: msg.Text, Image: msg.Image})
 			}
 		}
 	}
 
-	log.Debugf("FSM | transitioned %v -> %v\n", previousState, m.State)
+	log.Debugf("FSM | transitioned %v -> %v", previousState, m.State)
 
 	return
 }

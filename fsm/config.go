@@ -16,10 +16,17 @@ type Config struct {
 
 // Function lists the transitions available for the FSM
 type Function struct {
-	Transition Transition  `yaml:"transition"`
-	Command    string      `yaml:"command"`
-	Slot       Slot        `yaml:"slot"`
-	Message    interface{} `yaml:"message"`
+	Transition Transition `yaml:"transition"`
+	Command    string     `yaml:"command"`
+	Slot       Slot       `yaml:"slot"`
+	Extension  string     `yaml:"extension"`
+	Message    []Message  `yaml:"message"`
+}
+
+// Message that is sent when a transition is executed
+type Message struct {
+	Text  string `yaml:"text"`
+	Image string `yaml:"image"`
 }
 
 // Transition describes the states of the transition
@@ -55,19 +62,19 @@ func Load(path *string) Config {
 		log.Panic(err)
 	}
 
-	var botConfig Config
-	if err := config.Unmarshal(&botConfig); err != nil {
+	var fsmConfig Config
+	if err := config.Unmarshal(&fsmConfig); err != nil {
 		log.Panic(err)
 	}
 
-	return botConfig
+	return fsmConfig
 }
 
 // Create initializes the FSM Domain from Config
 func Create(path *string) *DB {
 	config := Load(path)
 
-	machine := &DB{}
+	db := &DB{}
 
 	stateTable := make(map[string]int)
 	for i, state := range config.States {
@@ -75,32 +82,37 @@ func Create(path *string) *DB {
 	}
 	stateTable["any"] = -1 // Add state "any"
 
-	transitionTable := make(map[CmdStateTuple]TransitionFunc)
-	slotTable := make(map[CmdStateTuple]Slot)
+	transitionTable := make(map[CmdStateTuple]TransitionFunc, len(config.Functions))
+
+	slotTable := make(map[CmdStateTuple]Slot, len(config.Functions))
+
 	for _, function := range config.Functions {
 		tuple := CmdStateTuple{
 			Cmd:   function.Command,
 			State: stateTable[function.Transition.From],
 		}
+
 		transitionTable[tuple] = NewTransitionFunc(
 			stateTable[function.Transition.Into],
+			function.Extension,
 			function.Message,
 		)
+
 		if function.Slot != (Slot{}) {
 			slotTable[tuple] = function.Slot
 		}
 	}
 
-	machine.StateTable = stateTable
-	machine.CommandList = config.Commands
-	machine.TransitionTable = transitionTable
-	machine.DefaultMessages = config.Defaults
-	machine.SlotTable = slotTable
+	db.StateTable = stateTable
+	db.CommandList = config.Commands
+	db.TransitionTable = transitionTable
+	db.DefaultMessages = config.Defaults
+	db.SlotTable = slotTable
 
 	log.Info("Loaded states:")
 	for state, i := range stateTable {
-		log.Infof("%v\t%v\n", i, state)
+		log.Infof("%v - %v", i, state)
 	}
 
-	return machine
+	return db
 }

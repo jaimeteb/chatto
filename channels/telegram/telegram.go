@@ -47,7 +47,7 @@ type Channel struct {
 func NewChannel(config Config) *Channel {
 	client := telegram.NewClient(config.BotKey)
 
-	log.Infof("Added Telegram client: %v\n", client.GetMe().ID)
+	log.Infof("Added Telegram client: %v", client.GetMe().ID)
 
 	return &Channel{client: client}
 }

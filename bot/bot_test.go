@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/jaimeteb/chatto/channels"
-	"github.com/jaimeteb/chatto/message"
+	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 )
 
@@ -25,7 +25,7 @@ func TestBot1(t *testing.T) {
 		t.Errorf("bot name is incorrect, got: %v, want: %v.", bot.Name, "test_bot")
 	}
 
-	ans, err := bot.Answer(message.Message{
+	ans, err := bot.Answer(&query.Question{
 		Sender: "bar",
 		Text:   "on",
 	})
@@ -46,7 +46,7 @@ func TestBot2(t *testing.T) {
 		t.Errorf("failed to load bot: %s", err)
 	}
 
-	bot.Answer(message.Message{
+	bot.Answer(&query.Question{
 		Sender: "baz",
 		Text:   "on",
 	})
@@ -110,36 +110,25 @@ func TestBotNoClientsAndImages(t *testing.T) {
 	}
 
 	wREST := httptest.NewRecorder()
-	messages := []interface{}{
-		message.Message{
+	messages := []fsm.Message{
+		fsm.Message{
 			Text: "only text",
 		},
-		message.Message{
+		fsm.Message{
 			Text:  "text and image",
 			Image: "https://i.imgur.com/8MU0IUT.jpeg",
 		},
-		"string in the wild",
-		map[string]interface{}{
-			"text": "text in map",
-		},
-		map[interface{}]interface{}{
-			"text": "text in interface map",
-		},
 	}
 
-	ans, err := bot.Channels.REST.ReceiveMessage(messages, bot.Channels.REST, "8809")
+	receive, err := bot.Channels.REST.ReceiveMessage(wREST, wREST.Result().Request)
 	if err != nil {
 		t.Error(err)
 	}
 
-	writeAnswer(wREST, ans)
-
-	channels.SendReplies(new(interface{}), bot.Channels.REST, "8809")
+	bot.Channels.REST.SendMessage()
 	if err != nil {
 		t.Error(err)
 	}
-
-	writeAnswer(wREST, ans)
 }
 
 func TestServeBot(t *testing.T) {
