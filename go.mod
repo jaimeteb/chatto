@@ -7,7 +7,6 @@ require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.0 // indirect
 	github.com/asmcos/requests v0.0.0-20200816142649-95abc76c8cac
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20190729070250-5ae5475bae5e
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/gorilla/mux v1.8.0
