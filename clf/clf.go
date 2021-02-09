@@ -3,6 +3,7 @@ package clf
 import (
 	"github.com/jaimeteb/chatto/clf/nb"
 	"github.com/jaimeteb/chatto/clf/pipeline"
+	"github.com/jaimeteb/chatto/clf/rf"
 	cmn "github.com/jaimeteb/chatto/common"
 	log "github.com/sirupsen/logrus"
 
@@ -21,7 +22,14 @@ type Model interface {
 type Config struct {
 	Classification []cmn.TrainingTexts `yaml:"classification"`
 	Pipeline       pipeline.Config     `yaml:"pipeline"`
-	Model          string              `yaml:"model"`
+	Model          ModelConfig         `yaml:"model"`
+}
+
+type ModelConfig struct {
+	Classifier  string  `mapstructure:"classifier"`
+	Truncate    float32 `mapstructure:"truncate"`
+	VectorsFile string  `mapstructure:"vectors_file"`
+	ModelFile   string  `mapstructure:"model_file"`
 }
 
 // Classifier models a classifier and its classes
@@ -53,9 +61,10 @@ func Create(path *string) *Classifier {
 	pipeline := &config.Pipeline
 
 	var model Model
-	switch config.Model {
-	// case "random_forest":
-	// case "knn":
+	switch config.Model.Classifier {
+	case "randomforest":
+		model = rf.NewRandomForestClassifier(config.Model.Truncate, config.Model.VectorsFile, config.Model.ModelFile)
+		model.Learn(config.Classification, pipeline)
 	case "naive_bayes":
 		fallthrough
 	default:
