@@ -47,7 +47,7 @@ func NewChannel(config Config) *Channel {
 		client.socketclient = socketmode.New(slackClient)
 	}
 
-	log.Infof("Added Slack client: %v...", config.Token[:10])
+	log.Info("Added Slack client")
 
 	return client
 }
