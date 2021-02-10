@@ -6,95 +6,30 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/jaimeteb/chatto/channels"
 	"github.com/jaimeteb/chatto/channels/messages"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
 
 func (b *Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	receiveMsg, err := b.Channels.REST.ReceiveMessage(w, r)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if receiveMsg.Question == nil || (*receiveMsg.Question == query.Question{}) {
-		return
-	}
-
-	answers, err := b.Answer(receiveMsg.Question)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = b.Channels.REST.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	writeAnswer(w, answers)
+	b.endpointHandler(w, r, b.Channels.REST)
 }
 
 func (b *Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	receiveMsg, err := b.Channels.Telegram.ReceiveMessage(w, r)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if receiveMsg.Question == nil || (*receiveMsg.Question == query.Question{}) {
-		return
-	}
-
-	answers, err := b.Answer(receiveMsg.Question)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = b.Channels.Telegram.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	writeAnswer(w, answers)
+	b.endpointHandler(w, r, b.Channels.Telegram)
 }
 
 func (b *Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	receiveMsg, err := b.Channels.Twilio.ReceiveMessage(w, r)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if receiveMsg.Question == nil || (*receiveMsg.Question == query.Question{}) {
-		return
-	}
-
-	answers, err := b.Answer(receiveMsg.Question)
-
-	err = b.Channels.Twilio.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	writeAnswer(w, answers)
+	b.endpointHandler(w, r, b.Channels.Twilio)
 }
 
 func (b *Bot) slackEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	receiveMsg, err := b.Channels.Slack.ReceiveMessage(w, r)
+	b.endpointHandler(w, r, b.Channels.Slack)
+}
+
+func (b *Bot) endpointHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
+	receiveMsg, err := chnl.ReceiveMessage(w, r)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -112,7 +47,7 @@ func (b *Bot) slackEndpointHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = b.Channels.Slack.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
+	err = chnl.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -156,7 +91,12 @@ func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +123,12 @@ func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // ServeBot starts the bot process which starts the long running processes
@@ -222,5 +167,10 @@ func writeAnswer(w http.ResponseWriter, answers []query.Answer) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

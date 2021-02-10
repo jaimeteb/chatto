@@ -17,24 +17,34 @@ import (
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
 func SendAndReceive(question *query.Question, url string) []query.Answer {
-	jsonMess, _ := json.Marshal(question)
+	jsonMess, err := json.Marshal(question)
+	if err != nil {
+		log.Warn(err)
+		return []query.Answer{}
+	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMess))
+	if err != nil {
+		log.Warn(err)
+		return []query.Answer{}
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Warn(err.Error())
+		log.Warn(err)
 		return []query.Answer{}
 	}
 	defer resp.Body.Close()
 
 	ans := []query.Answer{}
-	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
-		log.Warn(err.Error())
+	if err := json.NewDecoder(resp.Body).Decode(&ans); err != nil {
+		log.Warn(err)
 		return []query.Answer{}
 	}
+
 	return ans
 }
 

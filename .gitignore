@@ -5,3 +5,4 @@ coverage.txt
 *.code-workspace
 *.pyc
 build/
+dist/

@@ -43,7 +43,7 @@ func (e *RPC) RunExtFunc(question *query.Question, extension string, db *fsm.DB,
 
 	res := Response{}
 
-	err := (*e).Client.Call("ListenerRPC.GetFunc", &req, &res)
+	err := e.Client.Call("ListenerRPC.GetFunc", &req, &res)
 	if err != nil {
 		log.Error(err)
 		return nil, errors.New(db.DefaultMessages.Error)

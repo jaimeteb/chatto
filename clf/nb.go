@@ -41,7 +41,7 @@ func (c *Classifier) Predict(text string) (string, float64) {
 }
 
 // Load loads classification configuration from yaml
-func Load(path *string) Classification {
+func Load(path *string) (Classification, error) {
 	config := viper.New()
 	config.SetConfigName("clf")
 	config.AddConfigPath(*path)
@@ -51,14 +51,17 @@ func Load(path *string) Classification {
 	}
 
 	var botClassif Classification
-	config.Unmarshal(&botClassif)
+	err := config.Unmarshal(&botClassif)
 
-	return botClassif
+	return botClassif, err
 }
 
 // Create returns a trained Classifier
 func Create(path *string) Classifier {
-	classification := Load(path)
+	classification, err := Load(path)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// classes := make([]bayesian.Class, 0)
 	var classes []bayesian.Class
@@ -74,9 +77,11 @@ func Create(path *string) Classifier {
 	log.Infof("* Lower: \t\t%v", pipeline.Lower)
 	log.Infof("* Threshold: \t%v", pipeline.Threshold)
 
-	for _, cls := range classification.Classification {
-		for _, txt := range cls.Texts {
-			classifier.Learn(Pipeline(&txt, &pipeline), bayesian.Class(cls.Command))
+	cls := classification.Classification
+
+	for n := range cls {
+		for i := range cls[n].Texts {
+			classifier.Learn(Pipeline(&cls[n].Texts[i], &pipeline), bayesian.Class(cls[n].Command))
 		}
 	}
 

@@ -154,7 +154,10 @@ func TestRPCExtServer(t *testing.T) {
 
 	listener := ListenerRPC{myExtMap}
 
-	listener.GetAllFuncs(new(Request), new(GetAllFuncsResponse))
+	err := listener.GetAllFuncs(new(Request), new(GetAllFuncsResponse))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	req := Request{
 		Extension: "ext_any",
@@ -163,5 +166,9 @@ func TestRPCExtServer(t *testing.T) {
 			Slots: make(map[string]string),
 		},
 	}
-	listener.GetFunc(&req, new(Response))
+
+	err = listener.GetFunc(&req, new(Response))
+	if err != nil {
+		t.Fatal(err)
+	}
 }

@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/ajg/form v1.5.1
-	github.com/antonfisher/nested-logrus-formatter v1.3.0 // indirect
 	github.com/asmcos/requests v0.0.0-20200816142649-95abc76c8cac
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20190729070250-5ae5475bae5e
 	github.com/fatih/color v1.10.0
@@ -29,7 +28,6 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0 // indirect
-	github.com/zput/zxcTool v1.3.6 // indirect
 	golang.org/x/sys v0.0.0-20200803150936-fd5f0c170ac3 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	gopkg.in/ini.v1 v1.57.0 // indirect

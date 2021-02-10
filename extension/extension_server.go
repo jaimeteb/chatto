@@ -76,7 +76,6 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var req Request
 	if err := decoder.Decode(&req); err != nil {
-		// log.Info(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -93,7 +92,11 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 // GetAllFuncs returns all functions registered in an RegisteredFuncs as a REST API
@@ -110,7 +113,11 @@ func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, err = w.Write(js)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 // ServeRPC serves the registered extension functions over RPC
@@ -134,8 +141,14 @@ func ServeRPC(extMap RegisteredFuncs) error {
 	}
 
 	log.Infof("RPC extension server started. Using port %v", *port)
-	rpc.Register(&ListenerRPC{RegisteredFuncs: extMap})
+	err = rpc.Register(&ListenerRPC{RegisteredFuncs: extMap})
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
 	rpc.Accept(inbound)
+
 	return nil
 }
 
@@ -154,5 +167,6 @@ func ServeREST(extMap RegisteredFuncs) error {
 
 	log.Infof("REST extension server started. Using port %v", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
+
 	return nil
 }

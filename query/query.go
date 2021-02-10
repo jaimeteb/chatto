@@ -21,17 +21,14 @@ func NewMessageFromMap(msgMap interface{}) Answer {
 	msg := Answer{}
 	switch m := msgMap.(type) {
 	case map[interface{}]interface{}:
-		msg.Sender, _ = m["sender"].(string)
-		msg.Text, _ = m["text"].(string)
-		msg.Image, _ = m["image"].(string)
+		msg.Text = m["text"].(string)
+		msg.Image = m["image"].(string)
 	case map[string]interface{}:
-		msg.Sender, _ = m["sender"].(string)
-		msg.Text, _ = m["text"].(string)
-		msg.Image, _ = m["image"].(string)
+		msg.Text = m["text"].(string)
+		msg.Image = m["image"].(string)
 	case map[string]string:
-		msg.Sender, _ = m["sender"]
-		msg.Text, _ = m["text"]
-		msg.Image, _ = m["image"]
+		msg.Text = m["text"]
+		msg.Image = m["image"]
 	}
 	return msg
 }

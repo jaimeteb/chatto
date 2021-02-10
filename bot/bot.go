@@ -38,7 +38,7 @@ type Config struct {
 }
 
 // Answer takes a user input and executes a transition on the FSM if possible
-func (b Bot) Answer(question *query.Question) ([]query.Answer, error) {
+func (b *Bot) Answer(question *query.Question) ([]query.Answer, error) {
 	if !b.Machines.Exists(question.Sender) {
 		b.Machines.Set(
 			question.Sender,
@@ -88,7 +88,10 @@ func LoadBotConfig(path *string) Config {
 	}
 
 	var bc Config
-	config.Unmarshal(&bc)
+	err := config.Unmarshal(&bc)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return bc
 }
@@ -117,7 +120,7 @@ func LoadBot(path *string) (*Bot, error) {
 	classifier := clf.Create(path)
 
 	// Load Extensions
-	extension, err := extension.LoadExtensions(bc.Extensions)
+	ext, err := extension.LoadExtensions(bc.Extensions)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +131,7 @@ func LoadBot(path *string) (*Bot, error) {
 	// Load Store
 	machines := fsm.LoadStore(bc.Store)
 
-	return &Bot{name, machines, db, classifier, extension, chnls}, nil
+	return &Bot{name, machines, db, classifier, ext, chnls}, nil
 }
 
 // LOGO for Chatto

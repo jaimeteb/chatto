@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var removeSymbolRe = regexp.MustCompile(`\W`)
+
 // PipelineConfig defines a Pipeline configuration
 type PipelineConfig struct {
 	RemoveSymbols bool    `mapstructure:"remove_symbols"`
@@ -28,8 +30,7 @@ func Pipeline(text *string, pl *PipelineConfig) []string {
 
 // RemoveSymbols removes symbols from string
 func RemoveSymbols(text string) string {
-	re, _ := regexp.Compile(`[^\w]`)
-	return re.ReplaceAllString(text, " ")
+	return removeSymbolRe.ReplaceAllString(text, " ")
 }
 
 // Lower converts a string to lowercase

@@ -45,7 +45,7 @@ type TransitionFunc func(m *FSM) (string, []Message)
 // NewTransitionFunc generates a new transition function
 func NewTransitionFunc(state int, extension string, message []Message) TransitionFunc {
 	return func(m *FSM) (string, []Message) {
-		(*m).State = state
+		m.State = state
 		return extension, message
 	}
 }

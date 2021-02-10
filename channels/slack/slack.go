@@ -105,7 +105,11 @@ func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messa
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(js)
+		_, err = w.Write(js)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return nil, err
+		}
 
 		return &messages.Receive{}, nil
 	}
@@ -144,6 +148,22 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	go func() {
 		for evt := range c.socketclient.Events {
 			switch evt.Type {
+			case socketmode.EventTypeHello:
+				// Ignore
+			case socketmode.EventTypeInteractive:
+				// Ignore
+			case socketmode.EventTypeSlashCommand:
+				// Ignore
+			case socketmode.EventTypeInvalidAuth:
+				log.Error("Invalid auth when connecting to Slack...")
+			case socketmode.EventTypeIncomingError:
+				log.Error("Event type incoming error from Slack...")
+			case socketmode.EventTypeErrorWriteFailed:
+				log.Error("Writing event message to Slack failed...")
+			case socketmode.EventTypeErrorBadMessage:
+				log.Error("Bad event message from Slack...")
+			case socketmode.EventTypeDisconnect:
+				log.Warn("Disconnected from Slack...")
 			case socketmode.EventTypeConnecting:
 				log.Info("Connecting to Slack with Socket Mode...")
 			case socketmode.EventTypeConnectionError:
@@ -219,5 +239,8 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 		}
 	}()
 
-	c.socketclient.Run()
+	err := c.socketclient.Run()
+	if err != nil {
+		log.Error(err)
+	}
 }
