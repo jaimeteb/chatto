@@ -16,7 +16,7 @@ func TestRESTExt(t *testing.T) {
 		URL:  "http://localhost:8770",
 	})
 	if err != nil {
-		t.Errorf("unable to load extensionREST1: %s", err)
+		t.Fatalf("unable to load extensionREST1: %s", err)
 	}
 
 	extensionREST2, err := LoadExtensions(Config{
@@ -24,12 +24,12 @@ func TestRESTExt(t *testing.T) {
 		URL:  "http://localhost:8771",
 	})
 	if err != nil {
-		t.Errorf("unable to load extensionREST2: %s", err)
+		t.Fatalf("unable to load extensionREST2: %s", err)
 	}
 
 	resp1, err := extensionREST1.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", &fsm.DB{}, &fsm.FSM{})
 	if err != nil {
-		t.Errorf("unable to run extensionREST1: %s", err)
+		t.Fatalf("unable to run extensionREST1: %s", err)
 	}
 
 	if len(resp1) == 1 && resp1[0].Text != "Hello Universe" {
@@ -41,7 +41,7 @@ func TestRESTExt(t *testing.T) {
 
 	resp2, err := extensionREST2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", fsmDB, &fsm.FSM{})
 	if err != nil {
-		t.Errorf("unable to run extensionREST2: %s", err)
+		t.Fatalf("unable to run extensionREST2: %s", err)
 	}
 
 	if len(resp2) == 1 && resp2[0].Text != "Error" {
@@ -56,14 +56,14 @@ func TestRPCExt(t *testing.T) {
 		Port: 6770,
 	})
 	if err != nil {
-		t.Errorf("unable to load extensionRPC1: %s", err)
+		t.Fatalf("unable to load extensionRPC1: %s", err)
 	}
 
 	switch e := extensionRPC1.(type) {
 	case *RPC:
 		break
 	default:
-		t.Errorf("incorrect, got %T, want: *ExtensionRPC", e)
+		t.Fatalf("incorrect, got %T, want: *ExtensionRPC", e)
 	}
 
 	extensionRPC2, err := LoadExtensions(Config{
@@ -72,7 +72,7 @@ func TestRPCExt(t *testing.T) {
 		Port: 6771,
 	})
 	if err != nil {
-		t.Errorf("unable to load extensionRPC2: %s", err)
+		t.Fatalf("unable to load extensionRPC2: %s", err)
 	}
 
 	switch extensionRPC2.(type) {
@@ -93,7 +93,7 @@ func TestRPCExt(t *testing.T) {
 
 	resp1, err := extensionRPC1.RunExtFunc(&query.Question{Text: "pikachu"}, "ext_search_pokemon", testDB, &testFSM)
 	if err != nil {
-		t.Errorf("unable to run extensionRPC1: %s", err)
+		t.Fatalf("unable to run extensionRPC1: %s", err)
 	}
 
 	if len(resp1) == 1 && resp1[0].Text == "Error" {
@@ -102,7 +102,7 @@ func TestRPCExt(t *testing.T) {
 
 	resp2, err := extensionRPC2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", testDB, &fsm.FSM{})
 	if err != nil {
-		t.Errorf("unable to run extensionRPC2: %s", err)
+		t.Fatalf("unable to run extensionRPC2: %s", err)
 	}
 
 	if len(resp2) == 1 && resp2[0].Text != "Error" {
@@ -127,12 +127,20 @@ func TestRESTExtServer(t *testing.T) {
 
 	listener := ListenerREST{myExtMap}
 
-	req1, _ := http.NewRequest("GET", "/ext/get_all_funcs", nil)
+	req1, err := http.NewRequest("GET", "/ext/get_all_funcs", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w1 := httptest.NewRecorder()
 	listener.GetAllFuncs(w1, req1)
 
-	jsonStr2 := []byte(`{"req": "ext_any", "fsm": {"state": 0, "slots": {}}}`)
-	req2, _ := http.NewRequest("POST", "/ext/get_func", bytes.NewBuffer(jsonStr2))
+	jsonStr2 := []byte(`{"extension": "ext_any", "fsm": {"state": 0, "slots": {}}}`)
+	req2, err := http.NewRequest("POST", "/ext/get_func", bytes.NewBuffer(jsonStr2))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w2 := httptest.NewRecorder()
 	listener.GetFunc(w2, req2)
 }

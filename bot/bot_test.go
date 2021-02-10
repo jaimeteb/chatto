@@ -17,7 +17,7 @@ var examples00TestPath = "../examples/00_test/"
 func TestBot1(t *testing.T) {
 	bot, err := LoadBot(&examples00TestPath)
 	if err != nil {
-		t.Errorf("failed to load bot: %s", err)
+		t.Fatalf("failed to load bot: %s", err)
 	}
 
 	if bot.Name != "test_bot" {
@@ -52,13 +52,23 @@ func TestBot2(t *testing.T) {
 	}
 
 	jsonStr := []byte(`{"sender": "42", "text": "on"}`)
-	req, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr))
+
+	req, err := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w := httptest.NewRecorder()
 	bot.restEndpointHandler(w, req)
 
 	jsonStr2 := []byte(`{"update_id": 1, "message": {"message_id": 0, "from": 
 	{"id": 42, "first_name": "", "username": ""}, "date": 0, "text": "off"}}`)
-	req2, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr2))
+
+	req2, err := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr2))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w2 := httptest.NewRecorder()
 	bot.telegramEndpointHandler(w2, req2)
 
@@ -78,26 +88,47 @@ func TestBot2(t *testing.T) {
 		"NumSegments":      {"0"},
 		"ApiVersion":       {""},
 	}
-	req3, _ := http.NewRequest("POST", "", strings.NewReader(formData.Encode()))
+	req3, err := http.NewRequest("POST", "", strings.NewReader(formData.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w3 := httptest.NewRecorder()
 	bot.twilioEndpointHandler(w3, req3)
 
-	req4, _ := http.NewRequest("GET", "/senders/42", nil)
+	req4, err := http.NewRequest("GET", "/senders/42", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w4 := httptest.NewRecorder()
 	bot.detailsHandler(w4, req4)
 
 	jsonStr5 := []byte(`{"text": "."}`)
-	req5, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr5))
+	req5, err := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr5))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w5 := httptest.NewRecorder()
 	bot.predictHandler(w5, req5)
 
 	jsonStr6 := []byte(`{"event": {"channel": "43", "text": "on"}}`)
-	req6, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr6))
+	req6, err := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr6))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w6 := httptest.NewRecorder()
 	bot.slackEndpointHandler(w6, req6)
 
 	jsonStr7 := []byte(`{"challenge": "challenge"}`)
-	req7, _ := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr7))
+
+	req7, err := http.NewRequest("POST", "", bytes.NewBuffer(jsonStr7))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	w7 := httptest.NewRecorder()
 	bot.slackEndpointHandler(w7, req7)
 }

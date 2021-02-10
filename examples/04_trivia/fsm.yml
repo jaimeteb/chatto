@@ -13,18 +13,19 @@ functions:
       from: initial
       into: question_1
     command: start
-    message: "Welcome to the trivia!\n\
-      Question 1:\n\
-      How many squares are there on a chessboard?\n\
-      1. 48\n\
-      2. 64\n\
-      3. 100"
+    message: 
+      - text: "Welcome to the trivia!\n\
+        Question 1:\n\
+        How many squares are there on a chessboard?\n\
+        1. 48\n\
+        2. 64\n\
+        3. 100"
 
   - transition:
       from: question_1
       into: question_2
     command: any
-    message: ext_val_ans_1
+    extension: val_ans_1
     slot:
       name: answer_1
       mode: regex
@@ -34,7 +35,7 @@ functions:
       from: question_2
       into: question_3
     command: any
-    message: ext_val_ans_2
+    extension: val_ans_2
     slot:
       name: answer_2
       mode: regex
@@ -44,7 +45,7 @@ functions:
       from: question_3
       into: initial
     command: any
-    message: ext_score
+    extension: score
     slot:
       name: answer_3
       mode: regex
@@ -54,7 +55,8 @@ functions:
       from: any
       into: initial
     command: end
-    message: "Bye bye!"
+    message: 
+      - text: "Bye bye!"
 
 defaults:
   unknown: "Not sure I understood, try again please."

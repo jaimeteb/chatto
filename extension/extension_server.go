@@ -74,6 +74,7 @@ func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error 
 // GetFunc returns a requested extension function as a REST API
 func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
+
 	var req Request
 	if err := decoder.Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

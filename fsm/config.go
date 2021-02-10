@@ -59,12 +59,12 @@ func Load(path *string) Config {
 	config.AddConfigPath(*path)
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 
 	var fsmConfig Config
 	if err := config.Unmarshal(&fsmConfig); err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 
 	return fsmConfig
