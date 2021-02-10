@@ -12,13 +12,15 @@ functions:
       from: initial
       into: search_pokemon
     command: search_pokemon
-    message: "What is the Pokémon's name or number?"
+    message:
+      - text: "What is the Pokémon's name or number?"
 
   - transition:
       from: initial
       into: search_pokemon
     command: greet
-    message: "What is the Pokémon's name or number?"
+    message:
+     - text: "What is the Pokémon's name or number?"
 
   - transition:
       from: search_pokemon
@@ -27,17 +29,18 @@ functions:
     slot:
       name: pokemon
       mode: whole_text
-    message: ext_search_pokemon
+    extension: ext_search_pokemon
 
   - transition:
       from: any
       into: initial
     command: faq
     message:
-      - "This is a simple chatbot created with Chatto"
-      - "You can find out more about it here: https://github.com/jaimeteb/chatto"
-      - "😊"
+      - text: "This is a simple chatbot created with Chatto"
+      - text: "You can find out more about it here: https://github.com/jaimeteb/chatto"
+      - text: "😊"
 
 defaults:
   unknown: "Unknown command, try again please."
   unsure: "Not sure I understood, try again please."
+  error: "I'm sorry, an error ocurred."

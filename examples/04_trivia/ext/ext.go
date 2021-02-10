@@ -105,9 +105,9 @@ func calculateScore(req *extension.Request) (res *extension.Response) {
 }
 
 var myExtMap = extension.RegisteredFuncs{
-	"ext_val_ans_1": validateAnswer1,
-	"ext_val_ans_2": validateAnswer2,
-	"ext_score":     calculateScore,
+	"val_ans_1": validateAnswer1,
+	"val_ans_2": validateAnswer2,
+	"score":     calculateScore,
 }
 
 func main() {

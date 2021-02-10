@@ -33,7 +33,7 @@ functions:
     command: bad
     message:
       - text: "Oh don't be sad :("
-      - image: https://i.imgur.com/8MU0IUT.jpeg
+        image: https://i.imgur.com/8MU0IUT.jpeg
       - text: "Did that help?"
 
   - transition:

@@ -1,6 +1,10 @@
+from typing import List
 from flask import Flask, Response, request, jsonify
 
 app = Flask(__name__)
+
+def make_answers(*messages) -> List[dict]:
+    return [{"text": msg} for msg in messages]
 
 def wrong_option(data):
     return {
@@ -8,37 +12,37 @@ def wrong_option(data):
             "state": data.get("db").get("question_1"),
             "slots": data.get("fsm").get("slots"),
         },
-        "res": "Select one of the options."
+        "answers": make_answers("Select one of the options.")
     }
 
 def validate_ans_1(data: dict) -> dict:
-    if data.get("txt") not in ["1", "2", "3"]:
+    if data.get("fsm").get("slots").get("answer_1") not in ["1", "2", "3"]:
         return jsonify(wrong_option(data))
 
     return jsonify({
         "fsm": data.get("fsm"),
-        "res": "Question 2:\n" +
+        "answers": make_answers("Question 2:\n" +
             "What is the capital of the state of Utah?\n" +
             "1. Salt Lake City\n" +
             "2. Jefferson City\n" +
-            "3. Cheyenne",
+            "3. Cheyenne"),
     })
 
 def validate_ans_2(data: dict) -> dict:
-    if data.get("txt") not in ["1", "2", "3"]:
+    if data.get("fsm").get("slots").get("answer_2") not in ["1", "2", "3"]:
         return jsonify(wrong_option(data))
 
     return jsonify({
         "fsm": data.get("fsm"),
-        "res": "Question 3:\n" +
+        "answers": make_answers("Question 3:\n" +
 			"Who painted Starry Night?\n" +
 			"1. Pablo Picasso\n" +
 			"2. Claude Monet\n" +
-			"3. Vincent Van Gogh",
+			"3. Vincent Van Gogh"),
     })
 
 def score(data: dict) -> dict:
-    if data.get("txt") not in ["1", "2", "3"]:
+    if data.get("fsm").get("slots").get("answer_3") not in ["1", "2", "3"]:
         return jsonify(wrong_option(data))
     
     slots = data.get("fsm").get("slots", {})
@@ -63,25 +67,25 @@ def score(data: dict) -> dict:
 
     return jsonify({
         "fsm": data.get("fsm"),
-        "res": message,
+        "answers": make_answers(message),
     })
 
-func_map = {
-    "ext_val_ans_1": validate_ans_1,
-    "ext_val_ans_2": validate_ans_2,
-    "ext_score": score,
+registered_funcs = {
+    "val_ans_1": validate_ans_1,
+    "val_ans_2": validate_ans_2,
+    "score": score,
 }
 
 
 @app.route("/ext/get_all_funcs", methods=["GET"])
 def get_all_funcs():
-    return jsonify(list(func_map.keys()))
+    return jsonify(list(registered_funcs.keys()))
 
 @app.route("/ext/get_func", methods=["POST"])
 def get_func():
     data = request.get_json()
-    req = data.get("req")
-    f = func_map.get(req)
+    req = data.get("extension")
+    f = registered_funcs.get(req)
     if not f:
         return Response(status=400)
     return f(data)

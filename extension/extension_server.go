@@ -86,7 +86,12 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := l.RegisteredFuncs[req.Extension](&req)
+	extFunc, ok := l.RegisteredFuncs[req.Extension]
+	if !ok {
+		http.Error(w, errors.New("extension not found").Error(), http.StatusBadRequest)
+		return
+	}
+	res := extFunc(&req)
 
 	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Extension)
 	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Answers)
