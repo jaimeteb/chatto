@@ -3,7 +3,6 @@ package extension
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/rpc"
@@ -46,7 +45,7 @@ func (e *RPC) RunExtFunc(question *query.Question, extension string, db *fsm.DB,
 	err := e.Client.Call("ListenerRPC.GetFunc", &req, &res)
 	if err != nil {
 		log.Error(err)
-		return nil, errors.New(db.DefaultMessages.Error)
+		return query.Answers(db.DefaultMessages.Error), err
 	}
 
 	*machine = *res.FSM
@@ -82,23 +81,22 @@ func (e *REST) RunExtFunc(question *query.Question, extension string, db *fsm.DB
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
 		log.Error(err)
-		return nil, errors.New(db.DefaultMessages.Error)
+		return query.Answers(db.DefaultMessages.Error), err
 	}
 
 	// TODO: if fail -> don't change states
-	// send error msg from dom
 
 	resp, err := http.Post(fmt.Sprintf("%v/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		log.Error(err)
-		return nil, errors.New(db.DefaultMessages.Error)
+		return query.Answers(db.DefaultMessages.Error), err
 	}
 
 	defer resp.Body.Close()
 	res := Response{}
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		log.Error(err)
-		return nil, errors.New(db.DefaultMessages.Error)
+		return query.Answers(db.DefaultMessages.Error), err
 	}
 
 	*machine = *res.FSM

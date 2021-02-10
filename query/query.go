@@ -6,8 +6,8 @@ import (
 
 // Question for the FSM
 type Question struct {
-	Sender string
-	Text   string
+	Sender string `json:"sender"`
+	Text   string `json:"text"`
 }
 
 // Answer from the FSM

@@ -59,7 +59,7 @@ func (b *Bot) Answer(question *query.Question) ([]query.Answer, error) {
 	if runExt != "" && b.Extension != nil {
 		reply, err = b.Extension.RunExtFunc(question, runExt, b.DB, machine)
 		if err != nil {
-			return nil, err
+			log.Error(err) // return nil, err
 		}
 	}
 

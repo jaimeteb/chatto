@@ -2,6 +2,7 @@ package extension
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -49,7 +50,11 @@ type ListenerREST struct {
 
 // GetFunc returns a requested extension function
 func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
-	extRes := l.RegisteredFuncs[req.Extension](req)
+	extFunc, ok := l.RegisteredFuncs[req.Extension]
+	if !ok {
+		return errors.New("extension not found")
+	}
+	extRes := extFunc(req)
 
 	res.FSM = extRes.FSM
 	res.Answers = extRes.Answers

@@ -4,7 +4,7 @@ import "github.com/jaimeteb/chatto/query"
 
 // Receive question from channel with reply options
 type Receive struct {
-	Question  *query.Question
+	Question  *query.Question `json:"question"`
 	ReplyOpts *ReplyOpts
 }
 
