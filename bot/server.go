@@ -58,25 +58,27 @@ func (b *Bot) endpointHandler(w http.ResponseWriter, r *http.Request, chnl chann
 }
 
 func (b *Bot) slackMessageEvents() {
-	receiveChan := make(chan messages.Receive)
+	if b.Channels.Slack != nil {
+		receiveChan := make(chan messages.Receive)
 
-	go b.Channels.Slack.ReceiveMessages(receiveChan)
+		go b.Channels.Slack.ReceiveMessages(receiveChan)
 
-	go func() {
-		for receiveMsg := range receiveChan {
-			answers, err := b.Answer(receiveMsg.Question)
-			if err != nil {
-				log.Error(err)
-				return
+		go func() {
+			for receiveMsg := range receiveChan {
+				answers, err := b.Answer(receiveMsg.Question)
+				if err != nil {
+					log.Error(err)
+					return
+				}
+
+				err = b.Channels.Slack.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
+				if err != nil {
+					log.Error(err)
+					return
+				}
 			}
-
-			err = b.Channels.Slack.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
-			if err != nil {
-				log.Error(err)
-				return
-			}
-		}
-	}()
+		}()
+	}
 }
 
 func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {

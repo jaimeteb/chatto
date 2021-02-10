@@ -49,20 +49,23 @@ func Load(path *string) *Channels {
 
 	chnls := Channels{}
 
+	// REST
+	chnls.REST = &rest.Channel{}
+
 	if err := config.ReadInConfig(); err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
-			log.Warn("File chn.yml not found, skipping channels")
+			log.Warn("File chn.yml not found, using only REST channel")
 		default:
 			log.Warn(err)
 		}
-		return nil
+		return &chnls
 	}
 
 	var cfg Config
 	if err := config.Unmarshal(&cfg); err != nil {
 		log.Warn(err)
-		return nil
+		return &chnls
 	}
 
 	// TELEGRAM
@@ -74,9 +77,6 @@ func Load(path *string) *Channels {
 	if cfg.Twilio != (twilio.Config{}) {
 		chnls.Twilio = twilio.NewChannel(cfg.Twilio)
 	}
-
-	// REST
-	chnls.REST = &rest.Channel{}
 
 	// SLACK
 	if cfg.Slack != (slack.Config{}) {
