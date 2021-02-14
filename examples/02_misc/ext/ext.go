@@ -87,7 +87,7 @@ func errFunc(req *extension.Request, err error) *extension.Response {
 	log.Errorf("%#v", err)
 	return &extension.Response{
 		FSM:     req.FSM,
-		Answers: []query.Answer{{Text: req.DB.DefaultMessages.Error}},
+		Answers: []query.Answer{{Text: req.Domain.DefaultMessages.Error}},
 	}
 }
 
@@ -123,7 +123,7 @@ func weatherFunc(req *extension.Request) (res *extension.Response) {
 		message = "Sorry, I couldn't find your location, try with another one please."
 		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: req.DB.StateTable["ask_location"],
+				State: req.Domain.StateTable["ask_location"],
 				Slots: req.FSM.Slots,
 			},
 			Answers: []query.Answer{{Text: message}},

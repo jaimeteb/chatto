@@ -10,12 +10,12 @@ import (
 
 func validateAnswer1(req *extension.Request) (res *extension.Response) {
 	ans := req.FSM.Slots["answer_1"]
-	db := req.DB
+	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: db.StateTable["question_1"],
+				State: fsmDomain.StateTable["question_1"],
 				Slots: req.FSM.Slots,
 			},
 			Answers: []query.Answer{{Text: "Select one of the options"}},
@@ -34,12 +34,12 @@ func validateAnswer1(req *extension.Request) (res *extension.Response) {
 
 func validateAnswer2(req *extension.Request) (res *extension.Response) {
 	ans := req.FSM.Slots["answer_2"]
-	db := req.DB
+	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: db.StateTable["question_2"],
+				State: fsmDomain.StateTable["question_2"],
 				Slots: req.FSM.Slots,
 			},
 			Answers: []query.Answer{{Text: "Select one of the options"}},
@@ -58,13 +58,13 @@ func validateAnswer2(req *extension.Request) (res *extension.Response) {
 
 func calculateScore(req *extension.Request) (res *extension.Response) {
 	ans := req.FSM.Slots["answer_1"]
-	db := req.DB
+	fsmDomain := req.Domain
 	slt := req.FSM.Slots
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
 		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: db.StateTable["question_3"],
+				State: fsmDomain.StateTable["question_3"],
 				Slots: req.FSM.Slots,
 			},
 			Answers: []query.Answer{{Text: "Select one of the options"}},

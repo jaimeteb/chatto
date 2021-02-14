@@ -8,25 +8,25 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// BaseDB contains the data required for a minimally functioning FSM
-type BaseDB struct {
+// BaseDomain contains the data required for a minimally functioning FSM
+type BaseDomain struct {
 	StateTable      map[string]int `json:"state_table"`
 	CommandList     []string       `json:"command_list"`
 	DefaultMessages Defaults       `json:"default_messages"`
 }
 
-// DB contains BaseDB plus the functions required for a fully
+// Domain contains BaseDomain plus the functions required for a fully
 // functioning FSM
-type DB struct {
-	BaseDB
+type Domain struct {
+	BaseDomain
 	TransitionTable map[CmdStateTuple]TransitionFunc
 	SlotTable       map[CmdStateTuple]Slot
 }
 
-// NoFuncs returns a DB without TransitionFunc items in order
+// NoFuncs returns a Domain without TransitionFunc items in order
 // to serialize it for extensions
-func (d *DB) NoFuncs() *BaseDB {
-	return &BaseDB{
+func (d *Domain) NoFuncs() *BaseDomain {
+	return &BaseDomain{
 		StateTable:      d.StateTable,
 		CommandList:     d.CommandList,
 		DefaultMessages: d.DefaultMessages,
@@ -57,7 +57,7 @@ type FSM struct {
 }
 
 // ExecuteCmd executes a command in the FSM
-func (m *FSM) ExecuteCmd(cmd, txt string, db *DB) (answers []query.Answer, runExt string) {
+func (m *FSM) ExecuteCmd(cmd, txt string, fsmDomain *Domain) (answers []query.Answer, runExt string) {
 	var transition TransitionFunc
 	var tuple CmdStateTuple
 
@@ -67,20 +67,20 @@ func (m *FSM) ExecuteCmd(cmd, txt string, db *DB) (answers []query.Answer, runEx
 	tupleNormal := CmdStateTuple{cmd, m.State}
 	tupleCmdAny := CmdStateTuple{"any", m.State}
 
-	if db.TransitionTable[tupleFromAny] == nil {
-		if db.TransitionTable[tupleCmdAny] == nil {
-			transition = db.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
+	if fsmDomain.TransitionTable[tupleFromAny] == nil {
+		if fsmDomain.TransitionTable[tupleCmdAny] == nil {
+			transition = fsmDomain.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
 			tuple = tupleNormal
 		} else {
-			transition = db.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
+			transition = fsmDomain.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
 			tuple = tupleCmdAny
 		}
 	} else {
-		transition = db.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
+		transition = fsmDomain.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
 		tuple = tupleFromAny
 	}
 
-	slot := db.SlotTable[tuple]
+	slot := fsmDomain.SlotTable[tuple]
 
 	// Get slots
 	if slot.Name != "" {
@@ -99,9 +99,9 @@ func (m *FSM) ExecuteCmd(cmd, txt string, db *DB) (answers []query.Answer, runEx
 
 	// Get answers
 	if cmd == "" {
-		answers = append(answers, query.Answer{Text: db.DefaultMessages.Unsure}) // Threshold not met
+		answers = append(answers, query.Answer{Text: fsmDomain.DefaultMessages.Unsure}) // Threshold not met
 	} else if transition == nil {
-		answers = append(answers, query.Answer{Text: db.DefaultMessages.Unknown}) // Unknown transition
+		answers = append(answers, query.Answer{Text: fsmDomain.DefaultMessages.Unknown}) // Unknown transition
 	} else {
 		transition, message := transition(m)
 

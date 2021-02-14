@@ -71,10 +71,10 @@ func Load(path *string) Config {
 }
 
 // Create initializes the FSM Domain from Config
-func Create(path *string) *DB {
+func Create(path *string) *Domain {
 	config := Load(path)
 
-	db := &DB{}
+	fsmDomain := &Domain{}
 
 	stateTable := make(map[string]int)
 	for i, state := range config.States {
@@ -103,16 +103,16 @@ func Create(path *string) *DB {
 		}
 	}
 
-	db.StateTable = stateTable
-	db.CommandList = config.Commands
-	db.TransitionTable = transitionTable
-	db.DefaultMessages = config.Defaults
-	db.SlotTable = slotTable
+	fsmDomain.StateTable = stateTable
+	fsmDomain.CommandList = config.Commands
+	fsmDomain.TransitionTable = transitionTable
+	fsmDomain.DefaultMessages = config.Defaults
+	fsmDomain.SlotTable = slotTable
 
 	log.Info("Loaded states:")
 	for state, i := range stateTable {
 		log.Infof("%v - %v", i, state)
 	}
 
-	return db
+	return fsmDomain
 }

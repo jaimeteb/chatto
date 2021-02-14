@@ -26,11 +26,11 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 
 	if err != nil {
 		message = "Something went wrong..."
-		intoState = req.DB.StateTable["search_pokemon"]
+		intoState = req.Domain.StateTable["search_pokemon"]
 	} else {
 		if response.R.StatusCode == 404 {
 			message = "Pokémon not found, try with another input."
-			intoState = req.DB.StateTable["search_pokemon"]
+			intoState = req.Domain.StateTable["search_pokemon"]
 		} else {
 			var json map[string]interface{}
 			response.Json(&json)

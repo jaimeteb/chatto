@@ -21,7 +21,7 @@ type Request struct {
 	FSM       *fsm.FSM        `json:"fsm"`
 	Extension string          `json:"extension"`
 	Question  *query.Question `json:"question"`
-	DB        *fsm.BaseDB     `json:"db"`
+	Domain    *fsm.BaseDomain `json:"domain"`
 }
 
 // Response from an extension function

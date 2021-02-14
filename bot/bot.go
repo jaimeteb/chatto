@@ -17,7 +17,7 @@ import (
 type Bot struct {
 	Name       string
 	Machines   fsm.StoreFSM
-	DB         *fsm.DB
+	Domain     *fsm.Domain
 	Classifier clf.Classifier
 	Extension  extension.Extension
 	Channels   *channels.Channels
@@ -53,11 +53,11 @@ func (b *Bot) Answer(question *query.Question) ([]query.Answer, error) {
 
 	machine := b.Machines.Get(question.Sender)
 
-	reply, runExt := machine.ExecuteCmd(cmd, question.Text, b.DB)
+	reply, runExt := machine.ExecuteCmd(cmd, question.Text, b.Domain)
 
 	var err error
 	if runExt != "" && b.Extension != nil {
-		reply, err = b.Extension.RunExtFunc(question, runExt, b.DB, machine)
+		reply, err = b.Extension.RunExtFunc(question, runExt, b.Domain, machine)
 		if err != nil {
 			log.Error(err) // return nil, err
 		}
@@ -113,8 +113,8 @@ func LoadBot(path *string) (*Bot, error) {
 	// Load Name
 	name := LoadName(bc.Name)
 
-	// Load DB
-	db := fsm.Create(path)
+	// Load FSM Domain
+	fsmDomain := fsm.Create(path)
 
 	// Load Classifier
 	classifier := clf.Create(path)
@@ -131,7 +131,7 @@ func LoadBot(path *string) (*Bot, error) {
 	// Load Store
 	machines := fsm.LoadStore(bc.Store)
 
-	return &Bot{name, machines, db, classifier, ext, chnls}, nil
+	return &Bot{name, machines, fsmDomain, classifier, ext, chnls}, nil
 }
 
 // LOGO for Chatto

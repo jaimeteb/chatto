@@ -27,7 +27,7 @@ func TestRESTExt(t *testing.T) {
 		t.Fatalf("unable to load extensionREST2: %s", err)
 	}
 
-	resp1, err := extensionREST1.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", &fsm.DB{}, &fsm.FSM{})
+	resp1, err := extensionREST1.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", &fsm.Domain{}, &fsm.FSM{})
 	if err != nil {
 		t.Fatalf("unable to run extensionREST1: %s", err)
 	}
@@ -36,10 +36,10 @@ func TestRESTExt(t *testing.T) {
 		t.Errorf("resp is incorrect, got: %v, want: %v.", resp1, "Hello Universe")
 	}
 
-	fsmDB := &fsm.DB{}
-	fsmDB.DefaultMessages = fsm.Defaults{Error: "Error"}
+	fsmDomain := &fsm.Domain{}
+	fsmDomain.DefaultMessages = fsm.Defaults{Error: "Error"}
 
-	resp2, err := extensionREST2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", fsmDB, &fsm.FSM{})
+	resp2, err := extensionREST2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", fsmDomain, &fsm.FSM{})
 	if err != nil {
 		t.Fatalf("unable to run extensionREST2: %s", err)
 	}
@@ -82,8 +82,8 @@ func TestRPCExt(t *testing.T) {
 		t.Error("incorrect, want: nil")
 	}
 
-	testDB := &fsm.DB{}
-	testDB.DefaultMessages = fsm.Defaults{Error: "Error"}
+	fsmDomain := &fsm.Domain{}
+	fsmDomain.DefaultMessages = fsm.Defaults{Error: "Error"}
 
 	testFSM := fsm.FSM{
 		Slots: map[string]string{
@@ -91,7 +91,7 @@ func TestRPCExt(t *testing.T) {
 		},
 	}
 
-	resp1, err := extensionRPC1.RunExtFunc(&query.Question{Text: "pikachu"}, "ext_search_pokemon", testDB, &testFSM)
+	resp1, err := extensionRPC1.RunExtFunc(&query.Question{Text: "pikachu"}, "ext_search_pokemon", fsmDomain, &testFSM)
 	if err != nil {
 		t.Fatalf("unable to run extensionRPC1: %s", err)
 	}
@@ -100,7 +100,7 @@ func TestRPCExt(t *testing.T) {
 		t.Errorf("resp is incorrect, got: %v", resp1)
 	}
 
-	resp2, err := extensionRPC2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", testDB, &fsm.FSM{})
+	resp2, err := extensionRPC2.RunExtFunc(&query.Question{Text: "hello"}, "ext_any", fsmDomain, &fsm.FSM{})
 	if err != nil {
 		t.Fatalf("unable to run extensionRPC2: %s", err)
 	}

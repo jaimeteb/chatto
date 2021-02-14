@@ -3,6 +3,7 @@ package extension
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/rpc"
@@ -23,7 +24,7 @@ type Config struct {
 // Extension is either a RPC or REST endpoint
 type Extension interface {
 	GetAllFuncs() ([]string, error)
-	RunExtFunc(question *query.Question, extension string, db *fsm.DB, machine *fsm.FSM) ([]query.Answer, error)
+	RunExtFunc(question *query.Question, extension string, db *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
 }
 
 // RPC is an RPC Client for extension functions
@@ -32,20 +33,19 @@ type RPC struct {
 }
 
 // RunExtFunc runs an extension function over RPC
-func (e *RPC) RunExtFunc(question *query.Question, extension string, db *fsm.DB, machine *fsm.FSM) ([]query.Answer, error) {
+func (e *RPC) RunExtFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := Request{
 		FSM:       machine,
 		Extension: extension,
 		Question:  question,
-		DB:        db.NoFuncs(),
+		Domain:    fsmDomain.NoFuncs(),
 	}
 
 	res := Response{}
 
 	err := e.Client.Call("ListenerRPC.GetFunc", &req, &res)
 	if err != nil {
-		log.Error(err)
-		return query.Answers(db.DefaultMessages.Error), err
+		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
 
 	*machine = *res.FSM
@@ -70,33 +70,30 @@ type REST struct {
 }
 
 // RunExtFunc runs an extension function over REST
-func (e *REST) RunExtFunc(question *query.Question, extension string, db *fsm.DB, machine *fsm.FSM) ([]query.Answer, error) {
+func (e *REST) RunExtFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := Request{
 		FSM:       machine,
 		Extension: extension,
 		Question:  question,
-		DB:        db.NoFuncs(),
+		Domain:    fsmDomain.NoFuncs(),
 	}
 
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
-		log.Error(err)
-		return query.Answers(db.DefaultMessages.Error), err
+		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
 
 	// TODO: if fail -> don't change states
 
 	resp, err := http.Post(fmt.Sprintf("%v/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		log.Error(err)
-		return query.Answers(db.DefaultMessages.Error), err
+		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
 
 	defer resp.Body.Close()
 	res := Response{}
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		log.Error(err)
-		return query.Answers(db.DefaultMessages.Error), err
+		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
 
 	*machine = *res.FSM
