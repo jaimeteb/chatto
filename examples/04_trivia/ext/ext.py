@@ -9,7 +9,7 @@ def make_answers(*messages) -> List[dict]:
 def wrong_option(data):
     return {
         "fsm": {
-            "state": data.get("db").get("question_1"),
+            "state": data.get("domain").get("question_1"),
             "slots": data.get("fsm").get("slots"),
         },
         "answers": make_answers("Select one of the options.")
