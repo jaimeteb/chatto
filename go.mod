@@ -4,14 +4,12 @@ go 1.13
 
 require (
 	github.com/ajg/form v1.5.1
-	github.com/asmcos/requests v0.0.0-20200816142649-95abc76c8cac
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20190729070250-5ae5475bae5e
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.10.0
 	github.com/go-redis/redis/v8 v8.2.3
 	github.com/golang/mock v1.4.4
 	github.com/gorilla/mux v1.8.0
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/hashicorp/go-retryablehttp v0.6.8
 	github.com/inconshreveable/log15 v0.0.0-20201112154412-8562bdadbbac // indirect
 	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
@@ -36,7 +34,6 @@ require (
 	github.com/ttacon/libphonenumber v1.1.0 // indirect
 	golang.org/x/sys v0.0.0-20200803150936-fd5f0c170ac3 // indirect
 	golang.org/x/text v0.3.3 // indirect
-	google.golang.org/grpc v1.21.1
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/ini.v1 v1.57.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
