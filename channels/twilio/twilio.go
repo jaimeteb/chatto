@@ -1,7 +1,9 @@
 package twilio
 
+//go:generate mockgen -source=twilio.go -destination=mocktwilio/mocktwilio.go -package=mocktwilio
+
 import (
-	"net/http"
+	"bytes"
 	"net/url"
 
 	"github.com/ajg/form"
@@ -36,19 +38,24 @@ type Config struct {
 	Number     string `mapstructure:"number"`
 }
 
-// Channel contains a Twilio client as well as the Twilio number
-type Channel struct {
-	client *twilio.Client
-	number string
+// Client is the twilio client interface
+type Client interface {
+	SendMessage(from string, to string, body string, mediaURLs []*url.URL) (*twilio.Message, error)
 }
 
-// NewChannel returns an initialized telegram client
-func NewChannel(config Config) *Channel {
+// Channel contains a Twilio client and number
+type Channel struct {
+	Client Client
+	Number string
+}
+
+// New returns an initialized telegram client
+func New(config Config) *Channel {
 	client := twilio.NewClient(config.AccountSid, config.AuthToken, nil)
 
 	log.Infof("Added Twilio client: %v", client.AccountSid)
 
-	return &Channel{client: client}
+	return &Channel{Client: client.Messages}
 }
 
 // SendMessage for Twilio
@@ -61,7 +68,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 			imageURL = append(imageURL, u)
 		}
 
-		_, err := c.client.Messages.SendMessage(c.number, response.ReplyOpts.Twilio.Recipient, answer.Text, imageURL)
+		_, err := c.Client.SendMessage(c.Number, response.ReplyOpts.Twilio.Recipient, answer.Text, imageURL)
 		if err != nil {
 			return err
 		}
@@ -71,17 +78,15 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 }
 
 // ReceiveMessage for Twilio
-func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error) {
-	decoder := form.NewDecoder(r.Body)
+func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+	byteReader := bytes.NewReader(body)
+
+	decoder := form.NewDecoder(byteReader)
 
 	var messageIn MessageIn
-
 	if err := decoder.Decode(&messageIn); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return nil, err
 	}
-
-	log.Debug(messageIn)
 
 	receive := &messages.Receive{
 		Question: &query.Question{

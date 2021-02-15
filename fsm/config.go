@@ -52,41 +52,39 @@ type Defaults struct {
 	Error   string `yaml:"error" json:"error"`
 }
 
-// Load loads configuration from yaml
-func Load(path *string) Config {
+// LoadConfig loads the FSM configuration from yaml
+func LoadConfig(path string) (*Config, error) {
 	config := viper.New()
 	config.SetConfigName("fsm")
-	config.AddConfigPath(*path)
+	config.AddConfigPath(path)
 
 	if err := config.ReadInConfig(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	var fsmConfig Config
 	if err := config.Unmarshal(&fsmConfig); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return fsmConfig
+	return &fsmConfig, nil
 }
 
-// Create initializes the FSM Domain from Config
-func Create(path *string) *Domain {
-	config := Load(path)
-
+// New initializes the FSM
+func New(fsmConfig *Config) *Domain {
 	fsmDomain := &Domain{}
 
 	stateTable := make(map[string]int)
-	for i, state := range config.States {
+	for i, state := range fsmConfig.States {
 		stateTable[state] = i
 	}
 	stateTable["any"] = -1 // Add state "any"
 
-	transitionTable := make(map[CmdStateTuple]TransitionFunc, len(config.Functions))
+	transitionTable := make(map[CmdStateTuple]TransitionFunc, len(fsmConfig.Functions))
 
-	slotTable := make(map[CmdStateTuple]Slot, len(config.Functions))
+	slotTable := make(map[CmdStateTuple]Slot, len(fsmConfig.Functions))
 
-	for _, function := range config.Functions {
+	for _, function := range fsmConfig.Functions {
 		tuple := CmdStateTuple{
 			Cmd:   function.Command,
 			State: stateTable[function.Transition.From],
@@ -104,9 +102,9 @@ func Create(path *string) *Domain {
 	}
 
 	fsmDomain.StateTable = stateTable
-	fsmDomain.CommandList = config.Commands
+	fsmDomain.CommandList = fsmConfig.Commands
 	fsmDomain.TransitionTable = transitionTable
-	fsmDomain.DefaultMessages = config.Defaults
+	fsmDomain.DefaultMessages = fsmConfig.Defaults
 	fsmDomain.SlotTable = slotTable
 
 	log.Info("Loaded states:")

@@ -1,7 +1,8 @@
 package channels
 
+//go:generate mockgen -source=channels.go -destination=mockchannels/mockchannels.go -package=mockchannels
+
 import (
-	"net/http"
 	"strings"
 
 	"github.com/jaimeteb/chatto/channels/messages"
@@ -31,56 +32,59 @@ type Channels struct {
 // Channel interface implements a channel to send and receive messages on
 type Channel interface {
 	// ReceiveMessage from the channel
-	ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error)
+	ReceiveMessage(body []byte) (*messages.Receive, error)
 	// ReceiveMessages from the channel. Starts a long running process, receives questions and sends them to the receiveChan
 	ReceiveMessages(receiveChan chan messages.Receive)
 	// SendMessage to the channel
 	SendMessage(response *messages.Response) error
 }
 
-// Load registered clients/channels in the chn.yml file
-func Load(path *string) *Channels {
+// LoadConfig loads channels configuration from chn.yml
+func LoadConfig(path string) (*Config, error) {
 	config := viper.New()
 	config.SetConfigName("chn")
-	config.AddConfigPath(*path)
+	config.AddConfigPath(path)
 	config.AutomaticEnv()
 	replacer := strings.NewReplacer(".", "_")
 	config.SetEnvKeyReplacer(replacer)
-
-	chnls := Channels{}
-
-	// REST
-	chnls.REST = &rest.Channel{}
 
 	if err := config.ReadInConfig(); err != nil {
 		switch err.(type) {
 		case viper.ConfigFileNotFoundError:
 			log.Warn("File chn.yml not found, using only REST channel")
 		default:
-			log.Warn(err)
+			return nil, err
 		}
-		return &chnls
 	}
 
-	var cfg Config
-	if err := config.Unmarshal(&cfg); err != nil {
-		log.Warn(err)
-		return &chnls
+	var channelsConfig Config
+	if err := config.Unmarshal(&channelsConfig); err != nil {
+		return nil, err
 	}
+
+	return &channelsConfig, nil
+}
+
+// New initializes all channels
+func New(channelsConfig *Config) *Channels {
+	chnls := Channels{}
+
+	// REST
+	chnls.REST = &rest.Channel{}
 
 	// TELEGRAM
-	if cfg.Telegram != (telegram.Config{}) {
-		chnls.Telegram = telegram.NewChannel(cfg.Telegram)
+	if channelsConfig.Telegram != (telegram.Config{}) {
+		chnls.Telegram = telegram.New(channelsConfig.Telegram)
 	}
 
 	// TWILIO
-	if cfg.Twilio != (twilio.Config{}) {
-		chnls.Twilio = twilio.NewChannel(cfg.Twilio)
+	if channelsConfig.Twilio != (twilio.Config{}) {
+		chnls.Twilio = twilio.New(channelsConfig.Twilio)
 	}
 
 	// SLACK
-	if cfg.Slack != (slack.Config{}) {
-		chnls.Slack = slack.NewChannel(cfg.Slack)
+	if channelsConfig.Slack != (slack.Config{}) {
+		chnls.Slack = slack.New(channelsConfig.Slack)
 	}
 
 	return &chnls

@@ -29,7 +29,7 @@ functions:
     slot:
       name: pokemon
       mode: whole_text
-    extension: ext_search_pokemon
+    extension: search_pokemon
 
   - transition:
       from: any

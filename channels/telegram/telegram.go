@@ -1,8 +1,9 @@
 package telegram
 
+//go:generate mockgen -source=telegram.go -destination=mocktelegram/mocktelegram.go -package=mocktelegram
+
 import (
 	"encoding/json"
-	"net/http"
 	"net/url"
 	"strconv"
 
@@ -12,13 +13,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// MessageIn models a telegram incoming message
+// MessageIn models a Telegram incoming message
 type MessageIn struct {
 	UpdateID int            `json:"update_id"`
 	Message  MessageInInner `json:"message"`
 }
 
-// MessageInInner models a telegram incoming message inner struct
+// MessageInInner models a Telegram incoming message inner struct
 type MessageInInner struct {
 	MessageID int                `json:"message_id"`
 	From      MessageInInnerFrom `json:"from"`
@@ -26,7 +27,7 @@ type MessageInInner struct {
 	Text      string             `json:"text"`
 }
 
-// MessageInInnerFrom models a telegram incoming message inner struct
+// MessageInInnerFrom models a Telegram incoming message inner struct
 type MessageInInnerFrom struct {
 	ID        int    `json:"id"`
 	FirstName string `json:"first_name"`
@@ -38,18 +39,23 @@ type Config struct {
 	BotKey string `mapstructure:"bot_key"`
 }
 
-// Channel contains a Telegram client
-type Channel struct {
-	client *telegram.Client
+// Client is the Telegram client interface
+type Client interface {
+	Call(method string, params url.Values, v interface{})
 }
 
-// NewChannel returns an initialized telegram client
-func NewChannel(config Config) *Channel {
+// Channel contains a Telegram client
+type Channel struct {
+	Client Client
+}
+
+// New returns an initialized Telegram client
+func New(config Config) *Channel {
 	client := telegram.NewClient(config.BotKey)
 
 	log.Infof("Added Telegram client: %v", client.GetMe().ID)
 
-	return &Channel{client: client}
+	return &Channel{Client: client}
 }
 
 // SendMessage for Telegram
@@ -71,7 +77,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 		}
 
 		apiResp := new(interface{})
-		c.client.Call(method, respValues, apiResp)
+		c.Client.Call(method, respValues, apiResp)
 
 		log.Debug(*apiResp)
 	}
@@ -80,17 +86,12 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 }
 
 // ReceiveMessage for Telegram
-func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error) {
-	decoder := json.NewDecoder(r.Body)
+func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 	var messageIn MessageIn
-
-	err := decoder.Decode(&messageIn)
+	err := json.Unmarshal(body, &messageIn)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return nil, err
 	}
-
-	log.Debug(messageIn)
 
 	sender := strconv.Itoa(messageIn.Message.From.ID)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/jaimeteb/chatto/bot"
 	"github.com/jaimeteb/chatto/logger"
@@ -20,5 +21,16 @@ func main() {
 	if *cli {
 		go bot.CLI(port)
 	}
-	bot.ServeBot(path, port)
+
+	botConfig, err := bot.LoadConfig(*path, *port)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := bot.New(botConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b.Run()
 }

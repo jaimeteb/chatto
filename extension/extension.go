@@ -5,26 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"net/rpc"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
 
-// Config options for an extension function
-type Config struct {
-	Type string `mapstructure:"type"`
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
-	URL  string `mapstructure:"url"`
-}
-
 // Extension is either a RPC or REST endpoint
 type Extension interface {
 	GetAllFuncs() ([]string, error)
-	RunExtFunc(question *query.Question, extension string, db *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
+	RunExtFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
 }
 
 // RPC is an RPC Client for extension functions
@@ -66,7 +58,8 @@ func (e *RPC) GetAllFuncs() ([]string, error) {
 
 // REST is a REST API URL for extension functions
 type REST struct {
-	URL string
+	URL  string
+	http *retryablehttp.Client
 }
 
 // RunExtFunc runs an extension function over REST
@@ -85,7 +78,7 @@ func (e *REST) RunExtFunc(question *query.Question, extension string, fsmDomain 
 
 	// TODO: if fail -> don't change states
 
-	resp, err := http.Post(fmt.Sprintf("%v/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
+	resp, err := e.http.Post(fmt.Sprintf("%s/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
@@ -103,7 +96,7 @@ func (e *REST) RunExtFunc(question *query.Question, extension string, fsmDomain 
 
 // GetAllFuncs retrieves all functions in extension
 func (e *REST) GetAllFuncs() ([]string, error) {
-	resp, err := http.Get(fmt.Sprintf("%v/ext/get_all_funcs", e.URL))
+	resp, err := e.http.Get(fmt.Sprintf("%s/ext/get_all_funcs", e.URL))
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -117,51 +110,4 @@ func (e *REST) GetAllFuncs() ([]string, error) {
 	}
 
 	return res, nil
-}
-
-// LoadExtensions loads the extensions configuration and connects to the server
-func LoadExtensions(extCfg Config) (Extension, error) {
-	var extension Extension
-
-	switch extCfg.Type {
-	case "RPC":
-		client, err := rpc.Dial("tcp", fmt.Sprintf("%v:%v", extCfg.Host, extCfg.Port))
-		if err != nil {
-			return nil, err
-		}
-
-		rpcExtension := &RPC{client}
-
-		allFuncs, err := rpcExtension.GetAllFuncs()
-		if err != nil {
-			return nil, err
-		}
-
-		log.Info("Loaded extensions (RPC):")
-		for i, fun := range allFuncs {
-			log.Infof("%v\t%v", i, fun)
-		}
-
-		extension = rpcExtension
-	case "REST":
-		restExtention := &REST{extCfg.URL}
-
-		allFuncs, err := restExtention.GetAllFuncs()
-		if err != nil {
-			return nil, err
-		}
-
-		log.Info("Loaded extensions (REST):")
-		for i, fun := range allFuncs {
-			log.Infof("%v\t%v", i, fun)
-		}
-
-		extension = restExtention
-	}
-
-	if extension == nil {
-		log.Info("Using bot without extensions.")
-	}
-
-	return extension, nil
 }

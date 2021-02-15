@@ -3,11 +3,13 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/channels"
 	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/channels/slack"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,10 +31,27 @@ func (b *Bot) slackEndpointHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *Bot) endpointHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
-	receiveMsg, err := chnl.ReceiveMessage(w, r)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	receiveMsg, err := chnl.ReceiveMessage(body)
+	if err != nil {
+		switch e := err.(type) {
+		case slack.ErrURLVerification:
+			w.Header().Set("Content-Type", "application/json")
+			_, err = w.Write(e.Challenge)
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		default:
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -83,7 +102,13 @@ func (b *Bot) slackMessageEvents() {
 
 func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	senderObj := b.Machines.Get(vars["sender"])
+	if vars == nil {
+		log.Errorf("unable to get sender from request uri: %s", r.URL.RawPath)
+		http.Error(w, "unable to get sender from request uri", http.StatusInternalServerError)
+		return
+	}
+
+	senderObj := b.Store.Get(vars["sender"])
 
 	js, err := json.Marshal(senderObj)
 	if err != nil {
@@ -133,32 +158,49 @@ func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ServeBot starts the bot process which starts the long running processes
-func ServeBot(path *string, port *int) {
-	bot, err := LoadBot(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+// Run starts the bot which is a long running process
+func (b *Bot) Run() {
 	// log.Info("\n" + LOGO)
-	log.Info("Server started")
+	log.Info("Bot started")
 
-	// Event listeners
-	bot.slackMessageEvents()
+	// Start event listeners
+	b.slackMessageEvents()
+
+	// Start web server
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", b.Config.Port), b.Router))
+}
+
+// RegisterRoutes with the bot router
+func (b *Bot) RegisterRoutes() {
+	if b.Channels == nil {
+		log.Warn("no channels configured, not registering routes")
+		return
+	}
 
 	r := mux.NewRouter()
 
-	// Integration Endpoints
-	r.HandleFunc("/endpoints/rest", bot.restEndpointHandler).Methods("POST")
-	r.HandleFunc("/endpoints/telegram", bot.telegramEndpointHandler).Methods("POST")
-	r.HandleFunc("/endpoints/twilio", bot.twilioEndpointHandler).Methods("POST")
-	r.HandleFunc("/endpoints/slack", bot.slackEndpointHandler).Methods("POST")
+	// Channel endpoints
+	if b.Channels.REST != nil {
+		r.HandleFunc("/endpoints/rest", b.restEndpointHandler).Methods("POST")
+	}
+
+	if b.Channels.Telegram != nil {
+		r.HandleFunc("/endpoints/telegram", b.telegramEndpointHandler).Methods("POST")
+	}
+
+	if b.Channels.Twilio != nil {
+		r.HandleFunc("/endpoints/twilio", b.twilioEndpointHandler).Methods("POST")
+	}
+
+	if b.Channels.Slack != nil {
+		r.HandleFunc("/endpoints/slack", b.slackEndpointHandler).Methods("POST")
+	}
 
 	// Prediction and Sender Endpoints
-	r.HandleFunc("/predict", bot.predictHandler).Methods("POST")
-	r.HandleFunc("/senders/{sender}", bot.detailsHandler).Methods("GET")
+	r.HandleFunc("/predict", b.predictHandler).Methods("POST")
+	r.HandleFunc("/senders/{sender}", b.detailsHandler).Methods("GET")
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), r))
+	b.Router = r
 }
 
 func writeAnswer(w http.ResponseWriter, answers []query.Answer) {

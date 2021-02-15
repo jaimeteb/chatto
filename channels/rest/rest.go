@@ -2,10 +2,16 @@ package rest
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/query"
 )
+
+// MessageIn from REST client
+type MessageIn struct {
+	Sender string `json:"sender"`
+	Text   string `json:"text"`
+}
 
 // Channel contains a REST client
 type Channel struct {
@@ -13,22 +19,26 @@ type Channel struct {
 
 // SendMessage for REST
 func (c *Channel) SendMessage(response *messages.Response) error {
+	// Not implemented
 	return nil
 }
 
 // ReceiveMessage for REST
-func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error) {
-	decoder := json.NewDecoder(r.Body)
-
-	var receive messages.Receive
-
-	err := decoder.Decode(&receive)
+func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+	var messageIn MessageIn
+	err := json.Unmarshal(body, &messageIn)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
 		return nil, err
 	}
 
-	return &receive, nil
+	receive := &messages.Receive{
+		Question: &query.Question{
+			Text:   messageIn.Text,
+			Sender: messageIn.Sender,
+		},
+	}
+
+	return receive, nil
 }
 
 // ReceiveMessages uses event queues to receive messages. Starts a long running process

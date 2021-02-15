@@ -52,7 +52,7 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 }
 
 var myExtMap = extension.RegisteredFuncs{
-	"ext_search_pokemon": searchPokemon,
+	"search_pokemon": searchPokemon,
 }
 
 func main() {

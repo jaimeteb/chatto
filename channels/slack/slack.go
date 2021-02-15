@@ -1,8 +1,9 @@
 package slack
 
+//go:generate mockgen -source=slack.go -destination=mockslack/mockslack.go -package=mockslack
+
 import (
 	"encoding/json"
-	"net/http"
 
 	"github.com/jaimeteb/chatto/channels/messages"
 	"github.com/jaimeteb/chatto/query"
@@ -12,8 +13,8 @@ import (
 	"github.com/slack-go/slack/socketmode"
 )
 
-// Message models a Slack message and/or Slack endpoint challenge
-type Message struct {
+// MessageIn models a Slack message and/or Slack endpoint challenge
+type MessageIn struct {
 	Challenge string    `json:"challenge"`
 	Type      string    `json:"type"`
 	Event     slack.Msg `json:"event"`
@@ -25,14 +26,26 @@ type Config struct {
 	AppToken string `mapstructure:"app_token"`
 }
 
-// Channel contains a Slack Channel
-type Channel struct {
-	client       *slack.Client
-	socketclient *socketmode.Client
+// Client is the Slack client interface
+type Client interface {
+	PostMessage(channelID string, options ...slack.MsgOption) (string, string, error)
 }
 
-// NewChannel returns an initialized slack client
-func NewChannel(config Config) *Channel {
+// SocketClient is the Slack socketmode client interface
+type SocketClient interface {
+	Ack(req socketmode.Request, payload ...interface{})
+	Run() error
+}
+
+// Channel contains a Slack Channel
+type Channel struct {
+	Client             Client
+	SocketClient       SocketClient
+	SocketClientEvents chan socketmode.Event
+}
+
+// New returns an initialized slack client
+func New(config Config) *Channel {
 	var slackOpts []slack.Option
 
 	if config.AppToken != "" {
@@ -41,10 +54,12 @@ func NewChannel(config Config) *Channel {
 
 	slackClient := slack.New(config.Token, slackOpts...)
 
-	client := &Channel{client: slackClient}
+	client := &Channel{Client: slackClient}
 
 	if config.AppToken != "" {
-		client.socketclient = socketmode.New(slackClient)
+		socketclient := socketmode.New(slackClient)
+		client.SocketClient = socketclient
+		client.SocketClientEvents = socketclient.Events
 	}
 
 	log.Info("Added Slack client")
@@ -75,7 +90,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 			slackMsgOptions = append(slackMsgOptions, slack.MsgOptionTS(response.ReplyOpts.Slack.TS))
 		}
 
-		ret, _, err := c.client.PostMessage(response.ReplyOpts.Slack.Channel, slackMsgOptions...)
+		ret, _, err := c.Client.PostMessage(response.ReplyOpts.Slack.Channel, slackMsgOptions...)
 		if err != nil {
 			log.Errorf("%s: %+v", err, ret)
 			return err
@@ -86,32 +101,20 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 }
 
 // ReceiveMessage for Slack
-func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messages.Receive, error) {
-	log.Debug(r.Body)
-
-	var slackMsg Message
-
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&slackMsg); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+	var slackMsg MessageIn
+	err := json.Unmarshal(body, &slackMsg)
+	if err != nil {
 		return nil, err
 	}
 
 	if slackMsg.Type == "url_verification" {
-		js, err := json.Marshal(map[string]string{"challenge": slackMsg.Challenge})
+		challenge, err := json.Marshal(map[string]string{"challenge": slackMsg.Challenge})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return nil, err
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		_, err = w.Write(js)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return nil, err
-		}
-
-		return &messages.Receive{}, nil
+		return nil, ErrURLVerification{Challenge: challenge}
 	}
 
 	if slackMsg.Event.BotID != "" {
@@ -121,6 +124,11 @@ func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messa
 	log.Debug(slackMsg.Type)
 	log.Debugf("%+v", slackMsg.Event)
 
+	ts := slackMsg.Event.Timestamp
+	if slackMsg.Event.ThreadTimestamp != "" {
+		ts = slackMsg.Event.ThreadTimestamp
+	}
+
 	receive := &messages.Receive{
 		Question: &query.Question{
 			Text:   slackMsg.Event.Text,
@@ -129,7 +137,7 @@ func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messa
 		ReplyOpts: &messages.ReplyOpts{
 			Slack: messages.SlackReplyOpts{
 				Channel: slackMsg.Event.Channel,
-				TS:      slackMsg.Event.Timestamp,
+				TS:      ts,
 			},
 		},
 	}
@@ -141,12 +149,12 @@ func (c *Channel) ReceiveMessage(w http.ResponseWriter, r *http.Request) (*messa
 func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	defer close(receiveChan)
 
-	if c.socketclient == nil {
+	if c.SocketClient == nil {
 		return
 	}
 
 	go func() {
-		for evt := range c.socketclient.Events {
+		for evt := range c.SocketClientEvents {
 			switch evt.Type {
 			case socketmode.EventTypeHello:
 				// Ignore
@@ -177,7 +185,7 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 					continue
 				}
 
-				c.socketclient.Ack(*evt.Request)
+				c.SocketClient.Ack(*evt.Request)
 
 				switch eventsAPIEvent.Type {
 				case slackevents.CallbackEvent:
@@ -239,8 +247,17 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 		}
 	}()
 
-	err := c.socketclient.Run()
+	err := c.SocketClient.Run()
 	if err != nil {
 		log.Error(err)
 	}
+}
+
+// ErrURLVerification raised when an auth challenge is supposed to be performed
+type ErrURLVerification struct {
+	Challenge []byte
+}
+
+func (e ErrURLVerification) Error() string {
+	return "must perform challenge auth verification"
 }

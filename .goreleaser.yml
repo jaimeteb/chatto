@@ -3,6 +3,7 @@
 before:
   hooks:
     - go mod download
+
 builds:
   - main: ./cmd/chatto/main.go
     env:
@@ -11,6 +12,7 @@ builds:
       - linux
       - windows
       - darwin
+
 archives:
   - replacements:
       darwin: Darwin
@@ -18,13 +20,44 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
+
+dockers:
+- image_templates:
+  - "jaimeteb/chatto:{{ .Version }}-amd64"
+  use_buildx: true
+  goos: linux
+  goarch: amd64
+  dockerfile: Dockerfile
+  build_flag_templates:
+  - "--platform=linux/amd64"
+- image_templates:
+  - "jaimeteb/chatto:{{ .Version }}-arm64v8"
+  use_buildx: true
+  goos: linux
+  goarch: arm64
+  dockerfile: Dockerfile
+  build_flag_templates:
+  - "--platform=linux/arm64/v8"
+
+docker_manifests:
+- name_template: "jaimeteb/chatto:{{ .Version }}"
+  image_templates:
+  - "jaimeteb/chatto:{{ .Version }}-amd64"
+  - "jaimeteb/chatto:{{ .Version }}-arm64v8"
+- name_template: "jaimeteb/chatto:latest"
+  image_templates:
+  - "jaimeteb/chatto:{{ .Version }}-amd64"
+  - "jaimeteb/chatto:{{ .Version }}-arm64v8"
+
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
+
 snapshot:
   name_template: "{{ .Tag }}-next"
+
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
+      - "^docs:"
+      - "^test:"
