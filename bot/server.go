@@ -161,7 +161,7 @@ func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 // Run starts the bot which is a long running process
 func (b *Bot) Run() {
 	// log.Info("\n" + LOGO)
-	log.Info("Bot started")
+	log.Info("Bot started...")
 
 	// Start event listeners
 	b.slackMessageEvents()

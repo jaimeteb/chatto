@@ -2,17 +2,15 @@ package main
 
 import (
 	"flag"
-	"log"
 
 	"github.com/jaimeteb/chatto/bot"
 	"github.com/jaimeteb/chatto/logger"
+	log "github.com/sirupsen/logrus"
 )
 
-func init() {
-	logger.SetLogger()
-}
-
 func main() {
+	logger.SetLogger()
+
 	cli := flag.Bool("cli", false, "Run in CLI mode.")
 	port := flag.Int("port", 4770, "Specify port to use.")
 	path := flag.String("path", ".", "Path to YAML files.")

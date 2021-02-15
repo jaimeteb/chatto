@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jaimeteb/chatto/channels"
@@ -99,8 +98,6 @@ func New(botConfig *Config) (*Bot, error) {
 	b.RegisterRoutes()
 
 	log.Infof("My name is '%v'", b.Name)
-
-	fmt.Printf("%+v", b)
 
 	return b, nil
 }
