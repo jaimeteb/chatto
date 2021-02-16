@@ -215,12 +215,12 @@ func TestBot_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	bot, err := bot.New(bc)
+	b, err := bot.New(bc)
 	if err != nil {
 		t.Fatalf("failed to load bot: %s", err)
 	}
 
-	go bot.Run()
+	go b.Run()
 }
 
 func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannels.MockChannel,

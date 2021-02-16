@@ -108,6 +108,9 @@ issues:
     - path: _test\.go
       linters:
         - gomnd
+        - lll
+        - dogsled
+        - scopelint
 
     # https://github.com/go-critic/go-critic/issues/926
     - linters:

@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/ajg/form v1.5.1
-	github.com/asmcos/requests v0.0.0-20210118082303-cb8f46dd3767 // indirect
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20190729070250-5ae5475bae5e
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.10.0

@@ -44,11 +44,11 @@ func (b *Bot) Answer(question *query.Question) ([]query.Answer, error) {
 
 	machine := b.Store.Get(question.Sender)
 
-	reply, runExt := machine.ExecuteCmd(cmd, question.Text, b.Domain)
+	reply, ext := machine.ExecuteCmd(cmd, question.Text, b.Domain)
 
 	var err error
-	if runExt != "" && b.Extension != nil {
-		reply, err = b.Extension.RunExtFunc(question, runExt, b.Domain, machine)
+	if ext != "" && b.Extension != nil {
+		reply, err = b.Extension.RunFunc(question, ext, b.Domain, machine)
 		if err != nil {
 			return nil, err
 		}

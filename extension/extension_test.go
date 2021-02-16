@@ -29,7 +29,7 @@ func TestExtensionREST(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := extensionREST.RunExtFunc(&query.Question{Text: "hello"}, "any", &fsm.Domain{}, &fsm.FSM{})
+	resp, err := extensionREST.RunFunc(&query.Question{Text: "hello"}, "any", &fsm.Domain{}, &fsm.FSM{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestExtensionREST(t *testing.T) {
 	want := "Hello Universe"
 
 	if len(resp) == 1 && resp[0].Text != want {
-		t.Errorf("extension.RunExtFunc() = %v, want %v.", resp[0].Text, want)
+		t.Errorf("extension.RunFunc() = %v, want %v.", resp[0].Text, want)
 	}
 }
 
@@ -93,7 +93,7 @@ func TestExtensionRPCPokemon(t *testing.T) {
 		},
 	}
 
-	resp, err := extensionRPC.RunExtFunc(&query.Question{Text: "pikachu"}, "search_pokemon", fsmDomain, &testFSM)
+	resp, err := extensionRPC.RunFunc(&query.Question{Text: "pikachu"}, "search_pokemon", fsmDomain, &testFSM)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ Height: 4
 Weight: 60`
 
 	if len(resp) == 1 && resp[0].Text != want {
-		t.Errorf("extension.RunExtFunc() = %v, want %v.", resp[0].Text, want)
+		t.Errorf("extension.RunFunc() = %v, want %v.", resp[0].Text, want)
 	}
 }
 

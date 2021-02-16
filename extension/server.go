@@ -132,7 +132,7 @@ func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeRPC serves the registered extension functions over RPC
-func ServeRPC(extMap RegisteredFuncs) error {
+func ServeRPC(registeredFuncs RegisteredFuncs) error {
 	logger.SetLogger()
 
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
@@ -152,7 +152,7 @@ func ServeRPC(extMap RegisteredFuncs) error {
 	}
 
 	log.Infof("RPC extension server started. Using port %v", *port)
-	err = rpc.Register(&ListenerRPC{RegisteredFuncs: extMap})
+	err = rpc.Register(&ListenerRPC{RegisteredFuncs: registeredFuncs})
 	if err != nil {
 		log.Error(err)
 		return err
@@ -164,13 +164,13 @@ func ServeRPC(extMap RegisteredFuncs) error {
 }
 
 // ServeREST serves the registered extension functions as a REST API
-func ServeREST(extMap RegisteredFuncs) error {
+func ServeREST(registeredFuncs RegisteredFuncs) error {
 	logger.SetLogger()
 
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	flag.Parse()
 
-	l := ListenerREST{RegisteredFuncs: extMap}
+	l := ListenerREST{RegisteredFuncs: registeredFuncs}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")

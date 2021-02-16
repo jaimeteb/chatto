@@ -16,7 +16,7 @@ import (
 // Extension is either a RPC or REST endpoint
 type Extension interface {
 	GetAllFuncs() ([]string, error)
-	RunExtFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
+	RunFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
 }
 
 // RPC is an RPC Client for extension functions
@@ -24,8 +24,8 @@ type RPC struct {
 	Client *rpc.Client
 }
 
-// RunExtFunc runs an extension function over RPC
-func (e *RPC) RunExtFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+// RunFunc runs an extension function over RPC
+func (e *RPC) RunFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := Request{
 		FSM:       machine,
 		Extension: extension,
@@ -62,8 +62,8 @@ type REST struct {
 	http *retryablehttp.Client
 }
 
-// RunExtFunc runs an extension function over REST
-func (e *REST) RunExtFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+// RunFunc runs an extension function over REST
+func (e *REST) RunFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := Request{
 		FSM:       machine,
 		Extension: extension,

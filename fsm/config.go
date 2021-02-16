@@ -84,20 +84,20 @@ func New(fsmConfig *Config) *Domain {
 
 	slotTable := make(map[CmdStateTuple]Slot, len(fsmConfig.Functions))
 
-	for _, function := range fsmConfig.Functions {
+	for n := range fsmConfig.Functions {
 		tuple := CmdStateTuple{
-			Cmd:   function.Command,
-			State: stateTable[function.Transition.From],
+			Cmd:   fsmConfig.Functions[n].Command,
+			State: stateTable[fsmConfig.Functions[n].Transition.From],
 		}
 
 		transitionTable[tuple] = NewTransitionFunc(
-			stateTable[function.Transition.Into],
-			function.Extension,
-			function.Message,
+			stateTable[fsmConfig.Functions[n].Transition.Into],
+			fsmConfig.Functions[n].Extension,
+			fsmConfig.Functions[n].Message,
 		)
 
-		if function.Slot != (Slot{}) {
-			slotTable[tuple] = function.Slot
+		if fsmConfig.Functions[n].Slot != (Slot{}) {
+			slotTable[tuple] = fsmConfig.Functions[n].Slot
 		}
 	}
 

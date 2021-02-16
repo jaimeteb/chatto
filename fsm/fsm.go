@@ -57,7 +57,7 @@ type FSM struct {
 }
 
 // ExecuteCmd executes a command in the FSM
-func (m *FSM) ExecuteCmd(cmd, txt string, fsmDomain *Domain) (answers []query.Answer, runExt string) {
+func (m *FSM) ExecuteCmd(cmd, txt string, fsmDomain *Domain) (answers []query.Answer, extension string) {
 	var transition TransitionFunc
 	var tuple CmdStateTuple
 
@@ -106,7 +106,7 @@ func (m *FSM) ExecuteCmd(cmd, txt string, fsmDomain *Domain) (answers []query.An
 		transition, message := transition(m)
 
 		if strings.TrimSpace(transition) != "" {
-			runExt = transition
+			extension = transition
 		} else {
 			for _, msg := range message {
 				answers = append(answers, query.Answer{Text: msg.Text, Image: msg.Image})
@@ -116,5 +116,5 @@ func (m *FSM) ExecuteCmd(cmd, txt string, fsmDomain *Domain) (answers []query.An
 
 	log.Debugf("FSM | transitioned %v -> %v", previousState, m.State)
 
-	return
+	return answers, extension
 }

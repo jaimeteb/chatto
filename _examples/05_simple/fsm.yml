@@ -5,7 +5,6 @@ states:
 commands:
   - "turn_on"
   - "turn_off"
-  - "hello_universe"
 
 functions:
   - transition:
@@ -22,12 +21,6 @@ functions:
     message:
       - text: "Turning off."
       - text: "❌"
-
-  - transition:
-      from: "any"
-      into: "off"
-    command: "hello_universe"
-    extension: "any"
 
 defaults:
   unknown: "Can't do that."

@@ -34,7 +34,7 @@ func GetFreePort(t *testing.T) string {
 	return strings.Split(listener.Addr().String(), ":")[1]
 }
 
-// RunGoExtension for running extentions with unit tests
+// RunGoExtension for running extensions with unit tests
 func RunGoExtension(t *testing.T, path, port string) {
 	extension := fmt.Sprintf("%s/ext/ext.go", strings.TrimRight(path, "/"))
 
