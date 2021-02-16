@@ -11,15 +11,13 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/jaimeteb/chatto/channels/messages"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
 func SendAndReceive(question *query.Question, url string) []query.Answer {
-	sendMessage := messages.Receive{Question: question}
-	jsonMess, err := json.Marshal(sendMessage)
+	jsonMess, err := json.Marshal(question)
 	if err != nil {
 		log.Warn(err)
 		return []query.Answer{}

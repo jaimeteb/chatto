@@ -109,7 +109,7 @@ func New(fsmConfig *Config) *Domain {
 
 	log.Info("Loaded states:")
 	for state, i := range stateTable {
-		log.Infof("%v - %v", i, state)
+		log.Infof("%2d %v", i, state)
 	}
 
 	return fsmDomain

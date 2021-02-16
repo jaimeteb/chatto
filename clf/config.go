@@ -55,7 +55,7 @@ func New(classifConfig *Config) *Classifier {
 
 	log.Info("Loaded commands for classifier:")
 	for i, c := range classes {
-		log.Infof("%v    %v", i, c)
+		log.Infof("%2d %v", i, c)
 	}
 
 	return &Classifier{classifier, classes, pipeline}
