@@ -59,8 +59,8 @@ func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
 	res.FSM = extRes.FSM
 	res.Answers = extRes.Answers
 
-	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Extension)
-	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Answers)
+	log.Debugf("Request:    %v,    %v", req.FSM, req.Extension)
+	log.Debugf("Response:    %v,    %v", *res.FSM, res.Answers)
 
 	return nil
 }
@@ -93,8 +93,8 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	res := extFunc(&req)
 
-	log.Debugf("Request:\t%v,\t%v", req.FSM, req.Extension)
-	log.Debugf("Response:\t%v,\t%v", *res.FSM, res.Answers)
+	log.Debugf("Request:    %v,    %v", req.FSM, req.Extension)
+	log.Debugf("Response:    %v,    %v", *res.FSM, res.Answers)
 
 	js, err := json.Marshal(res)
 	if err != nil {

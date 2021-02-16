@@ -104,14 +104,14 @@ func calculateScore(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-var myExtMap = extension.RegisteredFuncs{
+var registeredFuncs = extension.RegisteredFuncs{
 	"val_ans_1": validateAnswer1,
 	"val_ans_2": validateAnswer2,
 	"score":     calculateScore,
 }
 
 func main() {
-	if err := extension.ServeREST(myExtMap); err != nil {
+	if err := extension.ServeREST(registeredFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

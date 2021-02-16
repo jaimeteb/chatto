@@ -17,12 +17,12 @@ func greetFunc(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-var myExtMap = extension.RegisteredFuncs{
+var registeredFuncs = extension.RegisteredFuncs{
 	"any": greetFunc,
 }
 
 func main() {
-	if err := extension.ServeREST(myExtMap); err != nil {
+	if err := extension.ServeREST(registeredFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

@@ -99,9 +99,9 @@ func TestExtensionRPCPokemon(t *testing.T) {
 	}
 
 	want := `Name: pikachu 
-ID: 25 
-Height: 4 
-Weight: 60`
+ID: 25.00 
+Height: 4.00 
+Weight: 60.00`
 
 	if len(resp) == 1 && resp[0].Text != want {
 		t.Errorf("extension.RunFunc() = %v, want %v.", resp[0].Text, want)
@@ -142,11 +142,11 @@ func TestExtensionRESTServer(t *testing.T) {
 		}
 	}
 
-	myExtMap := extension.RegisteredFuncs{
+	registeredFuncs := extension.RegisteredFuncs{
 		"any": greetFunc,
 	}
 
-	listener := extension.ListenerREST{myExtMap}
+	listener := extension.ListenerREST{registeredFuncs}
 
 	req1, err := http.NewRequest("GET", "/ext/get_all_funcs", nil)
 	if err != nil {
@@ -177,11 +177,11 @@ func TestExtensionRPCServer(t *testing.T) {
 		}
 	}
 
-	myExtMap := extension.RegisteredFuncs{
+	registeredFuncs := extension.RegisteredFuncs{
 		"any": greetFunc,
 	}
 
-	listener := extension.ListenerRPC{myExtMap}
+	listener := extension.ListenerRPC{registeredFuncs}
 
 	err := listener.GetAllFuncs(new(extension.Request), new(extension.GetAllFuncsResponse))
 	if err != nil {

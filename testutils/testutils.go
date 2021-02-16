@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	Examples00InvalidPath = "../_examples/404/"
-	Examples00TestPath    = "../_examples/00_test/"
-	Examples01MoodbotPath = "../_examples/01_moodbot/"
-	Examples02MiscPath    = "../_examples/02_misc/"
-	Examples03PokemonPath = "../_examples/03_pokemon/"
-	Examples04TriviaPath  = "../_examples/04_trivia/"
-	Examples05SimplePath  = "../_examples/05_simple/"
+	Examples00InvalidPath = "../examples/404/"
+	Examples00TestPath    = "../examples/00_test/"
+	Examples01MoodbotPath = "../examples/01_moodbot/"
+	Examples02MiscPath    = "../examples/02_misc/"
+	Examples03PokemonPath = "../examples/03_pokemon/"
+	Examples04TriviaPath  = "../examples/04_trivia/"
+	Examples05SimplePath  = "../examples/05_simple/"
 )
 
 // GetFreePort returns an available port to use
