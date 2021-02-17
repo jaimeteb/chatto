@@ -76,7 +76,7 @@ func (b *Bot) channelHandler(w http.ResponseWriter, r *http.Request, chnl channe
 	writeAnswer(w, answers)
 }
 
-func (b *Bot) slackMessageEvents() {
+func (b *Bot) slackChannelEvents() {
 	if b.Channels.Slack != nil {
 		receiveChan := make(chan messages.Receive)
 
@@ -170,7 +170,7 @@ func (b *Bot) Run() {
 	log.Info("Bot started...")
 
 	// Start event listeners
-	b.slackMessageEvents()
+	b.slackChannelEvents()
 
 	// Start web server
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", b.Config.Port), b.Router))
