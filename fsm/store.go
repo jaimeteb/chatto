@@ -25,26 +25,26 @@ type StoreConfig struct {
 	Password string `mapstructure:"password"`
 }
 
-// StoreFSM interface for FSM Store modes
-type StoreFSM interface {
+// Store interface for FSM Store modes
+type Store interface {
 	Exists(string) bool
 	Get(string) *FSM
 	Set(string, *FSM)
 }
 
-// CacheStoreFSM struct models an FSM sotred in Cache
-type CacheStoreFSM struct {
+// CacheStore struct models an FSM sotred in Cache
+type CacheStore struct {
 	C *cache.Cache
 }
 
-// RedisStoreFSM struct models an FSM sotred on Redis
-type RedisStoreFSM struct {
+// RedisStore struct models an FSM sotred on Redis
+type RedisStore struct {
 	R   *redis.Client
 	TTL int
 }
 
 // Exists for CacheStoreFSM
-func (s *CacheStoreFSM) Exists(user string) (e bool) {
+func (s *CacheStore) Exists(user string) (e bool) {
 	mutex.Lock()
 	_, ok := s.C.Get(user)
 	mutex.Unlock()
@@ -52,7 +52,7 @@ func (s *CacheStoreFSM) Exists(user string) (e bool) {
 }
 
 // Exists for RedisStoreFSM
-func (s *RedisStoreFSM) Exists(user string) (e bool) {
+func (s *RedisStore) Exists(user string) (e bool) {
 	_, err := s.R.Get(ctx, user+":state").Result()
 	if err == redis.Nil || err != nil {
 		return false
@@ -61,7 +61,7 @@ func (s *RedisStoreFSM) Exists(user string) (e bool) {
 }
 
 // Get method for CacheStoreFSM
-func (s *CacheStoreFSM) Get(user string) *FSM {
+func (s *CacheStore) Get(user string) *FSM {
 	mutex.Lock()
 	v, _ := s.C.Get(user)
 	mutex.Unlock()
@@ -69,7 +69,7 @@ func (s *CacheStoreFSM) Get(user string) *FSM {
 }
 
 // Get method for RedisStoreFSM
-func (s *RedisStoreFSM) Get(user string) *FSM {
+func (s *RedisStore) Get(user string) *FSM {
 	m := &FSM{}
 
 	state, err := s.R.Get(ctx, user+":state").Result()
@@ -92,14 +92,14 @@ func (s *RedisStoreFSM) Get(user string) *FSM {
 }
 
 // Set method for CacheStoreFSM
-func (s *CacheStoreFSM) Set(user string, m *FSM) {
+func (s *CacheStore) Set(user string, m *FSM) {
 	mutex.Lock()
 	s.C.Set(user, m, 0)
 	mutex.Unlock()
 }
 
 // Set method for RedisStoreFSM
-func (s *RedisStoreFSM) Set(user string, m *FSM) {
+func (s *RedisStore) Set(user string, m *FSM) {
 	if err := s.R.Set(ctx, user+":state", m.State, time.Duration(s.TTL)*time.Second).Err(); err != nil {
 		log.Error("Error setting state:", err)
 	}
@@ -118,49 +118,49 @@ func (s *RedisStoreFSM) Set(user string, m *FSM) {
 	}
 }
 
-// LoadStore loads a Store according to the configuration
-func LoadStore(sc StoreConfig) StoreFSM {
-	var machines StoreFSM
+// NewStore loads a Store according to the configuration
+func NewStore(storeConfig StoreConfig) Store {
+	var machines Store
 
-	if sc.TTL == 0 {
-		sc.TTL = -1
+	if storeConfig.TTL == 0 {
+		storeConfig.TTL = -1
 	}
-	if sc.Purge == 0 {
-		sc.Purge = -1
+	if storeConfig.Purge == 0 {
+		storeConfig.Purge = -1
 	}
 
-	switch sc.Type {
+	switch storeConfig.Type {
 	case "REDIS":
 		RDB := redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%v:6379", sc.Host),
-			Password: sc.Password,
+			Addr:     fmt.Sprintf("%v:6379", storeConfig.Host),
+			Password: storeConfig.Password,
 			DB:       0,
 		})
 		if _, err := RDB.Ping(context.Background()).Result(); err != nil {
-			machines = &CacheStoreFSM{
+			machines = &CacheStore{
 				C: cache.New(
-					time.Duration(sc.TTL)*time.Second,
-					time.Duration(sc.Purge)*time.Second,
+					time.Duration(storeConfig.TTL)*time.Second,
+					time.Duration(storeConfig.Purge)*time.Second,
 				),
 			}
 			log.Warn("Couldn't connect to Redis, using CacheStoreFSM instead")
-			log.Infof("* TTL:    %v\n", sc.TTL)
-			log.Infof("* Purge:  %v\n", sc.Purge)
+			log.Infof("* TTL:    %v", storeConfig.TTL)
+			log.Infof("* Purge:  %v", storeConfig.Purge)
 		} else {
-			machines = &RedisStoreFSM{R: RDB, TTL: sc.TTL}
+			machines = &RedisStore{R: RDB, TTL: storeConfig.TTL}
 			log.Info("Registered RedisStoreFSM")
-			log.Infof("* TTL:    %v\n", sc.TTL)
+			log.Infof("* TTL:    %v", storeConfig.TTL)
 		}
 	default:
-		machines = &CacheStoreFSM{
+		machines = &CacheStore{
 			C: cache.New(
-				time.Duration(sc.TTL)*time.Second,
-				time.Duration(sc.Purge)*time.Second,
+				time.Duration(storeConfig.TTL)*time.Second,
+				time.Duration(storeConfig.Purge)*time.Second,
 			),
 		}
 		log.Info("Registered CacheStoreFSM")
-		log.Infof("* TTL:    %v\n", sc.TTL)
-		log.Infof("* Purge:  %v\n", sc.Purge)
+		log.Infof("* TTL:    %v", storeConfig.TTL)
+		log.Infof("* Purge:  %v", storeConfig.Purge)
 	}
 	return machines
 }

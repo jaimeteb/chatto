@@ -4,14 +4,13 @@ import (
 	"flag"
 
 	"github.com/jaimeteb/chatto/bot"
-	cmn "github.com/jaimeteb/chatto/common"
+	"github.com/jaimeteb/chatto/logger"
+	log "github.com/sirupsen/logrus"
 )
 
-func init() {
-	cmn.SetLogger()
-}
-
 func main() {
+	logger.SetLogger()
+
 	cli := flag.Bool("cli", false, "Run in CLI mode.")
 	port := flag.Int("port", 4770, "Specify port to use.")
 	path := flag.String("path", ".", "Path to YAML files.")
@@ -20,5 +19,16 @@ func main() {
 	if *cli {
 		go bot.CLI(port)
 	}
-	bot.ServeBot(path, port)
+
+	botConfig, err := bot.LoadConfig(*path, *port)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := bot.New(botConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b.Run()
 }

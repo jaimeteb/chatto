@@ -11,30 +11,40 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	cmn "github.com/jaimeteb/chatto/common"
+	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
 
 // SendAndReceive send a message to localhost endpoint and receives an answer
-func SendAndReceive(mess *cmn.Message, url string) *[]cmn.Message {
-	jsonMess, _ := json.Marshal(mess)
+func SendAndReceive(question *query.Question, url string) []query.Answer {
+	jsonMess, err := json.Marshal(question)
+	if err != nil {
+		log.Warn(err)
+		return []query.Answer{}
+	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMess))
+	if err != nil {
+		log.Warn(err)
+		return []query.Answer{}
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Warn(err.Error())
-		return &[]cmn.Message{}
+		log.Warn(err)
+		return []query.Answer{}
 	}
 	defer resp.Body.Close()
 
-	ans := &[]cmn.Message{}
-	if err := json.NewDecoder(resp.Body).Decode(ans); err != nil {
-		log.Warn(err.Error())
-		return &[]cmn.Message{}
+	ans := []query.Answer{}
+	if err := json.NewDecoder(resp.Body).Decode(&ans); err != nil {
+		log.Warn(err)
+		return []query.Answer{}
 	}
+
 	return ans
 }
 
@@ -53,12 +63,14 @@ func CLI(port *int) {
 			continue
 		}
 
-		respMess := SendAndReceive(&cmn.Message{
+		respMess := SendAndReceive(&query.Question{
 			Sender: "cli",
 			Text:   strings.TrimSuffix(cmd, "\n"),
 		}, localEndpoint)
-		color.Cyan("botto :")
-		for _, msg := range *respMess {
+
+		color.Cyan("bot:")
+
+		for _, msg := range respMess {
 			fmt.Println(msg.Text)
 		}
 	}

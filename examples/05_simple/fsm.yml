@@ -1,0 +1,28 @@
+states:
+  - "off"
+  - "on"
+
+commands:
+  - "turn_on"
+  - "turn_off"
+
+functions:
+  - transition:
+      from: "off"
+      into: "on"
+    command: "turn_on"
+    message: 
+      - text: "Turning on."
+
+  - transition:
+      from: "on"
+      into: "off"
+    command: "turn_off"
+    message:
+      - text: "Turning off."
+      - text: "❌"
+
+defaults:
+  unknown: "Can't do that."
+  unsure: "???"
+  error: "Error"

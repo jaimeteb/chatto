@@ -1,46 +1,38 @@
 package bot
 
 import (
-	"strings"
-
-	log "github.com/sirupsen/logrus"
-
+	"github.com/gorilla/mux"
+	"github.com/jaimeteb/chatto/channels"
 	"github.com/jaimeteb/chatto/clf"
-	cmn "github.com/jaimeteb/chatto/common"
-	"github.com/jaimeteb/chatto/ext"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
-	"github.com/spf13/viper"
+	"github.com/jaimeteb/chatto/query"
 )
 
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
 	Name       string
-	Machines   fsm.StoreFSM
-	Domain     fsm.Domain
-	Classifier clf.Classifier
-	Extension  ext.Extension
-	Clients    Clients
+	Store      fsm.Store
+	Domain     *fsm.Domain
+	Classifier *clf.Classifier
+	Extension  extension.Extension
+	Channels   *channels.Channels
+	Config     *Config
+	Router     *mux.Router
 }
 
-// Prediction models a classifier prediction and its orignal string
+// Prediction models a classifier prediction and its original string
 type Prediction struct {
 	Original    string  `json:"original"`
 	Predicted   string  `json:"predicted"`
 	Probability float64 `json:"probability"`
 }
 
-// Config struct models the bot.yml configuration file
-type Config struct {
-	Name       string               `mapstructure:"bot_name"`
-	Extensions ext.ExtensionsConfig `mapstructure:"extensions"`
-	Store      fsm.StoreConfig      `mapstructure:"store"`
-}
-
 // Answer takes a user input and executes a transition on the FSM if possible
-func (b Bot) Answer(mess cmn.Message) interface{} {
-	if !b.Machines.Exists(mess.Sender) {
-		b.Machines.Set(
-			mess.Sender,
+func (b *Bot) Answer(question *query.Question) ([]query.Answer, error) {
+	if !b.Store.Exists(question.Sender) {
+		b.Store.Set(
+			question.Sender,
 			&fsm.FSM{
 				State: 0,
 				Slots: make(map[string]string),
@@ -48,98 +40,21 @@ func (b Bot) Answer(mess cmn.Message) interface{} {
 		)
 	}
 
-	inputMessage := mess.Text
-	cmd, _ := b.Classifier.Predict(inputMessage)
+	cmd, _ := b.Classifier.Predict(question.Text)
 
-	m := b.Machines.Get(mess.Sender)
-	resp, runExt := m.ExecuteCmd(cmd, inputMessage, b.Domain)
-	if runExt != "" && b.Extension != nil {
-		resp = b.Extension.RunExtFunc(mess.Sender, runExt, inputMessage, b.Domain, m)
-	}
-	b.Machines.Set(mess.Sender, m)
+	machine := b.Store.Get(question.Sender)
 
-	return resp
-}
+	reply, ext := machine.ExecuteCmd(cmd, question.Text, b.Domain)
 
-// LoadBotConfig loads bot configuration from bot.yml
-func LoadBotConfig(path *string) Config {
-	config := viper.New()
-	config.SetConfigName("bot")
-	config.AddConfigPath(*path)
-	config.AutomaticEnv()
-	replacer := strings.NewReplacer(".", "_")
-	config.SetEnvKeyReplacer(replacer)
-
-	if err := config.ReadInConfig(); err != nil {
-		switch err.(type) {
-		case viper.ConfigFileNotFoundError:
-			log.Warn("File bot.yml not found, using default values")
-		default:
-			log.Warn(err)
+	var err error
+	if ext != "" && b.Extension != nil {
+		reply, err = b.Extension.RunFunc(question, ext, b.Domain, machine)
+		if err != nil {
+			return nil, err
 		}
-		return Config{}
 	}
 
-	var bc Config
-	config.Unmarshal(&bc)
+	b.Store.Set(question.Sender, machine)
 
-	return bc
+	return reply, nil
 }
-
-// LoadName loads the bot name from the configuration file
-func LoadName(bcName string) (name string) {
-	name = "botto"
-	if bcName != "" {
-		name = bcName
-	}
-	log.Infof("My name is '%v'\n", name)
-	return
-}
-
-// LoadBot loads all configurations and returns a Bot
-func LoadBot(path *string) Bot {
-	bc := LoadBotConfig(path)
-
-	// Load Name
-	name := LoadName(bc.Name)
-	// Load Domain
-	domain := fsm.Create(path)
-	// Load Classifier
-	classifier := clf.Create(path)
-	// Load Extensions
-	extension := ext.LoadExtensions(bc.Extensions)
-	// Load clients
-	clients := LoadClients(path)
-	// Load Store
-	machines := fsm.LoadStore(bc.Store)
-
-	return Bot{name, machines, domain, classifier, extension, clients}
-}
-
-// LOGO for Chatto
-const LOGO = `
-                           *******                          
-                  *************************                 
-             *********                *********             
-          *******                           ******.         
-        *****                                  ******       
-      *****                                       *****     
-    *****                                           *****   
-   ****                                              .****  
-  ****         ********,             *********         **** 
- ****       .******.******         ******.******       .****
- ****       ****       ****       ****       ****       ****
-****                                                    ****
-****                                                     ***
-****                                                    ****
- ****                                                   ****
- ****                  ****       ****                 ****.
-  ****                 *****     ****                  **** 
-   ****.                 ***********                 *****  
-    *****                                           ****    
-      *****                                       *****     
-        ******                                 ******       
-          .******                          .******          
-              *********               *********             
-                  .***********************.                 
-`

@@ -3,70 +3,71 @@ package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/ext"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/query"
 )
 
-func validateAnswer1(req *ext.Request) (res *ext.Response) {
+func validateAnswer1(req *extension.Request) (res *extension.Response) {
 	ans := req.FSM.Slots["answer_1"]
-	dom := req.Dom
+	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &ext.Response{
+		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: dom.StateTable["question_1"],
+				State: fsmDomain.StateTable["question_1"],
 				Slots: req.FSM.Slots,
 			},
-			Res: "Select one of the options",
+			Answers: []query.Answer{{Text: "Select one of the options"}},
 		}
 	}
 
-	return &ext.Response{
+	return &extension.Response{
 		FSM: req.FSM,
-		Res: "Question 2:\n" +
+		Answers: []query.Answer{{Text: "Question 2:\n" +
 			"What is the capital of the state of Utah?\n" +
 			"1. Salt Lake City\n" +
 			"2. Jefferson City\n" +
-			"3. Cheyenne",
+			"3. Cheyenne"}},
 	}
 }
 
-func validateAnswer2(req *ext.Request) (res *ext.Response) {
+func validateAnswer2(req *extension.Request) (res *extension.Response) {
 	ans := req.FSM.Slots["answer_2"]
-	dom := req.Dom
+	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &ext.Response{
+		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: dom.StateTable["question_2"],
+				State: fsmDomain.StateTable["question_2"],
 				Slots: req.FSM.Slots,
 			},
-			Res: "Select one of the options",
+			Answers: []query.Answer{{Text: "Select one of the options"}},
 		}
 	}
 
-	return &ext.Response{
+	return &extension.Response{
 		FSM: req.FSM,
-		Res: "Question 3:\n" +
+		Answers: []query.Answer{{Text: "Question 3:\n" +
 			"Who painted Starry Night?\n" +
 			"1. Pablo Picasso\n" +
 			"2. Claude Monet\n" +
-			"3. Vincent Van Gogh",
+			"3. Vincent Van Gogh"}},
 	}
 }
 
-func calculateScore(req *ext.Request) (res *ext.Response) {
+func calculateScore(req *extension.Request) (res *extension.Response) {
 	ans := req.FSM.Slots["answer_1"]
-	dom := req.Dom
+	fsmDomain := req.Domain
 	slt := req.FSM.Slots
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &ext.Response{
+		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: dom.StateTable["question_3"],
+				State: fsmDomain.StateTable["question_3"],
 				Slots: req.FSM.Slots,
 			},
-			Res: "Select one of the options",
+			Answers: []query.Answer{{Text: "Select one of the options"}},
 		}
 	}
 
@@ -97,20 +98,20 @@ func calculateScore(req *ext.Request) (res *ext.Response) {
 		message = "You got 3/3 answers right.\nYou are good! Congrats!"
 	}
 
-	return &ext.Response{
-		FSM: req.FSM,
-		Res: message,
+	return &extension.Response{
+		FSM:     req.FSM,
+		Answers: []query.Answer{{Text: message}},
 	}
 }
 
-var myExtMap = ext.ExtensionMap{
-	"ext_val_ans_1": validateAnswer1,
-	"ext_val_ans_2": validateAnswer2,
-	"ext_score":     calculateScore,
+var registeredFuncs = extension.RegisteredFuncs{
+	"val_ans_1": validateAnswer1,
+	"val_ans_2": validateAnswer2,
+	"score":     calculateScore,
 }
 
 func main() {
-	if err := ext.ServeExtensionREST(myExtMap); err != nil {
+	if err := extension.ServeREST(registeredFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

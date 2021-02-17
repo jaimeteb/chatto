@@ -11,8 +11,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/jaimeteb/chatto/ext"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/query"
 )
 
 var weatherKey = os.Getenv("WEATHER_API_KEY")
@@ -82,16 +83,16 @@ type serpResponseAnswerSource struct {
 	Link string `json:"link"`
 }
 
-func errFunc(req *ext.Request, err error) *ext.Response {
+func errFunc(req *extension.Request, err error) *extension.Response {
 	log.Errorf("%#v", err)
-	return &ext.Response{
-		FSM: req.FSM,
-		Res: req.Dom.DefaultMessages.Error,
+	return &extension.Response{
+		FSM:     req.FSM,
+		Answers: []query.Answer{{Text: req.Domain.DefaultMessages.Error}},
 	}
 }
 
-func weatherFunc(req *ext.Request) (res *ext.Response) {
-	location := url.QueryEscape(req.Txt)
+func weatherFunc(req *extension.Request) (res *extension.Response) {
+	location := url.QueryEscape(req.Question.Text)
 
 	resp, err := http.Get(fmt.Sprintf(weatherURL, weatherKey, location))
 	if err != nil {
@@ -120,24 +121,24 @@ func weatherFunc(req *ext.Request) (res *ext.Response) {
 		)
 	case 400:
 		message = "Sorry, I couldn't find your location, try with another one please."
-		return &ext.Response{
+		return &extension.Response{
 			FSM: &fsm.FSM{
-				State: req.Dom.StateTable["ask_location"],
+				State: req.Domain.StateTable["ask_location"],
 				Slots: req.FSM.Slots,
 			},
-			Res: message,
+			Answers: []query.Answer{{Text: message}},
 		}
 	default:
 		return errFunc(req, errors.New(resp.Status))
 	}
 
-	return &ext.Response{
-		FSM: req.FSM,
-		Res: message,
+	return &extension.Response{
+		FSM:     req.FSM,
+		Answers: []query.Answer{{Text: message}},
 	}
 }
 
-func jokeFunc(req *ext.Request) (res *ext.Response) {
+func jokeFunc(req *extension.Request) (res *extension.Response) {
 	resp, err := http.Get(jokeURL)
 	if err != nil {
 		return errFunc(req, err)
@@ -149,13 +150,13 @@ func jokeFunc(req *ext.Request) (res *ext.Response) {
 		return errFunc(req, err)
 	}
 
-	return &ext.Response{
-		FSM: req.FSM,
-		Res: jokeResp.Joke,
+	return &extension.Response{
+		FSM:     req.FSM,
+		Answers: []query.Answer{{Text: jokeResp.Joke}},
 	}
 }
 
-func quoteFunc(req *ext.Request) (res *ext.Response) {
+func quoteFunc(req *extension.Request) (res *extension.Response) {
 	resp, err := http.Get(quoteURL)
 	if err != nil {
 		return errFunc(req, err)
@@ -167,16 +168,16 @@ func quoteFunc(req *ext.Request) (res *ext.Response) {
 		return errFunc(req, err)
 	}
 
-	return &ext.Response{
-		FSM: req.FSM,
-		Res: fmt.Sprintf("%s\n    - %s", quoteResp.Content, quoteResp.Author),
+	return &extension.Response{
+		FSM:     req.FSM,
+		Answers: []query.Answer{{Text: fmt.Sprintf("%s\n    - %s", quoteResp.Content, quoteResp.Author)}},
 	}
 }
 
-func miscFunc(req *ext.Request) (res *ext.Response) {
-	query := url.QueryEscape(strings.ReplaceAll(req.Txt, " ", "+"))
+func miscFunc(req *extension.Request) (res *extension.Response) {
+	q := url.QueryEscape(strings.ReplaceAll(req.Question.Text, " ", "+"))
 
-	resp, err := http.Get(fmt.Sprintf(serpURL, serpKey, query))
+	resp, err := http.Get(fmt.Sprintf(serpURL, serpKey, q))
 	if err != nil {
 		return errFunc(req, err)
 	}
@@ -188,18 +189,18 @@ func miscFunc(req *ext.Request) (res *ext.Response) {
 	}
 
 	if serpResp.AnswerBox.AnswerBoxType == 0 || len(serpResp.AnswerBox.Answers) == 0 {
-		return &ext.Response{
-			FSM: req.FSM,
-			Res: "I'm sorry, I couldn't find an answer to that question.",
+		return &extension.Response{
+			FSM:     req.FSM,
+			Answers: []query.Answer{{Text: "I'm sorry, I couldn't find an answer to that question."}},
 		}
 	}
 
 	answer := serpResp.AnswerBox.Answers[0]
 
 	if answer.Answer == "" {
-		return &ext.Response{
-			FSM: req.FSM,
-			Res: "I'm sorry, I couldn't find an answer to that question.",
+		return &extension.Response{
+			FSM:     req.FSM,
+			Answers: []query.Answer{{Text: "I'm sorry, I couldn't find an answer to that question."}},
 		}
 	}
 
@@ -208,19 +209,19 @@ func miscFunc(req *ext.Request) (res *ext.Response) {
 		message += " \nSource: " + answer.Source.Link
 	}
 
-	return &ext.Response{
-		FSM: req.FSM,
-		Res: message,
+	return &extension.Response{
+		FSM:     req.FSM,
+		Answers: []query.Answer{{Text: message}},
 	}
 }
 
-var myExtMap = ext.ExtensionMap{
-	"ext_weather": weatherFunc,
-	"ext_joke":    jokeFunc,
-	"ext_quote":   quoteFunc,
-	"ext_misc":    miscFunc,
+var registeredFuncs = extension.RegisteredFuncs{
+	"weather": weatherFunc,
+	"joke":    jokeFunc,
+	"quote":   quoteFunc,
+	"misc":    miscFunc,
 }
 
 func main() {
-	log.Fatalln(ext.ServeExtensionREST(myExtMap))
+	log.Fatalln(extension.ServeREST(registeredFuncs))
 }
