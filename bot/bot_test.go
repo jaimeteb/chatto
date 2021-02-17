@@ -204,6 +204,129 @@ func TestBot_Answer(t *testing.T) {
 	}
 }
 
+func TestBot_Predict(t *testing.T) {
+	testBot, _, _, _, _, err := newTestBot(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts := httptest.NewServer(testBot.Router)
+	defer ts.Close()
+
+	predictEndpoint := fmt.Sprintf("%s/predict", ts.URL)
+
+	type args struct {
+		inputText []byte
+	}
+	tests := []struct {
+		name    string
+		bot     *bot.Bot
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "test on",
+			bot:  testBot,
+			args: args{
+				inputText: []byte(`{"text": "on"}`),
+			},
+			want: `{"original":"on","predicted":"turn_on","probability":0.999999999985}`,
+		},
+		{
+			name: "test off",
+			bot:  testBot,
+			args: args{
+				inputText: []byte(`{"text": "off"}`),
+			},
+			want: `{"original":"off","predicted":"turn_off","probability":0.999999999985}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := http.Post(predictEndpoint, "application/json", bytes.NewBuffer(tt.args.inputText))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bot.predictHandler() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			got, err := ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bot.predictHandler() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !reflect.DeepEqual(string(got), tt.want) {
+				t.Errorf("Bot.predictHandler() = %v, want %v", string(got), tt.want)
+			}
+		})
+	}
+}
+
+func TestBot_Details(t *testing.T) {
+	testBot, _, _, _, _, err := newTestBot(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts := httptest.NewServer(testBot.Router)
+	defer ts.Close()
+
+	detailsEndpoint := fmt.Sprintf("%s/senders", ts.URL)
+
+	testBot.Store.Set("marcopolo", &fsm.FSM{})
+
+	type args struct {
+		sender string
+	}
+	tests := []struct {
+		name    string
+		bot     *bot.Bot
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "test unknown",
+			bot:  testBot,
+			args: args{
+				sender: "atlantis",
+			},
+			want: `sender does not exist
+`,
+		},
+		{
+			name: "test known",
+			bot:  testBot,
+			args: args{
+				sender: "marcopolo",
+			},
+			want: `{"state":0,"slots":null}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := http.Get(fmt.Sprintf("%s/%s", detailsEndpoint, tt.args.sender))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bot.endpointHandler() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			got, err := ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Bot.endpointHandler() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !reflect.DeepEqual(string(got), tt.want) {
+				t.Errorf("Bot.endpointHandler() = %v, want %v", string(got), tt.want)
+			}
+		})
+	}
+}
+
 func TestBot_Run(t *testing.T) {
 	botPort, err := strconv.Atoi(testutils.GetFreePort(t))
 	if err != nil {

@@ -108,6 +108,12 @@ func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !b.Store.Exists(vars["sender"]) {
+		log.Errorf("sender does not exist: %s", vars["sender"])
+		http.Error(w, "sender does not exist", http.StatusNotFound)
+		return
+	}
+
 	senderObj := b.Store.Get(vars["sender"])
 
 	js, err := json.Marshal(senderObj)
