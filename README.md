@@ -37,7 +37,7 @@ The inspiration for this project originally came from [Flottbot](https://github.
 ## Installation
 
 ```
-go get -u github.com/jaimeteb/chatto
+go get -u github.com/jaimeteb/chatto/...
 ```
 
 Via Docker:
@@ -113,7 +113,8 @@ functions:
       from: "off"
       into: "on"
     command: "turn_on"
-    message: "Turning on."
+    message:
+      - "Turning on."
 
   - transition:
       from: "on"
