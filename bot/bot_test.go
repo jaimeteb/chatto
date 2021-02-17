@@ -23,7 +23,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func TestBot_endpointHandler(t *testing.T) {
+func TestBot_channelHandler(t *testing.T) {
 	testBot, restChnl, twilioChnl, telegramChnl, slackChnl, err := newTestBot(t)
 	if err != nil {
 		t.Fatal(err)
@@ -94,19 +94,19 @@ func TestBot_endpointHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			res, err := http.Post(tt.args.endpoint, "application/json", bytes.NewBuffer(tt.args.message))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bot.endpointHandler() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Bot.channelHandler() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			got, err := ioutil.ReadAll(res.Body)
 			res.Body.Close()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bot.endpointHandler() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Bot.channelHandler() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if !reflect.DeepEqual(string(got), tt.want) {
-				t.Errorf("Bot.endpointHandler() = %v, want %v", string(got), tt.want)
+				t.Errorf("Bot.channelHandler() = %v, want %v", string(got), tt.want)
 			}
 		})
 	}
@@ -309,19 +309,19 @@ func TestBot_Details(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			res, err := http.Get(fmt.Sprintf("%s/%s", detailsEndpoint, tt.args.sender))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bot.endpointHandler() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Bot.detailsHandler() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			got, err := ioutil.ReadAll(res.Body)
 			res.Body.Close()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bot.endpointHandler() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Bot.detailsHandler() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if !reflect.DeepEqual(string(got), tt.want) {
-				t.Errorf("Bot.endpointHandler() = %v, want %v", string(got), tt.want)
+				t.Errorf("Bot.detailsHandler() = %v, want %v", string(got), tt.want)
 			}
 		})
 	}

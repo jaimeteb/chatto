@@ -14,23 +14,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (b *Bot) restEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	b.endpointHandler(w, r, b.Channels.REST)
+func (b *Bot) restChannelHandler(w http.ResponseWriter, r *http.Request) {
+	b.channelHandler(w, r, b.Channels.REST)
 }
 
-func (b *Bot) telegramEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	b.endpointHandler(w, r, b.Channels.Telegram)
+func (b *Bot) telegramChannelHandler(w http.ResponseWriter, r *http.Request) {
+	b.channelHandler(w, r, b.Channels.Telegram)
 }
 
-func (b *Bot) twilioEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	b.endpointHandler(w, r, b.Channels.Twilio)
+func (b *Bot) twilioChannelHandler(w http.ResponseWriter, r *http.Request) {
+	b.channelHandler(w, r, b.Channels.Twilio)
 }
 
-func (b *Bot) slackEndpointHandler(w http.ResponseWriter, r *http.Request) {
-	b.endpointHandler(w, r, b.Channels.Slack)
+func (b *Bot) slackChannelHandler(w http.ResponseWriter, r *http.Request) {
+	b.channelHandler(w, r, b.Channels.Slack)
 }
 
-func (b *Bot) endpointHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
+func (b *Bot) channelHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -187,19 +187,19 @@ func (b *Bot) RegisterRoutes() {
 
 	// Channel endpoints
 	if b.Channels.REST != nil {
-		r.HandleFunc("/endpoints/rest", b.restEndpointHandler).Methods("POST")
+		r.HandleFunc("/endpoints/rest", b.restChannelHandler).Methods("POST")
 	}
 
 	if b.Channels.Telegram != nil {
-		r.HandleFunc("/endpoints/telegram", b.telegramEndpointHandler).Methods("POST")
+		r.HandleFunc("/endpoints/telegram", b.telegramChannelHandler).Methods("POST")
 	}
 
 	if b.Channels.Twilio != nil {
-		r.HandleFunc("/endpoints/twilio", b.twilioEndpointHandler).Methods("POST")
+		r.HandleFunc("/endpoints/twilio", b.twilioChannelHandler).Methods("POST")
 	}
 
 	if b.Channels.Slack != nil {
-		r.HandleFunc("/endpoints/slack", b.slackEndpointHandler).Methods("POST")
+		r.HandleFunc("/endpoints/slack", b.slackChannelHandler).Methods("POST")
 	}
 
 	// Prediction and Sender Endpoints
