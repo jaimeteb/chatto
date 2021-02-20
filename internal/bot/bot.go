@@ -2,31 +2,25 @@ package bot
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/channels"
 	"github.com/jaimeteb/chatto/internal/clf"
-	intfsm "github.com/jaimeteb/chatto/internal/fsm"
+	"github.com/jaimeteb/chatto/internal/extension"
+	fsmint "github.com/jaimeteb/chatto/internal/fsm"
 	"github.com/jaimeteb/chatto/query"
+	log "github.com/sirupsen/logrus"
 )
 
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
 	Name       string
-	Store      intfsm.Store
+	Store      fsmint.Store
 	Domain     *fsm.Domain
 	Classifier *clf.Classifier
 	Extension  extension.Extension
 	Channels   *channels.Channels
 	Config     *Config
 	Router     *mux.Router
-}
-
-// Prediction models a classifier prediction and its original string
-type Prediction struct {
-	Original    string  `json:"original"`
-	Predicted   string  `json:"predicted"`
-	Probability float64 `json:"probability"`
 }
 
 // Answer takes a user input and executes a transition on the FSM if possible
@@ -45,7 +39,11 @@ func (b *Bot) Answer(question *query.Question) ([]query.Answer, error) {
 
 	machine := b.Store.Get(question.Sender)
 
+	previousState := machine.State
+
 	reply, ext := machine.ExecuteCmd(cmd, question.Text, b.Domain)
+
+	log.Debugf("FSM | State transitioned from '%d' -> '%d'", previousState, machine.State)
 
 	var err error
 	if ext != "" && b.Extension != nil {

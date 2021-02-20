@@ -3,9 +3,9 @@ package bot
 import (
 	"strings"
 
-	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/internal/channels"
 	"github.com/jaimeteb/chatto/internal/clf"
+	"github.com/jaimeteb/chatto/internal/extension"
 	"github.com/jaimeteb/chatto/internal/fsm"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"

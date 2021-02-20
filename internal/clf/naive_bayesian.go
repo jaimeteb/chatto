@@ -1,9 +1,8 @@
 package clf
 
 import (
-	log "github.com/sirupsen/logrus"
-
 	"github.com/navossoc/bayesian"
+	log "github.com/sirupsen/logrus"
 )
 
 // TrainingTexts models texts used for training the classifier
@@ -21,14 +20,15 @@ type Classifier struct {
 
 // Predict predict a class for a given text
 func (c *Classifier) Predict(text string) (string, float64) {
-	probs, likely, _ := c.Model.ProbScores(Pipeline(&text, &c.Pipeline))
+	probabilities, likely, _ := c.Model.ProbScores(Pipeline(&text, &c.Pipeline))
 	class := string(c.Classes[likely])
-	prob := probs[likely]
+	probability := probabilities[likely]
 
-	log.Debugf("CLF | \"%v\" classified as %v (%0.2f%%)", text, class, prob*100)
-	if prob < c.Pipeline.Threshold {
+	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %0.2f%%", text, class, probability*100)
+
+	if probability < c.Pipeline.Threshold {
 		return "", -1.0
 	}
 
-	return class, prob
+	return class, probability
 }

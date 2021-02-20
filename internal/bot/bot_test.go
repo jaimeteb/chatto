@@ -11,13 +11,13 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/bot"
 	"github.com/jaimeteb/chatto/internal/channels"
 	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/internal/channels/mockchannels"
 	"github.com/jaimeteb/chatto/internal/clf"
+	"github.com/jaimeteb/chatto/internal/extension"
 	intfsm "github.com/jaimeteb/chatto/internal/fsm"
 	"github.com/jaimeteb/chatto/internal/testutils"
 	"github.com/jaimeteb/chatto/query"
@@ -121,9 +121,9 @@ func TestBot_Extensions(t *testing.T) {
 
 	extensionPort := testutils.GetFreePort(t)
 
-	testutils.RunGoExtension(t, testutils.Examples00TestPath, extensionPort)
+	testutils.RunGoExtension(t, "../"+testutils.Examples00TestPath, extensionPort)
 
-	bc, err := bot.LoadConfig(testutils.Examples00TestPath, botPort)
+	bc, err := bot.LoadConfig("../"+testutils.Examples00TestPath, botPort)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -334,7 +334,7 @@ func TestBot_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	bc, err := bot.LoadConfig(testutils.Examples05SimplePath, botPort)
+	bc, err := bot.LoadConfig("../"+testutils.Examples05SimplePath, botPort)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -354,7 +354,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 		Extensions: extension.Config{},
 		Store:      intfsm.StoreConfig{},
 		Port:       0,
-		Path:       testutils.Examples05SimplePath,
+		Path:       "../" + testutils.Examples05SimplePath,
 	}
 
 	b := &bot.Bot{

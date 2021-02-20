@@ -8,6 +8,7 @@ import (
 	"net/rpc"
 
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
@@ -25,15 +26,15 @@ type RPC struct {
 }
 
 // RunFunc runs an extension function over RPC
-func (e *RPC) RunFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := Request{
+func (e *RPC) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+	req := extension.Request{
 		FSM:       machine,
-		Extension: extension,
+		Extension: ext,
 		Question:  question,
 		Domain:    fsmDomain.NoFuncs(),
 	}
 
-	res := Response{}
+	res := extension.Response{}
 
 	err := e.Client.Call("ListenerRPC.GetFunc", &req, &res)
 	if err != nil {
@@ -47,8 +48,8 @@ func (e *RPC) RunFunc(question *query.Question, extension string, fsmDomain *fsm
 
 // GetAllFuncs retrieves all functions in extension
 func (e *RPC) GetAllFuncs() ([]string, error) {
-	res := new(GetAllFuncsResponse)
-	if err := e.Client.Call("ListenerRPC.GetAllFuncs", new(Request), &res); err != nil {
+	res := new(extension.GetAllFuncsResponse)
+	if err := e.Client.Call("ListenerRPC.GetAllFuncs", new(extension.Request), &res); err != nil {
 		log.Error(err)
 		return nil, err
 	}
@@ -63,10 +64,10 @@ type REST struct {
 }
 
 // RunFunc runs an extension function over REST
-func (e *REST) RunFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := Request{
+func (e *REST) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+	req := extension.Request{
 		FSM:       machine,
-		Extension: extension,
+		Extension: ext,
 		Question:  question,
 		Domain:    fsmDomain.NoFuncs(),
 	}
@@ -84,7 +85,7 @@ func (e *REST) RunFunc(question *query.Question, extension string, fsmDomain *fs
 	}
 
 	defer resp.Body.Close()
-	res := Response{}
+	res := extension.Response{}
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}

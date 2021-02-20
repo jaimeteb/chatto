@@ -14,6 +14,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Prediction models a classifier prediction and its original string
+type Prediction struct {
+	Original    string  `json:"original"`
+	Predicted   string  `json:"predicted"`
+	Probability float64 `json:"probability"`
+}
+
 func (b *Bot) restChannelHandler(w http.ResponseWriter, r *http.Request) {
 	b.channelHandler(w, r, b.Channels.REST)
 }

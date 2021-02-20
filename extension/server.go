@@ -35,7 +35,7 @@ type GetAllFuncsResponse struct {
 	Funcs []string
 }
 
-// RegisteredFuncs maps strings to functions to be used in extensions
+// RegisteredFuncs maps bot commands to functions to be used in extensions
 type RegisteredFuncs map[string]func(*Request) *Response
 
 // ListenerRPC contains the RegisteredFuncs to be served through RPC
@@ -43,9 +43,36 @@ type ListenerRPC struct {
 	RegisteredFuncs RegisteredFuncs
 }
 
-// ListenerREST contains the RegisteredFuncs to be served through REST
-type ListenerREST struct {
-	RegisteredFuncs RegisteredFuncs
+// ServeRPC serves the registered extension functions over RPC
+func ServeRPC(registeredFuncs RegisteredFuncs) error {
+	logger.SetLogger()
+
+	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
+	port := flag.Int("port", 8770, "Port to run extension server on")
+	flag.Parse()
+
+	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", *host, *port))
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	inbound, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	log.Infof("RPC extension server started. Using port %v", *port)
+	err = rpc.Register(&ListenerRPC{RegisteredFuncs: registeredFuncs})
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	rpc.Accept(inbound)
+
+	return nil
 }
 
 // GetFunc returns a requested extension function
@@ -73,6 +100,30 @@ func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error 
 	}
 	res.Funcs = allFuncs
 	log.Debug(res)
+	return nil
+}
+
+// ListenerREST contains the RegisteredFuncs to be served through REST
+type ListenerREST struct {
+	RegisteredFuncs RegisteredFuncs
+}
+
+// ServeREST serves the registered extension functions as a REST API
+func ServeREST(registeredFuncs RegisteredFuncs) error {
+	logger.SetLogger()
+
+	port := flag.Int("port", 8770, "Port to run extension server on")
+	flag.Parse()
+
+	l := ListenerREST{RegisteredFuncs: registeredFuncs}
+
+	r := mux.NewRouter()
+	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")
+	r.HandleFunc("/ext/get_all_funcs", l.GetAllFuncs).Methods("GET")
+
+	log.Infof("REST extension server started. Using port %v", *port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
+
 	return nil
 }
 
@@ -129,55 +180,4 @@ func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-}
-
-// ServeRPC serves the registered extension functions over RPC
-func ServeRPC(registeredFuncs RegisteredFuncs) error {
-	logger.SetLogger()
-
-	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
-	port := flag.Int("port", 8770, "Port to run extension server on")
-	flag.Parse()
-
-	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", *host, *port))
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	inbound, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	log.Infof("RPC extension server started. Using port %v", *port)
-	err = rpc.Register(&ListenerRPC{RegisteredFuncs: registeredFuncs})
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	rpc.Accept(inbound)
-
-	return nil
-}
-
-// ServeREST serves the registered extension functions as a REST API
-func ServeREST(registeredFuncs RegisteredFuncs) error {
-	logger.SetLogger()
-
-	port := flag.Int("port", 8770, "Port to run extension server on")
-	flag.Parse()
-
-	l := ListenerREST{RegisteredFuncs: registeredFuncs}
-
-	r := mux.NewRouter()
-	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")
-	r.HandleFunc("/ext/get_all_funcs", l.GetAllFuncs).Methods("GET")
-
-	log.Infof("REST extension server started. Using port %v", *port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
-
-	return nil
 }

@@ -21,7 +21,7 @@ func TestLoadConfig(t *testing.T) {
 	}{
 		{
 			name: "test loading config from valid path",
-			args: args{path: testutils.Examples05SimplePath},
+			args: args{path: "../" + testutils.Examples05SimplePath},
 			want: &clf.Config{
 				Classification: []clf.TrainingTexts{
 					{
@@ -49,7 +49,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		{
 			name:    "test loading config from invalid path",
-			args:    args{path: testutils.Examples00InvalidPath},
+			args:    args{path: "../" + testutils.Examples00InvalidPath},
 			want:    nil,
 			wantErr: true,
 		},

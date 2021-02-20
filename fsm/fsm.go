@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
@@ -157,13 +158,13 @@ type CmdStateTuple struct {
 	State int
 }
 
-// TransitionFunc models a transition function
+// TransitionFunc performs a state transition for the FSM.
 // TODO: Document how the TransitionFunc works
 type TransitionFunc func(m *FSM) (extension string, messages []Message)
 
 // NewTransitionFunc generates a new transition function
 // that will transition the FSM into the specified state
-// and return the extension and answers
+// and return the extension and the states defined messages
 func NewTransitionFunc(state int, extension string, messages []Message) TransitionFunc {
 	return func(m *FSM) (string, []Message) {
 		m.State = state
@@ -180,35 +181,41 @@ type FSM struct {
 // ExecuteCmd executes a command in the FSM
 // TODO: Document what the ExecuteCmd does
 func (m *FSM) ExecuteCmd(cmd, question string, fsmDomain *Domain) (answers []query.Answer, extension string) {
-	var transitionFunc TransitionFunc
-	var cmdStateTuple CmdStateTuple
+	cmdStateTuple, transitionFunc := m.SelectStateTransition(cmd, fsmDomain)
 
-	previousState := m.State
-
-	tupleFromAny := CmdStateTuple{cmd, -1}
-	tupleNormal := CmdStateTuple{cmd, m.State}
-	tupleCmdAny := CmdStateTuple{"any", m.State}
-
-	if fsmDomain.TransitionTable[tupleFromAny] == nil {
-		if fsmDomain.TransitionTable[tupleCmdAny] == nil {
-			transitionFunc = fsmDomain.TransitionTable[tupleNormal] // There is no transition "From Any" with cmd, nor "Cmd Any"
-			cmdStateTuple = tupleNormal
-		} else {
-			transitionFunc = fsmDomain.TransitionTable[tupleCmdAny] // There is a transition "Cmd Any"
-			cmdStateTuple = tupleCmdAny
-		}
-	} else {
-		transitionFunc = fsmDomain.TransitionTable[tupleFromAny] // There is a transition "From Any" with cmd
-		cmdStateTuple = tupleFromAny
-	}
-
-	// Set FSM slot
+	// Save information from the user's input into the slot
 	m.SetSlot(fsmDomain.SlotTable[cmdStateTuple], question)
 
-	log.Debugf("FSM | transitioned %v -> %v", previousState, m.State)
+	// Transition FSM state and get answers or extension to execute
+	return m.TransitionState(cmd, transitionFunc, fsmDomain.DefaultMessages)
+}
 
-	// Transition FSM state and get answers or extension
-	return m.Transition(cmd, transitionFunc, fsmDomain.DefaultMessages)
+// SelectStateTransition based on the command provided
+func (m *FSM) SelectStateTransition(cmd string, fsmDomain *Domain) (CmdStateTuple, TransitionFunc) {
+	// fromAnyState means we can transition from any state
+	fromAnyState := CmdStateTuple{cmd, -1}
+
+	// normalState means we can transition from one existing state to another
+	normalState := CmdStateTuple{cmd, m.State}
+
+	// TODO: Whats the difference between fromAnyState and cmdAny?
+	cmdAnyState := CmdStateTuple{"any", m.State}
+
+	log.WithField("type", "fsm").Info(spew.Sprint(m))
+	log.WithField("type", "domain").Info(spew.Sprint(fsmDomain))
+
+	if fsmDomain.TransitionTable[fromAnyState] == nil {
+		if fsmDomain.TransitionTable[cmdAnyState] == nil {
+			// There is no transition "From Any" with cmd, nor "Cmd Any"
+			return normalState, fsmDomain.TransitionTable[normalState]
+		}
+
+		// There is a transition "Cmd Any"
+		return cmdAnyState, fsmDomain.TransitionTable[cmdAnyState]
+	}
+
+	// There is a transition "From Any" with cmd
+	return fromAnyState, fsmDomain.TransitionTable[fromAnyState]
 }
 
 // SetSlot saves information from the user's input/question
@@ -232,8 +239,8 @@ func (m *FSM) SetSlot(slot Slot, question string) {
 	}
 }
 
-// Transition FSM state and return the query answers or extension.
-func (m *FSM) Transition(cmd string, transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string) {
+// TransitionState FSM state and return the query answers or extension to execute.
+func (m *FSM) TransitionState(cmd string, transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string) {
 	// Threshold not met
 	if strings.TrimSpace(cmd) == "" {
 		return []query.Answer{{Text: defaults.Unsure}}, ""

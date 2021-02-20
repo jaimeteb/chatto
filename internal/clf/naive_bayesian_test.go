@@ -8,7 +8,7 @@ import (
 )
 
 func TestClfPredictions(t *testing.T) {
-	classifConfig, err := clf.LoadConfig(testutils.Examples00TestPath)
+	classifConfig, err := clf.LoadConfig("../" + testutils.Examples00TestPath)
 	if err != nil {
 		t.Fatal(err)
 	}

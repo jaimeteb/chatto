@@ -20,15 +20,15 @@ func main() {
 		go bot.CLI(port)
 	}
 
-	botConfig, err := bot.LoadConfig(*path, *port)
+	chattoConfig, err := bot.LoadConfig(*path, *port)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	b, err := bot.New(botConfig)
+	chatto, err := bot.New(chattoConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	b.Run()
+	chatto.Run()
 }

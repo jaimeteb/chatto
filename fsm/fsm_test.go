@@ -10,7 +10,7 @@ import (
 
 var domainOnOff = fsm.NewDomain(
 	[]string{"turn_on", "turn_off"},
-	[]string{"on", "off"},
+	[]string{"off", "on"},
 	[]fsm.Function{
 		{
 			Transition: fsm.Transition{
