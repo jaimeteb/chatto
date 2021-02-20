@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
+	redis "github.com/go-redis/redis/v8"
+	"github.com/jaimeteb/chatto/fsm"
 	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
-
-	redis "github.com/go-redis/redis/v8"
 )
 
 var ctx = context.Background()
@@ -28,8 +28,8 @@ type StoreConfig struct {
 // Store interface for FSM Store modes
 type Store interface {
 	Exists(string) bool
-	Get(string) *FSM
-	Set(string, *FSM)
+	Get(string) *fsm.FSM
+	Set(string, *fsm.FSM)
 }
 
 // CacheStore struct models an FSM sotred in Cache
@@ -61,16 +61,16 @@ func (s *RedisStore) Exists(user string) (e bool) {
 }
 
 // Get method for CacheStoreFSM
-func (s *CacheStore) Get(user string) *FSM {
+func (s *CacheStore) Get(user string) *fsm.FSM {
 	mutex.Lock()
 	v, _ := s.C.Get(user)
 	mutex.Unlock()
-	return v.(*FSM)
+	return v.(*fsm.FSM)
 }
 
 // Get method for RedisStoreFSM
-func (s *RedisStore) Get(user string) *FSM {
-	m := &FSM{}
+func (s *RedisStore) Get(user string) *fsm.FSM {
+	m := &fsm.FSM{}
 
 	state, err := s.R.Get(ctx, user+":state").Result()
 	if err != nil {
@@ -92,14 +92,14 @@ func (s *RedisStore) Get(user string) *FSM {
 }
 
 // Set method for CacheStoreFSM
-func (s *CacheStore) Set(user string, m *FSM) {
+func (s *CacheStore) Set(user string, m *fsm.FSM) {
 	mutex.Lock()
 	s.C.Set(user, m, 0)
 	mutex.Unlock()
 }
 
 // Set method for RedisStoreFSM
-func (s *RedisStore) Set(user string, m *FSM) {
+func (s *RedisStore) Set(user string, m *fsm.FSM) {
 	if err := s.R.Set(ctx, user+":state", m.State, time.Duration(s.TTL)*time.Second).Err(); err != nil {
 		log.Error("Error setting state:", err)
 	}

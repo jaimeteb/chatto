@@ -12,8 +12,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/internal/testutils"
 	"github.com/jaimeteb/chatto/query"
-	"github.com/jaimeteb/chatto/testutils"
 )
 
 func TestExtensionREST(t *testing.T) {

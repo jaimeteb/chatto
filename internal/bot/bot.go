@@ -2,17 +2,18 @@ package bot
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/jaimeteb/chatto/channels"
-	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/internal/channels"
+	"github.com/jaimeteb/chatto/internal/clf"
+	intfsm "github.com/jaimeteb/chatto/internal/fsm"
 	"github.com/jaimeteb/chatto/query"
 )
 
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
 	Name       string
-	Store      fsm.Store
+	Store      intfsm.Store
 	Domain     *fsm.Domain
 	Classifier *clf.Classifier
 	Extension  extension.Extension

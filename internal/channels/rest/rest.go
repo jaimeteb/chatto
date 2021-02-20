@@ -3,7 +3,7 @@ package rest
 import (
 	"encoding/json"
 
-	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/query"
 )
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/fsm"
-	"github.com/jaimeteb/chatto/logger"
+	"github.com/jaimeteb/chatto/internal/logger"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )

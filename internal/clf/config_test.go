@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/testutils"
+	"github.com/jaimeteb/chatto/internal/clf"
+	"github.com/jaimeteb/chatto/internal/testutils"
 )
 
 func TestLoadConfig(t *testing.T) {

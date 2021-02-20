@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/query"
 	"github.com/kimrgrey/go-telegram"
 	log "github.com/sirupsen/logrus"

@@ -5,11 +5,11 @@ package channels
 import (
 	"strings"
 
-	"github.com/jaimeteb/chatto/channels/messages"
-	"github.com/jaimeteb/chatto/channels/rest"
-	"github.com/jaimeteb/chatto/channels/slack"
-	"github.com/jaimeteb/chatto/channels/telegram"
-	"github.com/jaimeteb/chatto/channels/twilio"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/rest"
+	"github.com/jaimeteb/chatto/internal/channels/slack"
+	"github.com/jaimeteb/chatto/internal/channels/telegram"
+	"github.com/jaimeteb/chatto/internal/channels/twilio"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )

@@ -37,7 +37,7 @@ The inspiration for this project originally came from [Flottbot](https://github.
 ## Installation
 
 ```
-go get -u github.com/jaimeteb/chatto/...
+go get -u github.com/jaimeteb/chatto/cmd/chatto
 ```
 
 Via Docker:
@@ -114,15 +114,15 @@ functions:
       into: "on"
     command: "turn_on"
     message:
-      - "Turning on."
+      - text: "Turning on."
 
   - transition:
       from: "on"
       into: "off"
     command: "turn_off"
     message:
-      - "Turning off."
-      - "❌"
+      - text: "Turning off."
+      - text: "❌"
 
 defaults:
   unknown: "Can't do that."
@@ -158,7 +158,7 @@ Here is a diagram for this simple Finite State Machine:
 <a name="usage"></a>
 ## Usage
 
-> You can integrate yout bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
+> You can integrate your bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
 
 Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
 

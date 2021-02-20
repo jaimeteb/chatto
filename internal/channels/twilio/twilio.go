@@ -7,7 +7,7 @@ import (
 	"net/url"
 
 	"github.com/ajg/form"
-	"github.com/jaimeteb/chatto/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/query"
 	"github.com/kevinburke/twilio-go"
 	log "github.com/sirupsen/logrus"

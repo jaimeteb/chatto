@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/jaimeteb/chatto/channels/messages"
-	"github.com/jaimeteb/chatto/channels/rest"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/rest"
 	"github.com/jaimeteb/chatto/query"
 )
 

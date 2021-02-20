@@ -3,8 +3,8 @@ package clf_test
 import (
 	"testing"
 
-	"github.com/jaimeteb/chatto/clf"
-	"github.com/jaimeteb/chatto/testutils"
+	"github.com/jaimeteb/chatto/internal/clf"
+	"github.com/jaimeteb/chatto/internal/testutils"
 )
 
 func TestClfPredictions(t *testing.T) {

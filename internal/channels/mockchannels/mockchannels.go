@@ -6,7 +6,7 @@ package mockchannels
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	messages "github.com/jaimeteb/chatto/channels/messages"
+	messages "github.com/jaimeteb/chatto/internal/channels/messages"
 	reflect "reflect"
 )
 

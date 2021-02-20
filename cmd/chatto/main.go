@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 
-	"github.com/jaimeteb/chatto/bot"
-	"github.com/jaimeteb/chatto/logger"
+	"github.com/jaimeteb/chatto/internal/bot"
+	"github.com/jaimeteb/chatto/internal/logger"
 	log "github.com/sirupsen/logrus"
 )
 

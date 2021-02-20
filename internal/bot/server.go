@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jaimeteb/chatto/channels"
-	"github.com/jaimeteb/chatto/channels/messages"
-	"github.com/jaimeteb/chatto/channels/slack"
+	"github.com/jaimeteb/chatto/internal/channels"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/slack"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )

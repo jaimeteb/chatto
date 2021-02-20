@@ -1,4 +1,4 @@
-package telegram_test
+package twilio_test
 
 import (
 	"net/url"
@@ -7,26 +7,23 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/channels/messages"
-	"github.com/jaimeteb/chatto/channels/telegram"
-	"github.com/jaimeteb/chatto/channels/telegram/mocktelegram"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/twilio"
+	"github.com/jaimeteb/chatto/internal/channels/twilio/mocktwilio"
 	"github.com/jaimeteb/chatto/query"
+	twlio "github.com/kevinburke/twilio-go"
 )
 
 func TestChannel_SendMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	telegramClient := mocktelegram.NewMockClient(ctrl)
-
-	respValues := url.Values{}
-	respValues.Add("chat_id", "123456789")
-	respValues.Add("parse_mode", "Markdown")
-	respValues.Add("text", "Hey bud *beep* *boop*.")
+	twilioClient := mocktwilio.NewMockClient(ctrl)
 
 	type fields struct {
-		Client   telegram.Client
-		mockCall *gomock.Call
+		Client          twilio.Client
+		Number          string
+		mockSendMessage *gomock.Call
 	}
 	type args struct {
 		response *messages.Response
@@ -38,18 +35,19 @@ func TestChannel_SendMessage(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "send message to telegram",
+			name: "send message to twilio",
 			fields: fields{
-				Client:   telegramClient,
-				mockCall: telegramClient.EXPECT().Call("SendMessage", respValues, gomock.Any()),
+				Client:          twilioClient,
+				Number:          "123456789",
+				mockSendMessage: twilioClient.EXPECT().SendMessage("123456789", "42", "Hey bud *beep* *boop*.", nil).Return(&twlio.Message{}, nil),
 			},
 			args: args{response: &messages.Response{
 				Answers: []query.Answer{{
 					Text: "Hey bud *beep* *boop*.",
 				}},
 				ReplyOpts: &messages.ReplyOpts{
-					Telegram: messages.TelegramReplyOpts{
-						Recipient: "123456789",
+					Twilio: messages.TwilioReplyOpts{
+						Recipient: "42",
 					},
 				},
 			}},
@@ -58,8 +56,9 @@ func TestChannel_SendMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &telegram.Channel{
+			c := &twilio.Channel{
 				Client: tt.fields.Client,
+				Number: tt.fields.Number,
 			}
 			if err := c.SendMessage(tt.args.response); (err != nil) != tt.wantErr {
 				t.Errorf("Channel.SendMessage() error = %v, wantErr %v", err, tt.wantErr)
@@ -79,18 +78,18 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "receive message from telegram",
+			name: "receive message from twilio",
 			args: args{
-				body: []byte(`{"update_id": 123, "message": {"message_id": 456, "text": "Hey.", "from": {"id": 789, "first_name": "jaime", "username": "jaimeteb"}}}`),
+				body: []byte(url.Values{"From": {"42"}, "Body": {"Hey."}}.Encode()),
 			},
 			want: &messages.Receive{
 				Question: &query.Question{
-					Sender: "789",
+					Sender: "42",
 					Text:   "Hey.",
 				},
 				ReplyOpts: &messages.ReplyOpts{
-					Telegram: messages.TelegramReplyOpts{
-						Recipient: "789",
+					Twilio: messages.TwilioReplyOpts{
+						Recipient: "42",
 					},
 				},
 			},
@@ -98,7 +97,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &telegram.Channel{}
+			c := &twilio.Channel{}
 			got, err := c.ReceiveMessage(tt.args.body)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Channel.ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)

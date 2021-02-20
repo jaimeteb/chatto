@@ -7,9 +7,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/channels/messages"
-	"github.com/jaimeteb/chatto/channels/slack"
-	"github.com/jaimeteb/chatto/channels/slack/mockslack"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/slack"
+	"github.com/jaimeteb/chatto/internal/channels/slack/mockslack"
 	"github.com/jaimeteb/chatto/query"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"

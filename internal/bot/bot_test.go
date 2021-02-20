@@ -11,15 +11,16 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/bot"
-	"github.com/jaimeteb/chatto/channels"
-	"github.com/jaimeteb/chatto/channels/messages"
-	"github.com/jaimeteb/chatto/channels/mockchannels"
-	"github.com/jaimeteb/chatto/clf"
 	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/internal/bot"
+	"github.com/jaimeteb/chatto/internal/channels"
+	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/mockchannels"
+	"github.com/jaimeteb/chatto/internal/clf"
+	intfsm "github.com/jaimeteb/chatto/internal/fsm"
+	"github.com/jaimeteb/chatto/internal/testutils"
 	"github.com/jaimeteb/chatto/query"
-	"github.com/jaimeteb/chatto/testutils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -351,14 +352,14 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	botConfig := &bot.Config{
 		Name:       "chatto",
 		Extensions: extension.Config{},
-		Store:      fsm.StoreConfig{},
+		Store:      intfsm.StoreConfig{},
 		Port:       0,
 		Path:       testutils.Examples05SimplePath,
 	}
 
 	b := &bot.Bot{
 		Name:   botConfig.Name,
-		Store:  fsm.NewStore(botConfig.Store),
+		Store:  intfsm.NewStore(botConfig.Store),
 		Config: botConfig,
 	}
 
@@ -381,11 +382,11 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	b.Channels.Slack = slackChnl
 
 	// Load FSM
-	fsmConfig, err := fsm.LoadConfig(botConfig.Path)
+	fsmConfig, err := intfsm.LoadConfig(botConfig.Path)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
-	b.Domain = fsm.New(fsmConfig)
+	b.Domain = intfsm.New(fsmConfig)
 
 	// Load Classifier
 	classifConfig, err := clf.LoadConfig(botConfig.Path)
