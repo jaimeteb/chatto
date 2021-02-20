@@ -5,55 +5,37 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/fatih/color"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
 
-// SendAndReceive send a message to localhost endpoint and receives an answer
-func SendAndReceive(question *query.Question, url string) []query.Answer {
-	jsonMess, err := json.Marshal(question)
-	if err != nil {
-		log.Warn(err)
-		return []query.Answer{}
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonMess))
-	if err != nil {
-		log.Warn(err)
-		return []query.Answer{}
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Warn(err)
-		return []query.Answer{}
-	}
-	defer resp.Body.Close()
-
-	ans := []query.Answer{}
-	if err := json.NewDecoder(resp.Body).Decode(&ans); err != nil {
-		log.Warn(err)
-		return []query.Answer{}
-	}
-
-	return ans
+// CLI allows you to chat with botto from the cli. Great for testing
+type CLI struct {
+	Port int
+	URL  string
+	HTTP *retryablehttp.Client
 }
 
-// CLI runs a bot in a command line interface
-func CLI(port *int) {
-	time.Sleep(time.Second * 10)
+// NewCLI instantiates a new botto command line interface
+func NewCLI(url string, port int) *CLI {
+	cli := &CLI{
+		Port: port,
+		URL:  fmt.Sprintf("%s:%d/channels/rest", url, port),
+		HTTP: retryablehttp.NewClient(),
+	}
 
-	localEndpoint := fmt.Sprintf("http://localhost:%v/endpoints/rest", *port)
+	cli.HTTP.Logger = log.New()
 
+	return cli
+}
+
+// Run starts the command line interface
+func (c *CLI) Run() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		color.Magenta("you: ")
@@ -63,15 +45,39 @@ func CLI(port *int) {
 			continue
 		}
 
-		respMess := SendAndReceive(&query.Question{
+		answers := c.sendAndReceive(&query.Question{
 			Sender: "cli",
 			Text:   strings.TrimSuffix(cmd, "\n"),
-		}, localEndpoint)
+		}, c.URL)
 
 		color.Cyan("bot:")
 
-		for _, msg := range respMess {
-			fmt.Println(msg.Text)
+		for _, answer := range answers {
+			fmt.Println(answer.Text)
 		}
 	}
+}
+
+// sendAndReceive send a message to localhost endpoint and receives an answer
+func (c *CLI) sendAndReceive(question *query.Question, url string) []query.Answer {
+	jsonMess, err := json.Marshal(question)
+	if err != nil {
+		log.Warn(err)
+		return []query.Answer{}
+	}
+
+	resp, err := c.HTTP.Post(url, "Content-Type: application/json", bytes.NewBuffer(jsonMess))
+	if err != nil {
+		log.Warn(err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	answer := []query.Answer{}
+	if err := json.NewDecoder(resp.Body).Decode(&answer); err != nil {
+		log.Warn(err)
+		return nil
+	}
+
+	return answer
 }

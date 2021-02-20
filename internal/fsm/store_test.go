@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/jaimeteb/chatto/fsm"
-	intfsm "github.com/jaimeteb/chatto/internal/fsm"
+	fsmint "github.com/jaimeteb/chatto/internal/fsm"
 )
 
 func TestCacheStore(t *testing.T) {
-	machines := intfsm.NewStore(intfsm.StoreConfig{Type: "CACHE"})
+	machines := fsmint.NewStore(fsmint.StoreConfig{Type: "CACHE"})
 
 	if resp1 := machines.Exists("foo"); resp1 != false {
 		t.Errorf("incorrect, got: %v, want: %v.", resp1, "false")
@@ -38,7 +38,7 @@ func TestCacheStore(t *testing.T) {
 }
 
 func TestRedisStore(t *testing.T) {
-	machines := intfsm.NewStore(intfsm.StoreConfig{
+	machines := fsmint.NewStore(fsmint.StoreConfig{
 		Type:     "REDIS",
 		Host:     "localhost",
 		Password: "pass",
@@ -72,13 +72,13 @@ func TestRedisStore(t *testing.T) {
 }
 
 func TestRedisStoreFail(t *testing.T) {
-	machines := intfsm.NewStore(intfsm.StoreConfig{
+	machines := fsmint.NewStore(fsmint.StoreConfig{
 		Type:     "REDIS",
 		Host:     "localhost",
 		Password: "foo",
 	})
 	switch machines.(type) {
-	case *intfsm.CacheStore:
+	case *fsmint.CacheStore:
 		break
 	default:
 		t.Error("incorrect, want: *CacheStoreFSM")

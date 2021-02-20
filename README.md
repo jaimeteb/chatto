@@ -131,10 +131,10 @@ defaults:
 <a name="yourfirstbotrun"></a>
 ### Run your first bot
 
-To run your bot in a CLI, simply run:
+To start your bot, run:
 
 ```bash
-chatto -cli -path data/
+chatto -path data/
 ```
 
 Or if you're using Docker, run:
@@ -145,7 +145,13 @@ docker run \
     -e CHATTO_DATA=./data \
     -v $PWD/data:/chatto/data \
     jaimeteb/chatto:latest \
-    chatto -cli -path data
+    chatto -path data
+```
+
+To interact with your bot, run:
+
+```
+chatto-cli
 ```
 
 That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **off**. However, you cannot go from **on** into **on**, or from **off** into **off** either.
@@ -158,7 +164,7 @@ Here is a diagram for this simple Finite State Machine:
 <a name="usage"></a>
 ## Usage
 
-> You can integrate your bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
+> You can integrate your bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/channels/)
 
 Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
 
@@ -178,21 +184,10 @@ docker run \
 <a name="usagecli"></a>
 ### CLI
 
-You can use Chatto in a CLI mode by adding the `-cli` flag.
+You can use the Chatto CLI tool by downloading the `chatto-cli` binary. The CLI makes it easy to test your bot interactions.
 
 ```bash
-chatto -cli -path ./your/data
-```
-
-On Docker:
-
-```bash
-docker run \
-    -it \
-    -e CHATTO_DATA=./your/data \
-    -v $PWD./your/data:/chatto/data \
-    jaimeteb/chatto:latest \
-    chatto -cli -path data
+chatto-cli
 ```
 
 <a name="usagecompose"></a>

@@ -45,11 +45,12 @@ type ListenerRPC struct {
 
 // ServeRPC serves the registered extension functions over RPC
 func ServeRPC(registeredFuncs RegisteredFuncs) error {
-	logger.SetLogger()
-
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
 	port := flag.Int("port", 8770, "Port to run extension server on")
+	debug := flag.Bool("debug", false, "Enable debug logging.")
 	flag.Parse()
+
+	logger.SetLogger(*debug)
 
 	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", *host, *port))
 	if err != nil {
@@ -110,10 +111,11 @@ type ListenerREST struct {
 
 // ServeREST serves the registered extension functions as a REST API
 func ServeREST(registeredFuncs RegisteredFuncs) error {
-	logger.SetLogger()
-
 	port := flag.Int("port", 8770, "Port to run extension server on")
+	debug := flag.Bool("debug", false, "Enable debug logging.")
 	flag.Parse()
+
+	logger.SetLogger(*debug)
 
 	l := ListenerREST{RegisteredFuncs: registeredFuncs}
 

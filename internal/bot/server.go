@@ -192,24 +192,24 @@ func (b *Bot) RegisterRoutes() {
 
 	r := mux.NewRouter()
 
-	// Channel endpoints
+	// Channel channels
 	if b.Channels.REST != nil {
-		r.HandleFunc("/endpoints/rest", b.restChannelHandler).Methods("POST")
+		r.HandleFunc("/channels/rest", b.restChannelHandler).Methods("POST")
 	}
 
 	if b.Channels.Telegram != nil {
-		r.HandleFunc("/endpoints/telegram", b.telegramChannelHandler).Methods("POST")
+		r.HandleFunc("/channels/telegram", b.telegramChannelHandler).Methods("POST")
 	}
 
 	if b.Channels.Twilio != nil {
-		r.HandleFunc("/endpoints/twilio", b.twilioChannelHandler).Methods("POST")
+		r.HandleFunc("/channels/twilio", b.twilioChannelHandler).Methods("POST")
 	}
 
 	if b.Channels.Slack != nil {
-		r.HandleFunc("/endpoints/slack", b.slackChannelHandler).Methods("POST")
+		r.HandleFunc("/channels/slack", b.slackChannelHandler).Methods("POST")
 	}
 
-	// Prediction and Sender Endpoints
+	// Prediction and Sender Channels
 	r.HandleFunc("/predict", b.predictHandler).Methods("POST")
 	r.HandleFunc("/senders/{sender}", b.detailsHandler).Methods("GET")
 

@@ -8,21 +8,21 @@ class ChattoUser(SequentialTaskSet):
 
     @task
     def hi(self):
-        self.client.post("/endpoints/rest", json={
+        self.client.post("/channels/rest", json={
             "sender": self.chatto_name,
             "text": "hi",
         })
 
     @task
     def bad(self):
-        self.client.post("/endpoints/rest", json={
+        self.client.post("/channels/rest", json={
             "sender": self.chatto_name,
             "text": "bad",
         })
 
     @task
     def yes(self):
-        self.client.post("/endpoints/rest", json={
+        self.client.post("/channels/rest", json={
             "sender": self.chatto_name,
             "text": "yes",
         })

@@ -18,7 +18,7 @@ import (
 	"github.com/jaimeteb/chatto/internal/channels/mockchannels"
 	"github.com/jaimeteb/chatto/internal/clf"
 	"github.com/jaimeteb/chatto/internal/extension"
-	intfsm "github.com/jaimeteb/chatto/internal/fsm"
+	fsmint "github.com/jaimeteb/chatto/internal/fsm"
 	"github.com/jaimeteb/chatto/internal/testutils"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
@@ -50,7 +50,7 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "rest endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/endpoints/rest", ts.URL),
+				endpoint:    fmt.Sprintf("%s/channels/rest", ts.URL),
 				message:     []byte(`{"sender": "42", "text": "on"}`),
 				mockReceive: restChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
 				mockSend:    restChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
@@ -61,7 +61,7 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "twilio endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/endpoints/twilio", ts.URL),
+				endpoint:    fmt.Sprintf("%s/channels/twilio", ts.URL),
 				message:     []byte(`{"sender": "42", "text": "off"}`),
 				mockReceive: twilioChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "off"}}, nil),
 				mockSend:    twilioChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
@@ -72,7 +72,7 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "telegram endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/endpoints/telegram", ts.URL),
+				endpoint:    fmt.Sprintf("%s/channels/telegram", ts.URL),
 				message:     []byte(`{"sender": "42", "text": "on"}`),
 				mockReceive: telegramChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
 				mockSend:    telegramChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
@@ -83,7 +83,7 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "slack endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/endpoints/slack", ts.URL),
+				endpoint:    fmt.Sprintf("%s/channels/slack", ts.URL),
 				message:     []byte(`{"sender": "42", "text": "on"}`),
 				mockReceive: slackChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
 				mockSend:    slackChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
@@ -352,14 +352,14 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	botConfig := &bot.Config{
 		Name:       "chatto",
 		Extensions: extension.Config{},
-		Store:      intfsm.StoreConfig{},
+		Store:      fsmint.StoreConfig{},
 		Port:       0,
 		Path:       "../" + testutils.Examples05SimplePath,
 	}
 
 	b := &bot.Bot{
 		Name:   botConfig.Name,
-		Store:  intfsm.NewStore(botConfig.Store),
+		Store:  fsmint.NewStore(botConfig.Store),
 		Config: botConfig,
 	}
 
@@ -382,11 +382,11 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	b.Channels.Slack = slackChnl
 
 	// Load FSM
-	fsmConfig, err := intfsm.LoadConfig(botConfig.Path)
+	fsmConfig, err := fsmint.LoadConfig(botConfig.Path)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
-	b.Domain = intfsm.New(fsmConfig)
+	b.Domain = fsmint.New(fsmConfig)
 
 	// Load Classifier
 	classifConfig, err := clf.LoadConfig(botConfig.Path)
