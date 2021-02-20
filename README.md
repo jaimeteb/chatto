@@ -319,7 +319,7 @@ type MyService struct {
 	chatto bot.Client
 }
 
-func NewMyService() *MyService {
+func NewMyService(url string, port int) *MyService {
 	return &MyService{chatto: bot.NewClient(url, port)}
 }
 
