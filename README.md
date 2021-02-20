@@ -28,9 +28,11 @@ The inspiration for this project originally came from [Flottbot](https://github.
     * [The **clf.yml** file](#yourfirstbotclf)
     * [The **fsm.yml** file](#yourfirstbotfsm)
     * [Run your bot](#yourfirstbotrun)
+    * [Interact with your bot](#yourfirstbotinteract)
 * [Usage](#usage)  
     * [CLI](#usagecli)
     * [Docker Compose](#usagecompose)
+    * [Import](#usageimport)
 * [Examples](#examples)  
 
 <a name="install"></a>
@@ -137,7 +139,7 @@ To start your bot, run:
 chatto -path data/
 ```
 
-Or if you're using Docker, run:
+If you're using Docker, run:
 
 ```bash
 docker run \
@@ -147,6 +149,9 @@ docker run \
     jaimeteb/chatto:latest \
     chatto -path data
 ```
+
+<a name="yourfirstbotinteract"></a>
+### Interact with your first bot
 
 To interact with your bot, run:
 
@@ -173,6 +178,7 @@ chatto -path ./your/data
 ```
 
 To run on Docker, use:
+
 ```bash
 docker run \
   -p 4770:4770 \
@@ -187,7 +193,7 @@ docker run \
 You can use the Chatto CLI tool by downloading the `chatto-cli` binary. The CLI makes it easy to test your bot interactions.
 
 ```bash
-chatto-cli
+chatto-cli -url 'http://mybot.com' -port 4770
 ```
 
 <a name="usagecompose"></a>
@@ -271,6 +277,66 @@ docker-compose up -d chatto
 
 > The [extensions](/extensions) server has to be running before Chatto initializes.
 
+<a name="usageimport"></a>
+### Import
+
+An importable bot server and client package is provided to allow embedding into your own application.
+
+To embed the server:
+
+```go
+package main
+
+import (
+	"flag"
+
+	"github.com/jaimeteb/chatto/bot"
+)
+
+func main() {
+	port := flag.Int("port", 4770, "Specify port to use.")
+	path := flag.String("path", ".", "Path to YAML files.")
+	flag.Parse()
+
+	server := bot.NewServer(*path, *port)
+
+	server.Run()
+}
+```
+
+To embed the client:
+
+```go
+package myservice
+
+import (
+	"log"
+
+	"github.com/jaimeteb/chatto/bot"
+)
+
+type MyService struct {
+	chatto bot.Client
+}
+
+func NewMyService() *MyService {
+	return &MyService{chatto: bot.NewClient(url, port)}
+}
+
+func (s *MyService) Submit(question *query.Question) error {
+	answers, err := s.chatto.Submit(question)
+	if err != nil {
+		return err
+	}
+
+	// Print answers to stdout
+	for _, answer := range answers {
+		fmt.Println(answer.Text)
+	}
+
+	return nil
+}
+```
 
 <a name="examples"></a>
 ## Examples

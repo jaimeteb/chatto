@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/jaimeteb/chatto/internal/bot"
+	"github.com/jaimeteb/chatto/bot"
 	"github.com/jaimeteb/chatto/internal/logger"
 )
 
@@ -15,7 +15,7 @@ func main() {
 
 	logger.SetLogger(*debug)
 
-	cli := bot.NewCLI(*url, *port)
+	client := bot.NewClient(*url, *port)
 
-	cli.Run()
+	client.CLI()
 }

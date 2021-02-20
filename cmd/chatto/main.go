@@ -3,9 +3,8 @@ package main
 import (
 	"flag"
 
-	"github.com/jaimeteb/chatto/internal/bot"
+	"github.com/jaimeteb/chatto/bot"
 	"github.com/jaimeteb/chatto/internal/logger"
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -16,15 +15,7 @@ func main() {
 
 	logger.SetLogger(*debug)
 
-	chattoConfig, err := bot.LoadConfig(*path, *port)
-	if err != nil {
-		log.Fatal(err)
-	}
+	server := bot.NewServer(*path, *port)
 
-	chatto, err := bot.New(chattoConfig)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	chatto.Run()
+	server.Run()
 }
