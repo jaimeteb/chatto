@@ -33,8 +33,8 @@ func LoadConfig(path string) (*Config, error) {
 	return &fsmConfig, nil
 }
 
-// New initializes a FSM Domain from the FSM Config
-func New(fsmConfig *Config) *fsm.Domain {
+// NewDomainFromConfig initializes a FSM Domain from the FSM Config
+func NewDomainFromConfig(fsmConfig *Config) *fsm.Domain {
 	fsmDomain := fsm.NewDomain(fsmConfig.Commands, fsmConfig.States, fsmConfig.Functions, fsmConfig.Defaults)
 
 	log.Info("Loaded states:")

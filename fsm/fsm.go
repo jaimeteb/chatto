@@ -4,9 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jaimeteb/chatto/query"
-	log "github.com/sirupsen/logrus"
 )
 
 // Transition describes the states of the transition
@@ -53,7 +51,7 @@ type StateTable map[string]int
 
 // NewStateTable initializes a new StateTable
 func NewStateTable(states []string) StateTable {
-	stateTable := make(map[string]int, len(states)+1)
+	stateTable := make(StateTable, len(states)+1)
 
 	for id, state := range states {
 		stateTable[state] = id
@@ -144,11 +142,7 @@ func NewDomain(commands, states []string, functions []Function, defaults Default
 // NoFuncs returns a Domain without TransitionFunc items in order
 // to serialize it for extensions
 func (d *Domain) NoFuncs() *BaseDomain {
-	return &BaseDomain{
-		StateTable:      d.StateTable,
-		CommandList:     d.CommandList,
-		DefaultMessages: d.DefaultMessages,
-	}
+	return &d.BaseDomain
 }
 
 // CmdStateTuple is a tuple of Command and State
@@ -178,48 +172,51 @@ type FSM struct {
 	Slots map[string]string `json:"slots"`
 }
 
+// NewFSM instantiates a new FSM
+func NewFSM() *FSM {
+	return &FSM{State: 0, Slots: make(map[string]string)}
+}
+
 // ExecuteCmd executes a command in the FSM
 // TODO: Document what the ExecuteCmd does
-func (m *FSM) ExecuteCmd(cmd, question string, fsmDomain *Domain) (answers []query.Answer, extension string) {
-	cmdStateTuple, transitionFunc := m.SelectStateTransition(cmd, fsmDomain)
+func (m *FSM) ExecuteCmd(command, matchedText string, fsmDomain *Domain) (answers []query.Answer, extension string) {
+	cmdStateTuple, transitionFunc := m.SelectStateTransition(command, fsmDomain)
 
 	// Save information from the user's input into the slot
-	m.SetSlot(fsmDomain.SlotTable[cmdStateTuple], question)
+	m.SaveToSlot(matchedText, fsmDomain.SlotTable[cmdStateTuple])
 
 	// Transition FSM state and get answers or extension to execute
-	return m.TransitionState(cmd, transitionFunc, fsmDomain.DefaultMessages)
+	return m.TransitionState(command, transitionFunc, fsmDomain.DefaultMessages)
 }
 
 // SelectStateTransition based on the command provided
-func (m *FSM) SelectStateTransition(cmd string, fsmDomain *Domain) (CmdStateTuple, TransitionFunc) {
+func (m *FSM) SelectStateTransition(command string, fsmDomain *Domain) (CmdStateTuple, TransitionFunc) {
 	// fromAnyState means we can transition from any state
-	fromAnyState := CmdStateTuple{cmd, -1}
+	fromAnyState := CmdStateTuple{command, -1}
 
-	// normalState means we can transition from one existing state to another
-	normalState := CmdStateTuple{cmd, m.State}
-
-	// TODO: Whats the difference between fromAnyState and cmdAny?
+	// cmdAnyState transition between any two states
 	cmdAnyState := CmdStateTuple{"any", m.State}
 
-	log.WithField("type", "fsm").Info(spew.Sprint(m))
-	log.WithField("type", "domain").Info(spew.Sprint(fsmDomain))
+	// normalState transition from one existing state to another
+	normalState := CmdStateTuple{command, m.State}
 
-	if fsmDomain.TransitionTable[fromAnyState] == nil {
-		if fsmDomain.TransitionTable[cmdAnyState] == nil {
-			// There is no transition "From Any" with cmd, nor "Cmd Any"
-			return normalState, fsmDomain.TransitionTable[normalState]
-		}
+	// Special state any can go from any state into another
+	if fsmDomain.TransitionTable[fromAnyState] != nil {
+		return fromAnyState, fsmDomain.TransitionTable[fromAnyState]
+	}
 
-		// There is a transition "Cmd Any"
+	// Special command any is used to transition between two states,
+	// regardless of the command predicted. Useful for taking in any
+	// user input for searches
+	if fsmDomain.TransitionTable[cmdAnyState] != nil {
 		return cmdAnyState, fsmDomain.TransitionTable[cmdAnyState]
 	}
 
-	// There is a transition "From Any" with cmd
-	return fromAnyState, fsmDomain.TransitionTable[fromAnyState]
+	return normalState, fsmDomain.TransitionTable[normalState]
 }
 
-// SetSlot saves information from the user's input/question
-func (m *FSM) SetSlot(slot Slot, question string) {
+// SaveToSlot saves information from the user's input/question
+func (m *FSM) SaveToSlot(matchedText string, slot Slot) {
 	slotName := strings.TrimSpace(slot.Name)
 	slotRegex := strings.TrimSpace(slot.Regex)
 
@@ -227,26 +224,26 @@ func (m *FSM) SetSlot(slot Slot, question string) {
 		switch strings.TrimSpace(slot.Mode) {
 		case "regex":
 			if r, err := regexp.Compile(slotRegex); err == nil {
-				match := r.FindAllString(question, 1)
+				match := r.FindAllString(matchedText, 1)
 				if len(match) > 0 {
 					m.Slots[slotName] = match[0]
 				}
 			}
 		default:
 			// Use whole_text by default
-			m.Slots[slotName] = question
+			m.Slots[slotName] = matchedText
 		}
 	}
 }
 
 // TransitionState FSM state and return the query answers or extension to execute.
-func (m *FSM) TransitionState(cmd string, transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string) {
-	// Threshold not met
-	if strings.TrimSpace(cmd) == "" {
+func (m *FSM) TransitionState(command string, transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string) {
+	// Function command was not found in the matchedText
+	if strings.TrimSpace(command) == "" {
 		return []query.Answer{{Text: defaults.Unsure}}, ""
 	}
 
-	// Unknown transition
+	// Function command was found but state transition is unknown or not valid
 	if transitionFunc == nil {
 		return []query.Answer{{Text: defaults.Unknown}}, ""
 	}
@@ -254,6 +251,7 @@ func (m *FSM) TransitionState(cmd string, transitionFunc TransitionFunc, default
 	// Execute transition
 	extension, messages := transitionFunc(m)
 
+	// Tell the bot to execute an extension to get the answer
 	if strings.TrimSpace(extension) != "" {
 		return nil, extension
 	}

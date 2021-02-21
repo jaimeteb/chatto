@@ -73,12 +73,12 @@ func New(botConfig *Config) (*Bot, error) {
 	}
 	b.Channels = channels.New(channelsConfig)
 
-	// Load FSM
+	// Load FSM Domain
 	fsmConfig, err := fsm.LoadConfig(botConfig.Path)
 	if err != nil {
 		return nil, err
 	}
-	b.Domain = fsm.New(fsmConfig)
+	b.Domain = fsm.NewDomainFromConfig(fsmConfig)
 
 	// Load Classifier
 	classifConfig, err := clf.LoadConfig(botConfig.Path)

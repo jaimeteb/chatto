@@ -1,7 +1,7 @@
 .PHONY: test generate lint snapshot release
 
 test:
-	go test ./... -cover -coverprofile=coverage.txt
+	go test -race ./... -cover -coverprofile=coverage.txt
 
 generate:
 	go generate ./...

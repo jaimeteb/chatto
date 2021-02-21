@@ -26,13 +26,7 @@ type Bot struct {
 // Answer takes a user input and executes a transition on the FSM if possible
 func (b *Bot) Answer(question *query.Question) ([]query.Answer, error) {
 	if !b.Store.Exists(question.Sender) {
-		b.Store.Set(
-			question.Sender,
-			&fsm.FSM{
-				State: 0,
-				Slots: make(map[string]string),
-			},
-		)
+		b.Store.Set(question.Sender, fsm.NewFSM())
 	}
 
 	cmd, _ := b.Classifier.Predict(question.Text)

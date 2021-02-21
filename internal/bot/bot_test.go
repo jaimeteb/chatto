@@ -386,7 +386,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
-	b.Domain = fsmint.New(fsmConfig)
+	b.Domain = fsmint.NewDomainFromConfig(fsmConfig)
 
 	// Load Classifier
 	classifConfig, err := clf.LoadConfig(botConfig.Path)
