@@ -33,7 +33,8 @@ archives:
       amd64: x86_64
 
 dockers:
-  - id: chatto
+  - ids:
+      - chatto
     image_templates:
       - "jaimeteb/chatto:{{ .Version }}-amd64"
     use_buildx: true
@@ -42,7 +43,8 @@ dockers:
     dockerfile: Dockerfile
     build_flag_templates:
       - "--platform=linux/amd64"
-  - id: chatto
+  - ids:
+      - chatto
     image_templates:
       - "jaimeteb/chatto:{{ .Version }}-arm64v8"
     use_buildx: true
@@ -53,13 +55,11 @@ dockers:
       - "--platform=linux/arm64/v8"
 
 docker_manifests:
-  - id: chatto
-    name_template: "jaimeteb/chatto:{{ .Version }}"
+  - name_template: "jaimeteb/chatto:{{ .Version }}"
     image_templates:
       - "jaimeteb/chatto:{{ .Version }}-amd64"
       - "jaimeteb/chatto:{{ .Version }}-arm64v8"
-  - id: chatto
-    name_template: "jaimeteb/chatto:latest"
+  - name_template: "jaimeteb/chatto:latest"
     image_templates:
       - "jaimeteb/chatto:{{ .Version }}-amd64"
       - "jaimeteb/chatto:{{ .Version }}-arm64v8"
