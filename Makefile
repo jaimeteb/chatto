@@ -1,4 +1,8 @@
-.PHONY: test generate lint snapshot release
+.PHONY: test generate lint snapshot release godoc
+
+godoc:
+	open "http://localhost:6060/pkg/github.com/jaimeteb/chatto/"
+	godoc -http=:6060
 
 test:
 	go test -race ./... -cover -coverprofile=coverage.txt
