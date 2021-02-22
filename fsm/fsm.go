@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jaimeteb/chatto/query"
-	log "github.com/sirupsen/logrus"
 )
 
 // Transition describes the states of the transition
@@ -248,8 +247,6 @@ func (m *FSM) TransitionState(command string, transitionFunc TransitionFunc, def
 	if transitionFunc == nil {
 		return []query.Answer{{Text: defaults.Unknown}}, ""
 	}
-
-	log.Debugf("FSM | transitioned into state %v", m.State)
 
 	// Execute transition
 	extension, messages := transitionFunc(m)
