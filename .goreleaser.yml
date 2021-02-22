@@ -14,55 +14,111 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/jaimeteb/chatto/internal/version.version={{.Version}} -X github.com/jaimeteb/chatto/internal/version.commit={{.Commit}} -X github.com/jaimeteb/chatto/internal/version.date={{ .CommitDate }} -X github.com/jaimeteb/chatto/internal/version.builtBy=goreleaser
   - id: chatto-cli
     binary: chatto-cli
-    main: ./cmd/cli/main.go
+    main: ./cmd/chatto-cli/main.go
     env:
       - CGO_ENABLED=0
     goos:
       - linux
       - windows
       - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/jaimeteb/chatto/internal/version.version={{.Version}} -X github.com/jaimeteb/chatto/internal/version.commit={{.Commit}} -X github.com/jaimeteb/chatto/internal/version.date={{ .CommitDate }} -X github.com/jaimeteb/chatto/internal/version.builtBy=goreleaser
 
 archives:
-  - replacements:
+  - id: chatto
+    builds:
+      - chatto
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
+    replacements:
       darwin: Darwin
       linux: Linux
       windows: Windows
       386: i386
       amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+  - id: chatto-cli
+    builds:
+      - chatto-cli
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
 
 dockers:
   - ids:
       - chatto
     image_templates:
-      - "jaimeteb/chatto:{{ .Version }}-amd64"
+      - "jaimeteb/chatto:{{ .Tag }}-amd64"
     use_buildx: true
     goos: linux
     goarch: amd64
     dockerfile: Dockerfile
     build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--platform=linux/amd64"
   - ids:
       - chatto
     image_templates:
-      - "jaimeteb/chatto:{{ .Version }}-arm64v8"
+      - "jaimeteb/chatto:{{ .Tag }}-arm64"
     use_buildx: true
     goos: linux
     goarch: arm64
     dockerfile: Dockerfile
     build_flag_templates:
-      - "--platform=linux/arm64/v8"
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--platform=linux/arm64"
 
 docker_manifests:
-  - name_template: "jaimeteb/chatto:{{ .Version }}"
+  - name_template: "jaimeteb/chatto:v{{ .Major }}.{{ .Minor }}"
     image_templates:
-      - "jaimeteb/chatto:{{ .Version }}-amd64"
-      - "jaimeteb/chatto:{{ .Version }}-arm64v8"
+      - "jaimeteb/chatto:{{ .Tag }}-amd64"
+      - "jaimeteb/chatto:{{ .Tag }}-arm64"
+  - name_template: "jaimeteb/chatto:{{ .Tag }}"
+    image_templates:
+      - "jaimeteb/chatto:{{ .Tag }}-amd64"
+      - "jaimeteb/chatto:{{ .Tag }}-arm64"
   - name_template: "jaimeteb/chatto:latest"
     image_templates:
-      - "jaimeteb/chatto:{{ .Version }}-amd64"
-      - "jaimeteb/chatto:{{ .Version }}-arm64v8"
+      - "jaimeteb/chatto:{{ .Tag }}-amd64"
+      - "jaimeteb/chatto:{{ .Tag }}-arm64"
 
 checksum:
   name_template: "checksums.txt"
@@ -76,3 +132,6 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
