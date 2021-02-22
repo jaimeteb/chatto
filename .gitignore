@@ -6,3 +6,4 @@ coverage.txt
 build/
 dist/
 chatto/
+.idea/

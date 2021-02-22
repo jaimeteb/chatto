@@ -28,16 +28,18 @@ The inspiration for this project originally came from [Flottbot](https://github.
     * [The **clf.yml** file](#yourfirstbotclf)
     * [The **fsm.yml** file](#yourfirstbotfsm)
     * [Run your bot](#yourfirstbotrun)
+    * [Interact with your bot](#yourfirstbotinteract)
 * [Usage](#usage)  
     * [CLI](#usagecli)
     * [Docker Compose](#usagecompose)
+    * [Import](#usageimport)
 * [Examples](#examples)  
 
 <a name="install"></a>
 ## Installation
 
 ```
-go get -u github.com/jaimeteb/chatto/...
+go get -u github.com/jaimeteb/chatto/cmd/chatto
 ```
 
 Via Docker:
@@ -114,15 +116,15 @@ functions:
       into: "on"
     command: "turn_on"
     message:
-      - "Turning on."
+      - text: "Turning on."
 
   - transition:
       from: "on"
       into: "off"
     command: "turn_off"
     message:
-      - "Turning off."
-      - "❌"
+      - text: "Turning off."
+      - text: "❌"
 
 defaults:
   unknown: "Can't do that."
@@ -131,13 +133,13 @@ defaults:
 <a name="yourfirstbotrun"></a>
 ### Run your first bot
 
-To run your bot in a CLI, simply run:
+To start your bot, run:
 
 ```bash
-chatto -cli -path data/
+chatto -path data/
 ```
 
-Or if you're using Docker, run:
+If you're using Docker, run:
 
 ```bash
 docker run \
@@ -145,7 +147,16 @@ docker run \
     -e CHATTO_DATA=./data \
     -v $PWD/data:/data \
     jaimeteb/chatto:latest \
-    chatto -cli -path data
+    chatto -path data
+```
+
+<a name="yourfirstbotinteract"></a>
+### Interact with your first bot
+
+To interact with your bot, run:
+
+```
+chatto-cli
 ```
 
 That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **off**. However, you cannot go from **on** into **on**, or from **off** into **off** either.
@@ -158,7 +169,7 @@ Here is a diagram for this simple Finite State Machine:
 <a name="usage"></a>
 ## Usage
 
-> You can integrate yout bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
+> You can integrate your bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
 
 Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
 
@@ -167,6 +178,7 @@ chatto -path ./your/data
 ```
 
 To run on Docker, use:
+
 ```bash
 docker run \
   -p 4770:4770 \
@@ -178,21 +190,10 @@ docker run \
 <a name="usagecli"></a>
 ### CLI
 
-You can use Chatto in a CLI mode by adding the `-cli` flag.
+You can use the Chatto CLI tool by downloading the `chatto-cli` binary. The CLI makes it easy to test your bot interactions.
 
 ```bash
-chatto -cli -path ./your/data
-```
-
-On Docker:
-
-```bash
-docker run \
-    -it \
-    -e CHATTO_DATA=./your/data \
-    -v $PWD./your/data:/data \
-    jaimeteb/chatto:latest \
-    chatto -cli -path data
+chatto-cli -url 'http://mybot.com' -port 4770
 ```
 
 <a name="usagecompose"></a>
@@ -276,6 +277,66 @@ docker-compose up -d chatto
 
 > The [extensions](/extensions) server has to be running before Chatto initializes.
 
+<a name="usageimport"></a>
+### Import
+
+An importable bot server and client package is provided to allow embedding into your own application.
+
+To embed the server:
+
+```go
+package main
+
+import (
+	"flag"
+
+	"github.com/jaimeteb/chatto/bot"
+)
+
+func main() {
+	port := flag.Int("port", 4770, "Specify port to use.")
+	path := flag.String("path", ".", "Path to YAML files.")
+	flag.Parse()
+
+	server := bot.NewServer(*path, *port)
+
+	server.Run()
+}
+```
+
+To embed the client:
+
+```go
+package myservice
+
+import (
+	"log"
+
+	"github.com/jaimeteb/chatto/bot"
+)
+
+type MyService struct {
+	chatto bot.Client
+}
+
+func NewMyService(url string, port int) *MyService {
+	return &MyService{chatto: bot.NewClient(url, port)}
+}
+
+func (s *MyService) Submit(question *query.Question) error {
+	answers, err := s.chatto.Submit(question)
+	if err != nil {
+		return err
+	}
+
+	// Print answers to stdout
+	for _, answer := range answers {
+		fmt.Println(answer.Text)
+	}
+
+	return nil
+}
+```
 
 <a name="examples"></a>
 ## Examples

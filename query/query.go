@@ -1,8 +1,6 @@
 package query
 
-import (
-	log "github.com/sirupsen/logrus"
-)
+import log "github.com/sirupsen/logrus"
 
 // Question for the FSM
 type Question struct {

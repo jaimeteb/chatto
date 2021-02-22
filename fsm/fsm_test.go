@@ -1,128 +1,261 @@
 package fsm_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/jaimeteb/chatto/fsm"
-	"github.com/jaimeteb/chatto/testutils"
+	"github.com/jaimeteb/chatto/query"
 )
 
-func TestFSM1(t *testing.T) {
-	fsmConfig, err := fsm.LoadConfig(testutils.Examples00TestPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	domain := fsm.New(fsmConfig)
-
-	machine := fsm.FSM{State: 0}
-
-	resp1, _ := machine.ExecuteCmd("turn_on", "turn_on", domain)
-	if len(resp1) != 1 && resp1[0].Text != "Turning on." {
-		t.Errorf("resp is incorrect, got: %v, want: %v.", resp1, "Turning on.")
-	}
-
-	resp2, _ := machine.ExecuteCmd("turn_on", "turn_on", domain)
-	if len(resp2) != 1 && resp2[0].Text != "Can't do that." {
-		t.Errorf("resp is incorrect, got: %v, want: %v.", resp2, "Can't do that.")
-	}
-
-	resp5, _ := machine.ExecuteCmd("", "f o o", domain)
-	if len(resp5) != 1 && resp5[0].Text != "???" {
-		t.Errorf("resp is incorrect, got: %v, want: %v.", resp5, "???")
-	}
-}
-
-func TestFSM2(t *testing.T) {
-	fsmConfig, err := fsm.LoadConfig(testutils.Examples04TriviaPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	domain := fsm.New(fsmConfig)
-
-	machine := fsm.FSM{
-		State: 1,
-		Slots: make(map[string]string),
-	}
-
-	machine.ExecuteCmd("start", "1", domain)
-}
-
-func TestCacheStore(t *testing.T) {
-	machines := fsm.NewStore(fsm.StoreConfig{Type: "CACHE"})
-
-	if resp1 := machines.Exists("foo"); resp1 != false {
-		t.Errorf("incorrect, got: %v, want: %v.", resp1, "false")
-	}
-
-	machines.Set(
-		"foo",
-		&fsm.FSM{
-			State: 0,
-			Slots: make(map[string]string),
-		},
-	)
-	if resp2 := machines.Get("foo"); resp2.State != 0 {
-		t.Errorf("incorrect, got: %v, want: %v.", resp2, "0")
-	}
-
-	newFsm := &fsm.FSM{
-		State: 1,
-		Slots: map[string]string{
-			"abc": "xyz",
+var (
+	// Hello
+	helloCommands  = []string{"hey_friend"}
+	helloStates    = []string{"hello"}
+	helloFunctions = []fsm.Function{
+		{
+			Transition: fsm.Transition{
+				From: "any",
+				Into: "hello",
+			},
+			Command: "hey_friend",
+			Message: []fsm.Message{{
+				Text: "Hey friend!",
+			}},
 		},
 	}
-	machines.Set("foo", newFsm)
-	if resp3 := machines.Get("foo"); resp3.State != 1 {
-		t.Errorf("incorrect, got: %v, want: %v.", resp3, "1")
-	}
-}
 
-func TestRedisStore(t *testing.T) {
-	machines := fsm.NewStore(fsm.StoreConfig{
-		Type:     "REDIS",
-		Host:     "localhost",
-		Password: "pass",
-	})
-
-	if resp1 := machines.Exists("foo"); resp1 != false {
-		t.Errorf("incorrect, got: %v, want: %v.", resp1, "false")
-	}
-
-	machines.Set(
-		"foo",
-		&fsm.FSM{
-			State: 0,
-			Slots: make(map[string]string),
+	// Pokemon test
+	pokemonCommands  = []string{"initial", "search_pokemon"}
+	pokemonStates    = []string{"greet", "search_pokemon"}
+	pokemonFunctions = []fsm.Function{
+		{
+			Transition: fsm.Transition{
+				From: "initial",
+				Into: "search_pokemon",
+			},
+			Command: "search_pokemon",
+			Message: []fsm.Message{{
+				Text: "What is the Pokémon's name or number?",
+			}},
 		},
-	)
-	if resp2 := machines.Get("foo"); resp2.State != 0 {
-		t.Errorf("incorrect, got: %v, want: %v.", resp2, "0")
-	}
-
-	newFsm := &fsm.FSM{
-		State: 1,
-		Slots: map[string]string{
-			"abc": "xyz",
+		{
+			Transition: fsm.Transition{
+				From: "initial",
+				Into: "search_pokemon",
+			},
+			Command: "greet",
+			Message: []fsm.Message{{
+				Text: "What is the Pokémon's name or number?",
+			}},
+		},
+		{
+			Transition: fsm.Transition{
+				From: "search_pokemon",
+				Into: "initial",
+			},
+			Command:   "any",
+			Extension: "search_pokemon",
+			Slot: fsm.Slot{
+				Name: "pokemon",
+				Mode: "whole_text",
+			},
 		},
 	}
-	machines.Set("foo", newFsm)
-	if resp3 := machines.Get("foo"); resp3.State != 1 {
-		t.Errorf("incorrect, got: %v, want: %v.", resp3, "1")
-	}
-}
 
-func TestRedisStoreFail(t *testing.T) {
-	machines := fsm.NewStore(fsm.StoreConfig{
-		Type:     "REDIS",
-		Host:     "localhost",
-		Password: "foo",
-	})
-	switch machines.(type) {
-	case *fsm.CacheStore:
-		break
-	default:
-		t.Error("incorrect, want: *CacheStoreFSM")
+	// On off test
+	onOffCommands  = []string{"turn_on", "turn_off"}
+	onOffStates    = []string{"off", "on"}
+	onOffFunctions = []fsm.Function{
+		{
+			Transition: fsm.Transition{
+				From: "off",
+				Into: "on",
+			},
+			Command: "turn_on",
+			Message: []fsm.Message{{
+				Text: "Turning on.",
+			}},
+			Slot: fsm.Slot{
+				Name: "on",
+				Mode: "whole_text",
+			},
+		},
+		{
+			Transition: fsm.Transition{
+				From: "on",
+				Into: "off",
+			},
+			Command: "turn_off",
+			Message: []fsm.Message{
+				{
+					Text: "Turning off.",
+				},
+				{
+					Text: "❌",
+				},
+			},
+			Slot: fsm.Slot{
+				Name:  "off",
+				Mode:  "regex",
+				Regex: "^turn.*$",
+			},
+		},
+	}
+	defaultResponses = fsm.Defaults{
+		Unknown: "Can't do that.",
+		Unsure:  "???",
+		Error:   "Error",
+	}
+)
+
+func TestFSM_ExecuteCmd(t *testing.T) {
+	type fields struct {
+		State int
+		Slots map[string]string
+	}
+	type args struct {
+		command   string
+		txt       string
+		fsmDomain *fsm.Domain
+	}
+	tests := []struct {
+		name          string
+		fields        fields
+		args          args
+		wantAnswers   []query.Answer
+		wantExtension string
+		wantState     int
+		wantSlots     map[string]string
+	}{
+		{
+			name: "invalid command should be unknown",
+			fields: fields{
+				State: 0,
+				Slots: make(map[string]string),
+			},
+			args: args{
+				command:   "ruhrow",
+				txt:       "blah blah blah",
+				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+			},
+			wantAnswers: []query.Answer{{
+				Text: "Can't do that.",
+			}},
+			wantExtension: "",
+			wantState:     0,
+			wantSlots:     map[string]string{},
+		},
+		{
+			name: "empty command should be unsure",
+			fields: fields{
+				State: 0,
+				Slots: make(map[string]string),
+			},
+			args: args{
+				command:   "",
+				txt:       "blah blah blah",
+				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+			},
+			wantAnswers: []query.Answer{{
+				Text: "???",
+			}},
+			wantExtension: "",
+			wantState:     0,
+			wantSlots:     map[string]string{},
+		},
+		{
+			name: "hello command should run hey_friend from any state",
+			fields: fields{
+				State: 0,
+				Slots: make(map[string]string),
+			},
+			args: args{
+				command:   "hey_friend",
+				txt:       "hey there",
+				fsmDomain: fsm.NewDomain(helloCommands, helloStates, helloFunctions, defaultResponses),
+			},
+			wantAnswers: []query.Answer{{
+				Text: "Hey friend!",
+			}},
+			wantExtension: "",
+			wantState:     1,
+			wantSlots:     map[string]string{},
+		},
+		{
+			name: "any command should run extension search_pokemon",
+			fields: fields{
+				State: 1,
+				Slots: make(map[string]string),
+			},
+			args: args{
+				command:   "any",
+				txt:       "pikachu",
+				fsmDomain: fsm.NewDomain(pokemonCommands, pokemonStates, pokemonFunctions, defaultResponses),
+			},
+			wantAnswers:   nil,
+			wantExtension: "search_pokemon",
+			wantState:     0,
+			wantSlots:     map[string]string{"pokemon": "pikachu"},
+		},
+		{
+			name: "turn_on command should turn on",
+			fields: fields{
+				State: 0,
+				Slots: make(map[string]string),
+			},
+			args: args{
+				command:   "turn_on",
+				txt:       "turn it on",
+				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+			},
+			wantAnswers: []query.Answer{{
+				Text: "Turning on.",
+			}},
+			wantExtension: "",
+			wantState:     1,
+			wantSlots:     map[string]string{"on": "turn it on"},
+		},
+		{
+			name: "turn_off command should turn off",
+			fields: fields{
+				State: 1,
+				Slots: make(map[string]string),
+			},
+			args: args{
+				command:   "turn_off",
+				txt:       "turn it off",
+				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+			},
+			wantAnswers: []query.Answer{
+				{
+					Text: "Turning off.",
+				},
+				{
+					Text: "❌",
+				},
+			},
+			wantExtension: "",
+			wantState:     0,
+			wantSlots:     map[string]string{"off": "turn it off"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := &fsm.FSM{
+				State: tt.fields.State,
+				Slots: tt.fields.Slots,
+			}
+			gotAnswers, gotExtension := m.ExecuteCmd(tt.args.command, tt.args.txt, tt.args.fsmDomain)
+			if !reflect.DeepEqual(gotAnswers, tt.wantAnswers) {
+				t.Errorf("FSM.Executecommand() gotAnswers = %v, want %v", gotAnswers, tt.wantAnswers)
+			}
+			if gotExtension != tt.wantExtension {
+				t.Errorf("FSM.Executecommand() gotExtension = %v, want %v", gotExtension, tt.wantExtension)
+			}
+			if !reflect.DeepEqual(m.Slots, tt.wantSlots) {
+				t.Errorf("FSM.Slot gotSlot = %v, want %v", m.Slots, tt.wantSlots)
+			}
+		})
 	}
 }
