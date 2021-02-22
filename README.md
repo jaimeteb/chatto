@@ -143,7 +143,7 @@ Or if you're using Docker, run:
 docker run \
     -it \
     -e CHATTO_DATA=./data \
-    -v $PWD/data:/chatto/data \
+    -v $PWD/data:/data \
     jaimeteb/chatto:latest \
     chatto -cli -path data
 ```
@@ -171,7 +171,7 @@ To run on Docker, use:
 docker run \
   -p 4770:4770 \
   -e CHATTO_DATA=./your/data \
-  -v $PWD/your/data:/chatto/data \
+  -v $PWD/your/data:/data \
   jaimeteb/chatto
 ```
 
@@ -190,7 +190,7 @@ On Docker:
 docker run \
     -it \
     -e CHATTO_DATA=./your/data \
-    -v $PWD./your/data:/chatto/data \
+    -v $PWD./your/data:/data \
     jaimeteb/chatto:latest \
     chatto -cli -path data
 ```
@@ -210,7 +210,7 @@ services:
     ports:
       - "4770:4770"
     volumes:
-      - ${CHATTO_DATA}:/chatto/data
+      - ${CHATTO_DATA}:/data
     depends_on:
       - ext
       - redis
