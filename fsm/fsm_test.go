@@ -109,7 +109,7 @@ var (
 	}
 )
 
-func TestFSM_Executecommand(t *testing.T) {
+func TestFSM_ExecuteCmd(t *testing.T) {
 	type fields struct {
 		State int
 		Slots map[string]string
