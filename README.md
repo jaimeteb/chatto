@@ -169,7 +169,7 @@ Here is a diagram for this simple Finite State Machine:
 <a name="usage"></a>
 ## Usage
 
-> You can integrate your bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/channels/)
+> You can integrate your bot with [**Telegram, Twilio, Slack**](https://chatto.jaimeteb.com/channels/) and [**anything you like**](https://chatto.jaimeteb.com/endpoints/)
 
 Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
 
