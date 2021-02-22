@@ -1,11 +1,42 @@
 package messages
 
-import "github.com/jaimeteb/chatto/query"
+import (
+	"strings"
+
+	"github.com/jaimeteb/chatto/query"
+)
 
 // Receive question from channel with reply options
 type Receive struct {
 	Question  *query.Question `json:"question"`
 	ReplyOpts *ReplyOpts
+}
+
+// Conversation returns a string of the unique conversations
+// the bot is having. The definition of a "conversation" is
+// different depending on the channel used. For example Slack
+// conversations happen in Slack threads, which is different
+// than a conversation in Twilio between a Sender and Recipient.
+// In the Slack example this allows us to have multiple different
+// conversations with the bot in different Slack channels and
+// threads
+func (r *Receive) Conversation() string {
+	var conversation string
+
+	if r.ReplyOpts.Slack != (SlackReplyOpts{}) {
+		conversation = strings.Join([]string{
+			r.ReplyOpts.Slack.Channel,
+			r.ReplyOpts.Slack.TS,
+		}, "/")
+	} else if r.ReplyOpts.Telegram != (TelegramReplyOpts{}) {
+		conversation = r.Question.Sender
+	} else if r.ReplyOpts.Twilio != (TwilioReplyOpts{}) {
+		conversation = r.Question.Sender
+	} else {
+		conversation = r.Question.Sender
+	}
+
+	return conversation
 }
 
 // Response with answers to channel with reply options

@@ -66,7 +66,7 @@ func (b *Bot) channelHandler(w http.ResponseWriter, r *http.Request, chnl channe
 		return
 	}
 
-	answers, err := b.Answer(receiveMsg.Question)
+	answers, err := b.Answer(receiveMsg)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -91,7 +91,7 @@ func (b *Bot) slackChannelEvents() {
 
 		go func() {
 			for receiveMsg := range receiveChan {
-				answers, err := b.Answer(receiveMsg.Question)
+				answers, err := b.Answer(&receiveMsg)
 				if err != nil {
 					log.Error(err)
 					return
