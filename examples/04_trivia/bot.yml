@@ -2,6 +2,7 @@ bot_name: "trivia_bot"
 extensions:
   type: REST
   url: http://localhost:8770
+  # url: https://localhost:8770
 store:
   type: REDIS
   host: localhost
