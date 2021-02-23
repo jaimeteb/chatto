@@ -21,22 +21,22 @@ type Receive struct {
 // conversations with the bot in different Slack channels and
 // threads
 func (r *Receive) Conversation() string {
-	var conversation string
+	if r.ReplyOpts == nil {
+		return r.Question.Sender
+	}
 
 	if r.ReplyOpts.Slack != (SlackReplyOpts{}) {
-		conversation = strings.Join([]string{
+		return strings.Join([]string{
 			r.ReplyOpts.Slack.Channel,
 			r.ReplyOpts.Slack.TS,
 		}, "/")
 	} else if r.ReplyOpts.Telegram != (TelegramReplyOpts{}) {
-		conversation = r.Question.Sender
+		return r.Question.Sender
 	} else if r.ReplyOpts.Twilio != (TwilioReplyOpts{}) {
-		conversation = r.Question.Sender
-	} else {
-		conversation = r.Question.Sender
+		return r.Question.Sender
 	}
 
-	return conversation
+	return r.Question.Sender
 }
 
 // Response with answers to channel with reply options

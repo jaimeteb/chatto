@@ -22,14 +22,15 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.16
-      -
-        name: Cache Go modules
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+# Disable module cache until https://github.com/golangci/golangci-lint-action/issues/135 is resolved
+#      -
+#        name: Cache Go modules
+#        uses: actions/cache@v2.1.4
+#        with:
+#          path: ~/go/pkg/mod
+#          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+#          restore-keys: |
+#            ${{ runner.os }}-go-
       -
         name: golangci-lint
         uses: golangci/golangci-lint-action@v2
