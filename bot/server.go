@@ -17,12 +17,12 @@ func NewServer(path string, port int) *Server {
 		log.Fatal(err)
 	}
 
-	bot, err := bot.New(botConfig)
+	b, err := bot.New(botConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &Server{bot: bot}
+	return &Server{bot: b}
 }
 
 // Run botto bot server

@@ -91,7 +91,9 @@ func (b *Bot) slackChannelEvents() {
 
 		go func() {
 			for receiveMsg := range receiveChan {
-				answers, err := b.Answer(&receiveMsg)
+				r := receiveMsg
+
+				answers, err := b.Answer(&r)
 				if err != nil {
 					log.Error(err)
 					return

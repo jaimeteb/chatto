@@ -47,6 +47,10 @@ func (c *Client) CLI() {
 		question := &query.Question{Sender: "cli", Text: strings.TrimSuffix(cmd, "\n")}
 
 		answers, err := c.Submit(question)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
 
 		color.Cyan("bot:")
 
