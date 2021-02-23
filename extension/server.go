@@ -114,8 +114,8 @@ func ServeREST(registeredFuncs RegisteredFuncs) error {
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 
-	sslKey := flag.String("ssl-keyfile", "", "SSL key file for TLS secured server.")
-	sslCert := flag.String("ssl-certificate", "", "SSL certificate for TLS secured server.")
+	sslKey := flag.String("ssl-key", "", "SSL key file for TLS secured server.")
+	sslCert := flag.String("ssl-cert", "", "SSL certificate for TLS secured server.")
 
 	flag.Parse()
 
@@ -129,10 +129,10 @@ func ServeREST(registeredFuncs RegisteredFuncs) error {
 
 	if *sslKey != "" && *sslCert != "" {
 		log.Infof("REST extension server started with TLS. Using port %v", *port)
-		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%v", *port), *sslCert, *sslKey, r))
+		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", *port), *sslCert, *sslKey, r))
 	} else {
 		log.Infof("REST extension server started. Using port %v", *port)
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), r))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), r))
 	}
 
 	return nil
