@@ -20,6 +20,9 @@ func LoadConfig(path string) (*Config, error) {
 	config := viper.New()
 	config.SetConfigName("fsm")
 	config.AddConfigPath(path)
+	config.SetDefault("defaults.unknown", "Unknown command, try something different.")
+	config.SetDefault("defaults.unsure", "Not sure I understood, try something different.")
+	config.SetDefault("defaults.error", "Error running command, try again later.")
 
 	if err := config.ReadInConfig(); err != nil {
 		return nil, err

@@ -96,13 +96,13 @@ func (b *Bot) slackChannelEvents() {
 				answers, err := b.Answer(&r)
 				if err != nil {
 					log.Error(err)
-					return
+					continue
 				}
 
 				err = b.Channels.Slack.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
 				if err != nil {
 					log.Error(err)
-					return
+					continue
 				}
 			}
 		}()

@@ -183,6 +183,10 @@ func NewFSM() *FSM {
 func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (answers []query.Answer, extension string, err error) {
 	// Function command was not found by the classifier
 	if strings.TrimSpace(command) == "" {
+		if fsmDomain.DefaultMessages.Unsure == "" {
+			return nil, "", nil
+		}
+
 		return nil, "", &ErrUnsureCommand{Msg: fsmDomain.DefaultMessages.Unsure}
 	}
 
@@ -246,6 +250,10 @@ func (m *FSM) SaveToSlot(classifiedText string, slot Slot) {
 func (m *FSM) TransitionState(transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string, err error) {
 	// Function command was found by the classifier but state transition is unknown or not valid
 	if transitionFunc == nil {
+		if defaults.Unknown == "" {
+			return nil, "", nil
+		}
+
 		return nil, "", &ErrUnknownCommand{Msg: defaults.Unknown}
 	}
 
