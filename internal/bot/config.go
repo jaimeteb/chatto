@@ -11,13 +11,57 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ConversationConfig for the bot
+type ConversationConfig struct {
+	ReplyUnsure  bool `mapstructure:"reply_unsure"`
+	ReplyUnknown bool `mapstructure:"reply_unknown"`
+	ReplyError   bool `mapstructure:"reply_error"`
+}
+
+// Conversation settings for new and existing conversations
+type Conversation struct {
+	New      ConversationConfig `mapstructure:"new"`
+	Existing ConversationConfig `mapstructure:"existing"`
+}
+
 // Config struct models the bot.yml configuration file
 type Config struct {
-	Name       string           `mapstructure:"bot_name"`
-	Extensions extension.Config `mapstructure:"extensions"`
-	Store      fsm.StoreConfig  `mapstructure:"store"`
-	Port       int              `mapstructure:"port"`
-	Path       string
+	Name         string           `mapstructure:"bot_name"`
+	Extensions   extension.Config `mapstructure:"extensions"`
+	Store        fsm.StoreConfig  `mapstructure:"store"`
+	Port         int              `mapstructure:"port"`
+	Path         string
+	Conversation Conversation `mapstructure:"conversation"`
+}
+
+// ShouldReplyUnsure depending on the conversational settings lets
+// the bot know if it should reply with Unsure to the channel
+func (c *Config) ShouldReplyUnsure(isExistingConversation bool) bool {
+	if isExistingConversation {
+		return c.Conversation.Existing.ReplyUnsure
+	}
+
+	return c.Conversation.New.ReplyUnsure
+}
+
+// ShouldReplyUnknown depending on the conversational settings lets
+// the bot know if it should reply with Unknown to the channel
+func (c *Config) ShouldReplyUnknown(isExistingConversation bool) bool {
+	if isExistingConversation {
+		return c.Conversation.Existing.ReplyUnknown
+	}
+
+	return c.Conversation.New.ReplyUnknown
+}
+
+// ShouldReplyError depending on the conversational settings lets
+// the bot know if it should reply with Error to the channel
+func (c *Config) ShouldReplyError(isExistingConversation bool) bool {
+	if isExistingConversation {
+		return c.Conversation.Existing.ReplyError
+	}
+
+	return c.Conversation.New.ReplyError
 }
 
 // LoadConfig loads bot configuration from bot.yml
@@ -27,6 +71,12 @@ func LoadConfig(path string, port int) (*Config, error) {
 	config.AddConfigPath(path)
 	config.AutomaticEnv()
 	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	config.SetDefault("conversation.new.reply_unsure", true)
+	config.SetDefault("conversation.new.reply_unknown", true)
+	config.SetDefault("conversation.new.reply_error", true)
+	config.SetDefault("conversation.existing.reply_unsure", true)
+	config.SetDefault("conversation.existing.reply_unknown", true)
+	config.SetDefault("conversation.existing.reply_error", true)
 
 	if err := config.ReadInConfig(); err != nil {
 		switch err.(type) {

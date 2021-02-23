@@ -111,6 +111,19 @@ issues:
         - lll
         - dogsled
         - scopelint
+        - funlen
+        - gosec
+        - dupl
+
+    - path: _test\.go
+      linsters:
+        - staticcheck
+      text: "SA4004"
+
+    - path: _test\.go
+      linsters:
+        - gocritic
+      text: "unnamedResult"
 
     # https://github.com/go-critic/go-critic/issues/926
     - linters:

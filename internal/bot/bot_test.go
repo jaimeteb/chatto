@@ -134,9 +134,17 @@ func TestBot_Extensions(t *testing.T) {
 		t.Fatalf("failed to load bot: %s", err)
 	}
 
-	_, err = testBot.Answer(&query.Question{
-		Sender: "tester",
-		Text:   "hello",
+	_, err = testBot.Answer(&messages.Receive{
+		Question: &query.Question{
+			Sender: "tester",
+			Text:   "hello",
+		},
+		ReplyOpts: &messages.ReplyOpts{
+			Slack: messages.SlackReplyOpts{
+				Channel: "C01L96YPUH4",
+				TS:      "1612126789.000200",
+			},
+		},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -150,7 +158,7 @@ func TestBot_Answer(t *testing.T) {
 	}
 
 	type args struct {
-		question *query.Question
+		receive *messages.Receive
 	}
 	tests := []struct {
 		name    string
@@ -163,9 +171,16 @@ func TestBot_Answer(t *testing.T) {
 			name: "turn on the thing",
 			bot:  testBot,
 			args: args{
-				question: &query.Question{
-					Sender: "42",
-					Text:   "on",
+				receive: &messages.Receive{
+					Question: &query.Question{
+						Sender: "42",
+						Text:   "on",
+					},
+					ReplyOpts: &messages.ReplyOpts{
+						Twilio: messages.TwilioReplyOpts{
+							Recipient: "42",
+						},
+					},
 				},
 			},
 			want: []query.Answer{{
@@ -176,9 +191,16 @@ func TestBot_Answer(t *testing.T) {
 			name: "turn off the thing",
 			bot:  testBot,
 			args: args{
-				question: &query.Question{
-					Sender: "42",
-					Text:   "off",
+				receive: &messages.Receive{
+					Question: &query.Question{
+						Sender: "42",
+						Text:   "off",
+					},
+					ReplyOpts: &messages.ReplyOpts{
+						Twilio: messages.TwilioReplyOpts{
+							Recipient: "42",
+						},
+					},
 				},
 			},
 			want: []query.Answer{
@@ -193,7 +215,7 @@ func TestBot_Answer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.bot.Answer(tt.args.question)
+			got, err := tt.bot.Answer(tt.args.receive)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bot.Answer() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -355,6 +377,18 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 		Store:      fsmint.StoreConfig{},
 		Port:       0,
 		Path:       "../" + testutils.Examples05SimplePath,
+		Conversation: bot.Conversation{
+			New: bot.ConversationConfig{
+				ReplyUnsure:  true,
+				ReplyUnknown: true,
+				ReplyError:   true,
+			},
+			Existing: bot.ConversationConfig{
+				ReplyUnsure:  true,
+				ReplyUnknown: true,
+				ReplyError:   true,
+			},
+		},
 	}
 
 	b := &bot.Bot{

@@ -177,16 +177,26 @@ func NewFSM() *FSM {
 	return &FSM{State: 0, Slots: make(map[string]string)}
 }
 
-// ExecuteCmd executes a command in the FSM
-// TODO: Document what the ExecuteCmd does
-func (m *FSM) ExecuteCmd(command, matchedText string, fsmDomain *Domain) (answers []query.Answer, extension string) {
+// ExecuteCmd executes a state transition in the FSM based on
+// the function command provided and if configured will save
+// the classified text to a slot
+func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (answers []query.Answer, extension string, err error) {
+	// Function command was not found by the classifier
+	if strings.TrimSpace(command) == "" {
+		if fsmDomain.DefaultMessages.Unsure == "" {
+			return nil, "", nil
+		}
+
+		return nil, "", &ErrUnsureCommand{Msg: fsmDomain.DefaultMessages.Unsure}
+	}
+
 	cmdStateTuple, transitionFunc := m.SelectStateTransition(command, fsmDomain)
 
 	// Save information from the user's input into the slot
-	m.SaveToSlot(matchedText, fsmDomain.SlotTable[cmdStateTuple])
+	m.SaveToSlot(classifiedText, fsmDomain.SlotTable[cmdStateTuple])
 
 	// Transition FSM state and get answers or extension to execute
-	return m.TransitionState(command, transitionFunc, fsmDomain.DefaultMessages)
+	return m.TransitionState(transitionFunc, fsmDomain.DefaultMessages)
 }
 
 // SelectStateTransition based on the command provided
@@ -216,7 +226,7 @@ func (m *FSM) SelectStateTransition(command string, fsmDomain *Domain) (CmdState
 }
 
 // SaveToSlot saves information from the user's input/question
-func (m *FSM) SaveToSlot(matchedText string, slot Slot) {
+func (m *FSM) SaveToSlot(classifiedText string, slot Slot) {
 	slotName := strings.TrimSpace(slot.Name)
 	slotRegex := strings.TrimSpace(slot.Regex)
 
@@ -224,28 +234,27 @@ func (m *FSM) SaveToSlot(matchedText string, slot Slot) {
 		switch strings.TrimSpace(slot.Mode) {
 		case "regex":
 			if r, err := regexp.Compile(slotRegex); err == nil {
-				match := r.FindAllString(matchedText, 1)
+				match := r.FindAllString(classifiedText, 1)
 				if len(match) > 0 {
 					m.Slots[slotName] = match[0]
 				}
 			}
 		default:
 			// Use whole_text by default
-			m.Slots[slotName] = matchedText
+			m.Slots[slotName] = classifiedText
 		}
 	}
 }
 
 // TransitionState FSM state and return the query answers or extension to execute.
-func (m *FSM) TransitionState(command string, transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string) {
-	// Function command was not found in the matchedText
-	if strings.TrimSpace(command) == "" {
-		return []query.Answer{{Text: defaults.Unsure}}, ""
-	}
-
-	// Function command was found but state transition is unknown or not valid
+func (m *FSM) TransitionState(transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string, err error) {
+	// Function command was found by the classifier but state transition is unknown or not valid
 	if transitionFunc == nil {
-		return []query.Answer{{Text: defaults.Unknown}}, ""
+		if defaults.Unknown == "" {
+			return nil, "", nil
+		}
+
+		return nil, "", &ErrUnknownCommand{Msg: defaults.Unknown}
 	}
 
 	// Execute transition
@@ -253,12 +262,35 @@ func (m *FSM) TransitionState(command string, transitionFunc TransitionFunc, def
 
 	// Tell the bot to execute an extension to get the answer
 	if strings.TrimSpace(extension) != "" {
-		return nil, extension
+		return nil, extension, nil
 	}
 
 	for n := range messages {
 		answers = append(answers, query.Answer{Text: messages[n].Text, Image: messages[n].Image})
 	}
 
-	return answers, ""
+	return answers, "", nil
+}
+
+// ErrUnsureCommand is returned by the FSM when no function
+// command was found by the classifier
+type ErrUnsureCommand struct {
+	Msg string
+}
+
+// Error returns the ErrUnsureCommand error message
+func (e *ErrUnsureCommand) Error() string {
+	return e.Msg
+}
+
+// ErrUnknownCommand is returned by the FSM when a function
+// command was found by the classifier but the state
+// transition is unknown or not valid
+type ErrUnknownCommand struct {
+	Msg string
+}
+
+// Error returns the ErrUnknownCommand error message
+func (e *ErrUnknownCommand) Error() string {
+	return e.Msg
 }

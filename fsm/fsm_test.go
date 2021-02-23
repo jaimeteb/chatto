@@ -127,6 +127,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 		wantExtension string
 		wantState     int
 		wantSlots     map[string]string
+		wantErr       bool
 	}{
 		{
 			name: "invalid command should be unknown",
@@ -139,12 +140,11 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 				txt:       "blah blah blah",
 				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
 			},
-			wantAnswers: []query.Answer{{
-				Text: "Can't do that.",
-			}},
+			wantAnswers:   nil,
 			wantExtension: "",
 			wantState:     0,
 			wantSlots:     map[string]string{},
+			wantErr:       true,
 		},
 		{
 			name: "empty command should be unsure",
@@ -157,12 +157,11 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 				txt:       "blah blah blah",
 				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
 			},
-			wantAnswers: []query.Answer{{
-				Text: "???",
-			}},
+			wantAnswers:   nil,
 			wantExtension: "",
 			wantState:     0,
 			wantSlots:     map[string]string{},
+			wantErr:       true,
 		},
 		{
 			name: "hello command should run hey_friend from any state",
@@ -181,6 +180,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			wantExtension: "",
 			wantState:     1,
 			wantSlots:     map[string]string{},
+			wantErr:       false,
 		},
 		{
 			name: "any command should run extension search_pokemon",
@@ -197,6 +197,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			wantExtension: "search_pokemon",
 			wantState:     0,
 			wantSlots:     map[string]string{"pokemon": "pikachu"},
+			wantErr:       false,
 		},
 		{
 			name: "turn_on command should turn on",
@@ -215,6 +216,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			wantExtension: "",
 			wantState:     1,
 			wantSlots:     map[string]string{"on": "turn it on"},
+			wantErr:       false,
 		},
 		{
 			name: "turn_off command should turn off",
@@ -238,6 +240,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			wantExtension: "",
 			wantState:     0,
 			wantSlots:     map[string]string{"off": "turn it off"},
+			wantErr:       false,
 		},
 	}
 	for _, tt := range tests {
@@ -246,12 +249,16 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 				State: tt.fields.State,
 				Slots: tt.fields.Slots,
 			}
-			gotAnswers, gotExtension := m.ExecuteCmd(tt.args.command, tt.args.txt, tt.args.fsmDomain)
+			gotAnswers, gotExtension, err := m.ExecuteCmd(tt.args.command, tt.args.txt, tt.args.fsmDomain)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FSM.ExecuteCmd() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if !reflect.DeepEqual(gotAnswers, tt.wantAnswers) {
-				t.Errorf("FSM.Executecommand() gotAnswers = %v, want %v", gotAnswers, tt.wantAnswers)
+				t.Errorf("FSM.ExecuteCmd() gotAnswers = %v, want %v", gotAnswers, tt.wantAnswers)
 			}
 			if gotExtension != tt.wantExtension {
-				t.Errorf("FSM.Executecommand() gotExtension = %v, want %v", gotExtension, tt.wantExtension)
+				t.Errorf("FSM.ExecuteCmd() gotExtension = %v, want %v", gotExtension, tt.wantExtension)
 			}
 			if !reflect.DeepEqual(m.Slots, tt.wantSlots) {
 				t.Errorf("FSM.Slot gotSlot = %v, want %v", m.Slots, tt.wantSlots)
