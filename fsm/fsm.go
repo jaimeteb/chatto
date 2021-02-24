@@ -11,8 +11,8 @@ import (
 // (from one state into another) if the functions command
 // is executed
 type Transition struct {
-	From string `yaml:"from"`
-	Into string `yaml:"into"`
+	From []string `yaml:"from"`
+	Into string   `yaml:"into"`
 }
 
 // Function lists the transitions available for the FSM
@@ -73,16 +73,18 @@ func NewTransitionTable(functions []Function, stateTable StateTable) TransitionT
 	for n := range functions {
 		function := functions[n]
 
-		cmdStateTuple := CmdStateTuple{
-			Cmd:   function.Command,
-			State: stateTable[function.Transition.From],
-		}
+		for _, from := range function.Transition.From {
+			cmdStateTuple := CmdStateTuple{
+				Cmd:   function.Command,
+				State: stateTable[from],
+			}
 
-		transitionTable[cmdStateTuple] = NewTransitionFunc(
-			stateTable[function.Transition.Into],
-			function.Extension,
-			function.Message,
-		)
+			transitionTable[cmdStateTuple] = NewTransitionFunc(
+				stateTable[function.Transition.Into],
+				function.Extension,
+				function.Message,
+			)
+		}
 	}
 
 	return transitionTable
@@ -99,13 +101,15 @@ func NewSlotTable(functions []Function, stateTable StateTable) SlotTable {
 	for n := range functions {
 		function := functions[n]
 
-		cmdStateTuple := CmdStateTuple{
-			Cmd:   function.Command,
-			State: stateTable[function.Transition.From],
-		}
+		for _, from := range function.Transition.From {
+			cmdStateTuple := CmdStateTuple{
+				Cmd:   function.Command,
+				State: stateTable[from],
+			}
 
-		if function.Slot != (Slot{}) {
-			slotTable[cmdStateTuple] = function.Slot
+			if function.Slot != (Slot{}) {
+				slotTable[cmdStateTuple] = function.Slot
+			}
 		}
 	}
 

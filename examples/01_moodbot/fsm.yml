@@ -14,21 +14,24 @@ commands:
 
 functions:
   - transition:
-      from: initial
+      from:
+        - initial
       into: ask_mood
     command: greet
     message: 
       - text: "Hello! How are you?"
 
   - transition:
-      from: ask_mood
+      from:
+        - ask_mood
       into: initial
     command: good
     message: 
       - text: "Great! :)"
 
   - transition:
-      from: ask_mood
+      from:
+        - ask_mood
       into: say_bad
     command: bad
     message:
@@ -37,14 +40,16 @@ functions:
       - text: "Did that help?"
 
   - transition:
-      from: say_bad
+      from:
+        - say_bad
       into: initial
     command: "yes"
     message:
       - text: "I'm glad! :)"
 
   - transition:
-      from: say_bad
+      from:
+        - say_bad
       into: initial
     command: "no"
     message: 

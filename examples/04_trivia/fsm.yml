@@ -10,7 +10,8 @@ commands:
 
 functions:
   - transition:
-      from: initial
+      from:
+        - initial
       into: question_1
     command: start
     message: 
@@ -22,7 +23,8 @@ functions:
         3. 100"
 
   - transition:
-      from: question_1
+      from:
+        - question_1
       into: question_2
     command: any
     extension: val_ans_1
@@ -32,7 +34,8 @@ functions:
       regex: "[0-9]+"
 
   - transition:
-      from: question_2
+      from:
+        - question_2
       into: question_3
     command: any
     extension: val_ans_2
@@ -42,7 +45,8 @@ functions:
       regex: "[0-9]+"
 
   - transition:
-      from: question_3
+      from:
+        - question_3
       into: initial
     command: any
     extension: score
@@ -52,7 +56,8 @@ functions:
       regex: "[0-9]+"
 
   - transition:
-      from: any
+      from:
+        - any
       into: initial
     command: end
     message: 

@@ -15,7 +15,7 @@ var (
 	helloFunctions = []fsm.Function{
 		{
 			Transition: fsm.Transition{
-				From: "any",
+				From: []string{"any"},
 				Into: "hello",
 			},
 			Command: "hey_friend",
@@ -31,7 +31,7 @@ var (
 	pokemonFunctions = []fsm.Function{
 		{
 			Transition: fsm.Transition{
-				From: "initial",
+				From: []string{"initial"},
 				Into: "search_pokemon",
 			},
 			Command: "search_pokemon",
@@ -41,7 +41,7 @@ var (
 		},
 		{
 			Transition: fsm.Transition{
-				From: "initial",
+				From: []string{"initial"},
 				Into: "search_pokemon",
 			},
 			Command: "greet",
@@ -51,7 +51,7 @@ var (
 		},
 		{
 			Transition: fsm.Transition{
-				From: "search_pokemon",
+				From: []string{"search_pokemon"},
 				Into: "initial",
 			},
 			Command:   "any",
@@ -69,7 +69,7 @@ var (
 	onOffFunctions = []fsm.Function{
 		{
 			Transition: fsm.Transition{
-				From: "off",
+				From: []string{"off"},
 				Into: "on",
 			},
 			Command: "turn_on",
@@ -83,7 +83,7 @@ var (
 		},
 		{
 			Transition: fsm.Transition{
-				From: "on",
+				From: []string{"on"},
 				Into: "off",
 			},
 			Command: "turn_off",

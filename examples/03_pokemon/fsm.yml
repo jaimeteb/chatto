@@ -9,21 +9,24 @@ commands:
 
 functions:
   - transition:
-      from: initial
+      from:
+        - initial
       into: search_pokemon
     command: search_pokemon
     message:
       - text: "What is the Pokémon's name or number?"
 
   - transition:
-      from: initial
+      from:
+        - initial
       into: search_pokemon
     command: greet
     message:
      - text: "What is the Pokémon's name or number?"
 
   - transition:
-      from: search_pokemon
+      from:
+        - search_pokemon
       into: initial
     command: any
     slot:
@@ -32,7 +35,8 @@ functions:
     extension: search_pokemon
 
   - transition:
-      from: any
+      from:
+        - any
       into: initial
     command: faq
     message:
