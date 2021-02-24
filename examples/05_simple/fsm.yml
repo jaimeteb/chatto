@@ -8,14 +8,16 @@ commands:
 
 functions:
   - transition:
-      from: "off"
+      from:
+        - "off"
       into: "on"
     command: "turn_on"
     message: 
       - text: "Turning on."
 
   - transition:
-      from: "on"
+      from:
+        - "on"
       into: "off"
     command: "turn_off"
     message:

@@ -11,7 +11,8 @@ commands:
 
 functions:
   - transition:
-      from: "initial"
+      from:
+        - "initial"
       into: "initial"
     command: "hi"
     message:
@@ -23,32 +24,37 @@ functions:
           * Answer random questions
 
   - transition:
-      from: "initial"
+      from:
+        - "initial"
       into: "ask_location"
     command: "weather"
     message:
       - text: "What's your location?"
 
   - transition:
-      from: "ask_location"
+      from:
+        - "ask_location"
       into: "initial"
     command: "any"
     extension: weather
 
   - transition:
-      from: "initial"
+      from:
+        - "initial"
       into: "initial"
     command: "joke"
     extension: joke
 
   - transition:
-      from: "initial"
+      from:
+        - "initial"
       into: "initial"
     command: "quote"
     extension: quote
 
   - transition:
-      from: "initial"
+      from:
+        - "initial"
       into: "initial"
     command: "misc"
     extension: misc

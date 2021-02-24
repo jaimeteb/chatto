@@ -28,7 +28,7 @@ func TestLoadConfig(t *testing.T) {
 				Functions: []fsm.Function{
 					{
 						Transition: fsm.Transition{
-							From: "off",
+							From: []string{"off"},
 							Into: "on",
 						},
 						Command: "turn_on",
@@ -38,7 +38,7 @@ func TestLoadConfig(t *testing.T) {
 					},
 					{
 						Transition: fsm.Transition{
-							From: "on",
+							From: []string{"on"},
 							Into: "off",
 						},
 						Command: "turn_off",
