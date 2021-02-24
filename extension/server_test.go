@@ -26,7 +26,7 @@ func TestExtensionRESTServer(t *testing.T) {
 		"any": greetFunc,
 	}
 
-	listener := extension.ListenerREST{registeredFuncs}
+	listener := extension.ListenerREST{RegisteredFuncs: registeredFuncs}
 
 	req1, err := http.NewRequest("GET", "/ext/get_all_funcs", nil)
 	if err != nil {

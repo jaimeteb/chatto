@@ -59,8 +59,9 @@ func (e *RPC) GetAllFuncs() ([]string, error) {
 
 // REST is a REST API URL for extension functions
 type REST struct {
-	URL  string
-	http *retryablehttp.Client
+	URL   string
+	http  *retryablehttp.Client
+	token string
 }
 
 // RunFunc runs an extension function over REST
@@ -79,7 +80,16 @@ func (e *REST) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Doma
 
 	// TODO: if fail -> don't change states
 
-	resp, err := e.http.Post(fmt.Sprintf("%s/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
+	request, err := retryablehttp.NewRequest("POST", fmt.Sprintf("%s/ext/get_func", e.URL), bytes.NewBuffer(jsonReq))
+	if err != nil {
+		return nil, errors.New(fsmDomain.DefaultMessages.Error)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	if e.token != "" {
+		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", e.token))
+	}
+	resp, err := e.http.Do(request)
+
 	if err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
@@ -97,16 +107,21 @@ func (e *REST) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Doma
 
 // GetAllFuncs retrieves all functions in extension
 func (e *REST) GetAllFuncs() ([]string, error) {
-	resp, err := e.http.Get(fmt.Sprintf("%s/ext/get_all_funcs", e.URL))
+	request, err := retryablehttp.NewRequest("GET", fmt.Sprintf("%s/ext/get_all_funcs", e.URL), nil)
 	if err != nil {
-		log.Error(err)
+		return nil, err
+	}
+	if e.token != "" {
+		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", e.token))
+	}
+	resp, err := e.http.Do(request)
+	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
 	var res []string
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		log.Error(err)
 		return nil, err
 	}
 
