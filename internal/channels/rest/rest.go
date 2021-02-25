@@ -2,6 +2,8 @@ package rest
 
 import (
 	"encoding/json"
+	"net/http"
+	"strings"
 
 	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/query"
@@ -13,8 +15,19 @@ type MessageIn struct {
 	Text   string `json:"text"`
 }
 
+// Config models REST channel configuration
+type Config struct {
+	CallbackToken string `mapstructure:"callback_token"`
+}
+
 // Channel contains a REST client
 type Channel struct {
+	token string
+}
+
+// New returns an initialized REST client/channel
+func New(config Config) *Channel {
+	return &Channel{config.CallbackToken}
 }
 
 // SendMessage for REST
@@ -44,4 +57,17 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
 func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	// Not implemented
+}
+
+// ValidateCallback validates a callback to the channel
+func (c *Channel) ValidateCallback(r *http.Request) bool {
+	if c.token != "" {
+		reqToken := r.Header.Get("Authorization")
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+
+		if c.token != reqToken {
+			return false
+		}
+	}
+	return true
 }

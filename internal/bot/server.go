@@ -16,6 +16,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ErrValidationFailed happens when a channel cannot validate an incoming callback
+var ErrValidationFailed error = errors.New("the callback token is invalid")
+
 // Prediction models a classifier prediction and its original string
 type Prediction struct {
 	Original    string  `json:"original"`
@@ -40,6 +43,11 @@ func (b *Bot) slackChannelHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *Bot) channelHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
+	if !chnl.ValidateCallback(r) {
+		http.Error(w, ErrValidationFailed.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)

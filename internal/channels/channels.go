@@ -3,6 +3,7 @@ package channels
 //go:generate mockgen -source=channels.go -destination=mockchannels/mockchannels.go -package=mockchannels
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/jaimeteb/chatto/internal/channels/messages"
@@ -19,6 +20,7 @@ type Config struct {
 	Telegram telegram.Config `mapstructure:"telegram"`
 	Twilio   twilio.Config   `mapstructure:"twilio"`
 	Slack    slack.Config    `mapstructure:"slack"`
+	REST     rest.Config     `mapstructure:"rest"`
 }
 
 // Channels combines all available channel clients
@@ -37,6 +39,8 @@ type Channel interface {
 	ReceiveMessages(receiveChan chan messages.Receive)
 	// SendMessage to the channel
 	SendMessage(response *messages.Response) error
+	// ValidateCallback validates a callback to the channel
+	ValidateCallback(r *http.Request) bool
 }
 
 // LoadConfig loads channels configuration from chn.yml
@@ -70,7 +74,7 @@ func New(channelsConfig *Config) *Channels {
 	chnls := Channels{}
 
 	// REST
-	chnls.REST = &rest.Channel{}
+	chnls.REST = rest.New(channelsConfig.REST)
 
 	// TELEGRAM
 	if channelsConfig.Telegram != (telegram.Config{}) {
