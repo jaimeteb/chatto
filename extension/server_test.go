@@ -22,11 +22,11 @@ func TestExtensionRESTServer(t *testing.T) {
 		}
 	}
 
-	registeredFuncs := extension.RegisteredFuncs{
+	RegisteredCommandFuncs := extension.RegisteredCommandFuncs{
 		"any": greetFunc,
 	}
 
-	listener := extension.ListenerREST{RegisteredFuncs: registeredFuncs}
+	listener := extension.ListenerREST{RegisteredCommandFuncs: RegisteredCommandFuncs}
 
 	req1, err := http.NewRequest("GET", "/ext/get_all_funcs", nil)
 	if err != nil {
@@ -57,11 +57,11 @@ func TestExtensionRPCServer(t *testing.T) {
 		}
 	}
 
-	registeredFuncs := extension.RegisteredFuncs{
+	RegisteredCommandFuncs := extension.RegisteredCommandFuncs{
 		"any": greetFunc,
 	}
 
-	listener := extension.ListenerRPC{registeredFuncs}
+	listener := extension.ListenerRPC{RegisteredCommandFuncs}
 
 	err := listener.GetAllFuncs(new(extension.Request), new(extension.GetAllFuncsResponse))
 	if err != nil {

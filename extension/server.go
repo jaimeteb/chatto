@@ -45,16 +45,16 @@ type GetAllFuncsResponse struct {
 	Funcs []string
 }
 
-// RegisteredFuncs maps bot commands to functions to be used in extensions
-type RegisteredFuncs map[string]func(*Request) *Response
+// RegisteredCommandFuncs maps bot commands to functions to be used in extensions
+type RegisteredCommandFuncs map[string]func(*Request) *Response
 
-// ListenerRPC contains the RegisteredFuncs to be served through RPC
+// ListenerRPC contains the RegisteredCommandFuncs to be served through RPC
 type ListenerRPC struct {
-	RegisteredFuncs RegisteredFuncs
+	RegisteredCommandFuncs RegisteredCommandFuncs
 }
 
 // ServeRPC serves the registered extension functions over RPC
-func ServeRPC(registeredFuncs RegisteredFuncs) error {
+func ServeRPC(RegisteredCommandFuncs RegisteredCommandFuncs) error {
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
@@ -75,7 +75,7 @@ func ServeRPC(registeredFuncs RegisteredFuncs) error {
 	}
 
 	log.Infof("RPC extension server started. Using port %v", *port)
-	err = rpc.Register(&ListenerRPC{RegisteredFuncs: registeredFuncs})
+	err = rpc.Register(&ListenerRPC{RegisteredCommandFuncs: RegisteredCommandFuncs})
 	if err != nil {
 		log.Error(err)
 		return err
@@ -88,7 +88,7 @@ func ServeRPC(registeredFuncs RegisteredFuncs) error {
 
 // GetFunc returns a requested extension function
 func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
-	extFunc, ok := l.RegisteredFuncs[req.Extension]
+	extFunc, ok := l.RegisteredCommandFuncs[req.Extension]
 	if !ok {
 		return ErrExtensionNotFound
 	}
@@ -103,10 +103,10 @@ func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
 	return nil
 }
 
-// GetAllFuncs returns all functions registered in an RegisteredFuncs
+// GetAllFuncs returns all functions registered in an RegisteredCommandFuncs
 func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error {
 	allFuncs := make([]string, 0)
-	for funcName := range l.RegisteredFuncs {
+	for funcName := range l.RegisteredCommandFuncs {
 		allFuncs = append(allFuncs, funcName)
 	}
 	res.Funcs = allFuncs
@@ -114,14 +114,14 @@ func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error 
 	return nil
 }
 
-// ListenerREST contains the RegisteredFuncs to be served through REST
+// ListenerREST contains the RegisteredCommandFuncs to be served through REST
 type ListenerREST struct {
-	RegisteredFuncs RegisteredFuncs
-	token           string
+	RegisteredCommandFuncs RegisteredCommandFuncs
+	token                  string
 }
 
 // ServeREST serves the registered extension functions as a REST API
-func ServeREST(registeredFuncs RegisteredFuncs) error {
+func ServeREST(RegisteredCommandFuncs RegisteredCommandFuncs) error {
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 
@@ -134,7 +134,7 @@ func ServeREST(registeredFuncs RegisteredFuncs) error {
 
 	logger.SetLogger(*debug)
 
-	l := ListenerREST{RegisteredFuncs: registeredFuncs, token: *token}
+	l := ListenerREST{RegisteredCommandFuncs: RegisteredCommandFuncs, token: *token}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")
@@ -171,7 +171,7 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	extFunc, ok := l.RegisteredFuncs[req.Extension]
+	extFunc, ok := l.RegisteredCommandFuncs[req.Extension]
 	if !ok {
 		http.Error(w, ErrExtensionNotFound.Error(), http.StatusBadRequest)
 		return
@@ -195,7 +195,7 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetAllFuncs returns all functions registered in an RegisteredFuncs as a REST API
+// GetAllFuncs returns all functions registered in an RegisteredCommandFuncs as a REST API
 func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 	if l.token != "" {
 		reqToken := r.Header.Get("Authorization")
@@ -208,7 +208,7 @@ func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	allFuncs := make([]string, 0)
-	for funcName := range l.RegisteredFuncs {
+	for funcName := range l.RegisteredCommandFuncs {
 		allFuncs = append(allFuncs, funcName)
 	}
 
