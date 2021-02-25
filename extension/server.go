@@ -37,13 +37,18 @@ type ExecuteCommandFuncResponse struct {
 	Answers []query.Answer `json:"answers"`
 }
 
-// GetAllCommandFuncsRequest is empty for now. Maybe later we will use it for filtering/searching commands
+// GetAllCommandFuncsRequest is empty for now to match RPC interface. Maybe later
+// we will use it for filtering/searching commands
 type GetAllCommandFuncsRequest struct {
 }
 
 // GetAllCommandFuncsResponse contains a list of all registered command functions
 type GetAllCommandFuncsResponse struct {
 	Commands []string
+}
+
+// GetBuildVersionRequest is empty for now to match RPC interface.
+type GetBuildVersionRequest struct {
 }
 
 // RegisteredCommandFuncs maps commands to functions which are executed by extension servers
@@ -127,7 +132,7 @@ func (l *ListenerRPC) GetAllCommandFuncs(_ *GetAllCommandFuncsRequest, res *GetA
 }
 
 // GetBuildVersion returns the current build version of the extension
-func (l *ListenerRPC) GetBuildVersion(_ *GetAllCommandFuncsRequest, res *version.BuildResponse) error {
+func (l *ListenerRPC) GetBuildVersion(_ *GetBuildVersionRequest, res *version.BuildResponse) error {
 	buildResponse := version.Build()
 	res.Version = buildResponse.Version
 	res.Commit = buildResponse.Commit
