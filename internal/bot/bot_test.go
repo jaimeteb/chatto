@@ -236,7 +236,7 @@ func TestBot_Predict(t *testing.T) {
 	ts := httptest.NewServer(testBot.Router)
 	defer ts.Close()
 
-	predictEndpoint := fmt.Sprintf("%s/predict", ts.URL)
+	predictEndpoint := fmt.Sprintf("%s/bot/predict", ts.URL)
 
 	type args struct {
 		inputText []byte
@@ -296,7 +296,7 @@ func TestBot_Details(t *testing.T) {
 	ts := httptest.NewServer(testBot.Router)
 	defer ts.Close()
 
-	detailsEndpoint := fmt.Sprintf("%s/senders", ts.URL)
+	detailsEndpoint := fmt.Sprintf("%s/bot/senders", ts.URL)
 
 	testBot.Store.Set("marcopolo", &fsm.FSM{})
 

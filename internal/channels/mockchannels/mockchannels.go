@@ -5,35 +5,37 @@
 package mockchannels
 
 import (
+	http "net/http"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	messages "github.com/jaimeteb/chatto/internal/channels/messages"
-	reflect "reflect"
 )
 
-// MockChannel is a mock of Channel interface
+// MockChannel is a mock of Channel interface.
 type MockChannel struct {
 	ctrl     *gomock.Controller
 	recorder *MockChannelMockRecorder
 }
 
-// MockChannelMockRecorder is the mock recorder for MockChannel
+// MockChannelMockRecorder is the mock recorder for MockChannel.
 type MockChannelMockRecorder struct {
 	mock *MockChannel
 }
 
-// NewMockChannel creates a new mock instance
+// NewMockChannel creates a new mock instance.
 func NewMockChannel(ctrl *gomock.Controller) *MockChannel {
 	mock := &MockChannel{ctrl: ctrl}
 	mock.recorder = &MockChannelMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockChannel) EXPECT() *MockChannelMockRecorder {
 	return m.recorder
 }
 
-// ReceiveMessage mocks base method
+// ReceiveMessage mocks base method.
 func (m *MockChannel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReceiveMessage", body)
@@ -42,25 +44,25 @@ func (m *MockChannel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 	return ret0, ret1
 }
 
-// ReceiveMessage indicates an expected call of ReceiveMessage
+// ReceiveMessage indicates an expected call of ReceiveMessage.
 func (mr *MockChannelMockRecorder) ReceiveMessage(body interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveMessage", reflect.TypeOf((*MockChannel)(nil).ReceiveMessage), body)
 }
 
-// ReceiveMessages mocks base method
+// ReceiveMessages mocks base method.
 func (m *MockChannel) ReceiveMessages(receiveChan chan messages.Receive) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ReceiveMessages", receiveChan)
 }
 
-// ReceiveMessages indicates an expected call of ReceiveMessages
+// ReceiveMessages indicates an expected call of ReceiveMessages.
 func (mr *MockChannelMockRecorder) ReceiveMessages(receiveChan interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveMessages", reflect.TypeOf((*MockChannel)(nil).ReceiveMessages), receiveChan)
 }
 
-// SendMessage mocks base method
+// SendMessage mocks base method.
 func (m *MockChannel) SendMessage(response *messages.Response) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendMessage", response)
@@ -68,8 +70,22 @@ func (m *MockChannel) SendMessage(response *messages.Response) error {
 	return ret0
 }
 
-// SendMessage indicates an expected call of SendMessage
+// SendMessage indicates an expected call of SendMessage.
 func (mr *MockChannelMockRecorder) SendMessage(response interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockChannel)(nil).SendMessage), response)
+}
+
+// ValidateCallback mocks base method.
+func (m *MockChannel) ValidateCallback(r *http.Request) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateCallback", r)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ValidateCallback indicates an expected call of ValidateCallback.
+func (mr *MockChannelMockRecorder) ValidateCallback(r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateCallback", reflect.TypeOf((*MockChannel)(nil).ValidateCallback), r)
 }
