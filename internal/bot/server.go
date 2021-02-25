@@ -2,9 +2,11 @@ package bot
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/internal/channels"
@@ -110,6 +112,11 @@ func (b *Bot) slackChannelEvents() {
 }
 
 func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
+	if err := b.authorize(w, r); err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	if vars == nil {
 		log.Errorf("unable to get sender from request uri: %s", r.URL.RawPath)
@@ -142,6 +149,11 @@ func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
+	if err := b.authorize(w, r); err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 
 	var question query.Question
@@ -171,6 +183,18 @@ func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (b *Bot) authorize(w http.ResponseWriter, r *http.Request) error {
+	if b.Config.Auth.Token != "" {
+		reqToken := r.Header.Get("Authorization")
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+
+		if b.Config.Auth.Token != reqToken {
+			return errors.New("Unauthorized")
+		}
+	}
+	return nil
 }
 
 // Run starts the bot which is a long running process
@@ -212,8 +236,8 @@ func (b *Bot) RegisterRoutes() {
 	}
 
 	// Prediction and Sender Channels
-	r.HandleFunc("/predict", b.predictHandler).Methods("POST")
-	r.HandleFunc("/senders/{sender}", b.detailsHandler).Methods("GET")
+	r.HandleFunc("/bot/predict", b.predictHandler).Methods("POST")
+	r.HandleFunc("/bot/senders/{sender}", b.detailsHandler).Methods("GET")
 
 	b.Router = r
 }
