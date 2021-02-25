@@ -12,8 +12,8 @@ import (
 )
 
 func TestExtensionRESTServer(t *testing.T) {
-	greetFunc := func(req *extension.Request) (res *extension.Response) {
-		return &extension.Response{
+	greetFunc := func(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: req.FSM,
 			Answers: []query.Answer{{
 				Text:  "Hello Universe",
@@ -22,11 +22,11 @@ func TestExtensionRESTServer(t *testing.T) {
 		}
 	}
 
-	registeredFuncs := extension.RegisteredFuncs{
+	registeredFuncs := extension.RegisteredCommandFuncs{
 		"any": greetFunc,
 	}
 
-	listener := extension.ListenerREST{registeredFuncs}
+	listener := extension.ListenerREST{RegisteredCommandFuncs: registeredFuncs}
 
 	req1, err := http.NewRequest("GET", "/ext/get_all_funcs", nil)
 	if err != nil {
@@ -34,7 +34,7 @@ func TestExtensionRESTServer(t *testing.T) {
 	}
 
 	w1 := httptest.NewRecorder()
-	listener.GetAllFuncs(w1, req1)
+	listener.GetAllCommandFuncs(w1, req1)
 
 	jsonStr2 := []byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`)
 	req2, err := http.NewRequest("POST", "/ext/get_func", bytes.NewBuffer(jsonStr2))
@@ -43,12 +43,12 @@ func TestExtensionRESTServer(t *testing.T) {
 	}
 
 	w2 := httptest.NewRecorder()
-	listener.GetFunc(w2, req2)
+	listener.ExecuteCommandFunc(w2, req2)
 }
 
 func TestExtensionRPCServer(t *testing.T) {
-	greetFunc := func(req *extension.Request) (res *extension.Response) {
-		return &extension.Response{
+	greetFunc := func(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: req.FSM,
 			Answers: []query.Answer{{
 				Text:  "Hello Universe",
@@ -57,26 +57,26 @@ func TestExtensionRPCServer(t *testing.T) {
 		}
 	}
 
-	registeredFuncs := extension.RegisteredFuncs{
+	registeredCommandFuncs := extension.RegisteredCommandFuncs{
 		"any": greetFunc,
 	}
 
-	listener := extension.ListenerRPC{registeredFuncs}
+	listener := extension.ListenerRPC{RegisteredCommandFuncs: registeredCommandFuncs}
 
-	err := listener.GetAllFuncs(new(extension.Request), new(extension.GetAllFuncsResponse))
+	err := listener.GetAllCommandFuncs(nil, new(extension.GetAllCommandFuncsResponse))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	req := extension.Request{
-		Extension: "any",
+	req := extension.ExecuteCommandFuncRequest{
+		Command: "any",
 		FSM: &fsm.FSM{
 			State: 0,
 			Slots: make(map[string]string),
 		},
 	}
 
-	err = listener.GetFunc(&req, new(extension.Response))
+	err = listener.ExecuteCommandFunc(&req, new(extension.ExecuteCommandFuncResponse))
 	if err != nil {
 		t.Fatal(err)
 	}

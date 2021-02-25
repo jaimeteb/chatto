@@ -14,29 +14,31 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Extension is either a RPC or REST endpoint
+// Extension is a service (REST or RPC) that executes commands and returns
+// an answer to the Chatto bot. Extensions are written in any language and
+// do whatever you want.
 type Extension interface {
-	GetAllFuncs() ([]string, error)
-	RunFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
+	GetAllCommandFuncs() ([]string, error)
+	ExecuteCommandFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
 }
 
-// RPC is an RPC Client for extension functions
+// RPC is an RPC Client for extension command functions
 type RPC struct {
 	Client *rpc.Client
 }
 
-// RunFunc runs an extension function over RPC
-func (e *RPC) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := extension.Request{
-		FSM:       machine,
-		Extension: ext,
-		Question:  question,
-		Domain:    fsmDomain.NoFuncs(),
+// ExecuteCommandFunc runs the requested command function and returns the response
+func (e *RPC) ExecuteCommandFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+	req := extension.ExecuteCommandFuncRequest{
+		FSM:      machine,
+		Command:  ext,
+		Question: question,
+		Domain:   fsmDomain.NoFuncs(),
 	}
 
-	res := extension.Response{}
+	res := extension.ExecuteCommandFuncResponse{}
 
-	err := e.Client.Call("ListenerRPC.GetFunc", &req, &res)
+	err := e.Client.Call("ListenerRPC.ExecuteCommandFunc", &req, &res)
 	if err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
@@ -46,30 +48,31 @@ func (e *RPC) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Domai
 	return res.Answers, nil
 }
 
-// GetAllFuncs retrieves all functions in extension
-func (e *RPC) GetAllFuncs() ([]string, error) {
-	res := new(extension.GetAllFuncsResponse)
-	if err := e.Client.Call("ListenerRPC.GetAllFuncs", new(extension.Request), &res); err != nil {
+// GetAllCommandFuncs returns all command functions in the extension as a list of strings
+func (e *RPC) GetAllCommandFuncs() ([]string, error) {
+	req := new(extension.ExecuteCommandFuncRequest)
+	res := new(extension.GetAllCommandFuncsResponse)
+	if err := e.Client.Call("ListenerRPC.GetAllCommandFuncs", &req, &res); err != nil {
 		log.Error(err)
 		return nil, err
 	}
 
-	return res.Funcs, nil
+	return res.Commands, nil
 }
 
-// REST is a REST API URL for extension functions
+// REST is a REST Client for extension command functions
 type REST struct {
 	URL  string
 	http *retryablehttp.Client
 }
 
-// RunFunc runs an extension function over REST
-func (e *REST) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := extension.Request{
-		FSM:       machine,
-		Extension: ext,
-		Question:  question,
-		Domain:    fsmDomain.NoFuncs(),
+// ExecuteCommandFunc runs the requested command function and returns the response
+func (e *REST) ExecuteCommandFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+	req := extension.ExecuteCommandFuncRequest{
+		FSM:      machine,
+		Command:  ext,
+		Question: question,
+		Domain:   fsmDomain.NoFuncs(),
 	}
 
 	jsonReq, err := json.Marshal(req)
@@ -79,14 +82,20 @@ func (e *REST) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Doma
 
 	// TODO: if fail -> don't change states
 
-	resp, err := e.http.Post(fmt.Sprintf("%s/ext/get_func", e.URL), "application/json", bytes.NewBuffer(jsonReq))
+	resp, err := e.http.Post(fmt.Sprintf("%s/ext/command", e.URL), "application/json", bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
 
-	defer resp.Body.Close()
-	res := extension.Response{}
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}()
+
+	res := extension.ExecuteCommandFuncResponse{}
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
 
@@ -95,17 +104,23 @@ func (e *REST) RunFunc(question *query.Question, ext string, fsmDomain *fsm.Doma
 	return res.Answers, nil
 }
 
-// GetAllFuncs retrieves all functions in extension
-func (e *REST) GetAllFuncs() ([]string, error) {
-	resp, err := e.http.Get(fmt.Sprintf("%s/ext/get_all_funcs", e.URL))
+// GetAllCommandFuncs returns all command functions in the extension as a list of strings
+func (e *REST) GetAllCommandFuncs() ([]string, error) {
+	resp, err := e.http.Get(fmt.Sprintf("%s/ext/commands", e.URL))
 	if err != nil {
 		log.Error(err)
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}()
+
 	var res []string
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		log.Error(err)
 		return nil, err
 	}

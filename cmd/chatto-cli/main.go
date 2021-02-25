@@ -6,7 +6,7 @@ import (
 
 	"github.com/jaimeteb/chatto/bot"
 	"github.com/jaimeteb/chatto/internal/logger"
-	"github.com/jaimeteb/chatto/internal/version"
+	"github.com/jaimeteb/chatto/version"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	flag.Parse()
 
 	if *vers {
-		fmt.Println(version.Build())
+		fmt.Println(version.BuildStr())
 		return
 	}
 

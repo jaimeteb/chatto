@@ -67,7 +67,7 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 			return nil, &ErrUnknownExtension{Extension: ext}
 		}
 
-		answers, err = b.Extension.RunFunc(receiveMsg.Question, ext, b.Domain, machine)
+		answers, err = b.Extension.ExecuteCommandFunc(receiveMsg.Question, ext, b.Domain, machine)
 		if err != nil {
 			return nil, err
 		}

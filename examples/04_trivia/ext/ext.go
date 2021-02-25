@@ -8,12 +8,12 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-func validateAnswer1(req *extension.Request) (res *extension.Response) {
+func validateAnswer1(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
 	ans := req.FSM.Slots["answer_1"]
 	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extension.Response{
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: &fsm.FSM{
 				State: fsmDomain.StateTable["question_1"],
 				Slots: req.FSM.Slots,
@@ -22,7 +22,7 @@ func validateAnswer1(req *extension.Request) (res *extension.Response) {
 		}
 	}
 
-	return &extension.Response{
+	return &extension.ExecuteCommandFuncResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{{Text: "Question 2:\n" +
 			"What is the capital of the state of Utah?\n" +
@@ -32,12 +32,12 @@ func validateAnswer1(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-func validateAnswer2(req *extension.Request) (res *extension.Response) {
+func validateAnswer2(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
 	ans := req.FSM.Slots["answer_2"]
 	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extension.Response{
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: &fsm.FSM{
 				State: fsmDomain.StateTable["question_2"],
 				Slots: req.FSM.Slots,
@@ -46,7 +46,7 @@ func validateAnswer2(req *extension.Request) (res *extension.Response) {
 		}
 	}
 
-	return &extension.Response{
+	return &extension.ExecuteCommandFuncResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{{Text: "Question 3:\n" +
 			"Who painted Starry Night?\n" +
@@ -56,13 +56,13 @@ func validateAnswer2(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-func calculateScore(req *extension.Request) (res *extension.Response) {
+func calculateScore(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
 	ans := req.FSM.Slots["answer_1"]
 	fsmDomain := req.Domain
 	slt := req.FSM.Slots
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extension.Response{
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: &fsm.FSM{
 				State: fsmDomain.StateTable["question_3"],
 				Slots: req.FSM.Slots,
@@ -98,13 +98,13 @@ func calculateScore(req *extension.Request) (res *extension.Response) {
 		message = "You got 3/3 answers right.\nYou are good! Congrats!"
 	}
 
-	return &extension.Response{
+	return &extension.ExecuteCommandFuncResponse{
 		FSM:     req.FSM,
 		Answers: []query.Answer{{Text: message}},
 	}
 }
 
-var registeredFuncs = extension.RegisteredFuncs{
+var registeredFuncs = extension.RegisteredCommandFuncs{
 	"val_ans_1": validateAnswer1,
 	"val_ans_2": validateAnswer2,
 	"score":     calculateScore,
