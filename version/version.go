@@ -14,7 +14,7 @@ var (
 // BuildResponse is a JSON response with the
 // current version of the bot or extension
 type BuildResponse struct {
-	Version string `json:"Version"`
+	Version string `json:"version"`
 	Commit  string `json:"commit"`
 	BuiltAt string `json:"built_at"`
 	BuiltBy string `json:"built_by"`
