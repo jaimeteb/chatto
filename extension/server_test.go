@@ -1,3 +1,4 @@
+// nolint:bodyclose
 package extension_test
 
 import (
@@ -135,16 +136,16 @@ func TestExtension_ListenerREST_GetAllCommandFuncs(t *testing.T) {
 		{
 			name: "get all funcs with auth",
 			args: args{
-				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token"),
-				r: setBearerToken(httptest.NewRequest("GET", commandsPath, nil), "my-test-token"),
+				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token-abc"),
+				r: setBearerToken(httptest.NewRequest("GET", commandsPath, nil), "my-test-token-abc"),
 			},
 			want: []string{"any"},
 		},
 		{
 			name: "get all funcs with invalid http method",
 			args: args{
-				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token"),
-				r: setBearerToken(httptest.NewRequest("POST", commandsPath, nil), "my-test-token"),
+				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token-123"),
+				r: setBearerToken(httptest.NewRequest("POST", commandsPath, nil), "my-test-token-123"),
 			},
 			wantErr: &extension.ErrorResponse{
 				Code:    http.StatusBadRequest,
@@ -231,8 +232,8 @@ func TestExtension_ListenerREST_ExecuteCommandFunc(t *testing.T) {
 		{
 			name: "execute invalid command func",
 			args: args{
-				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token"),
-				r: setBearerToken(httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"command": "i_dont_exist", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token"),
+				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token-123"),
+				r: setBearerToken(httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"command": "i_dont_exist", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token-123"),
 			},
 			want: &extension.ExecuteCommandFuncResponse{},
 			wantErr: &extension.ErrorResponse{
@@ -243,8 +244,8 @@ func TestExtension_ListenerREST_ExecuteCommandFunc(t *testing.T) {
 		{
 			name: "execute command func with invalid http method",
 			args: args{
-				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token"),
-				r: setBearerToken(httptest.NewRequest("GET", commandPath, bytes.NewBuffer([]byte(`{"command": "any", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token"),
+				l: extension.NewListenerREST(registeredCommandFuncs, "my-test-token-abc"),
+				r: setBearerToken(httptest.NewRequest("GET", commandPath, bytes.NewBuffer([]byte(`{"command": "any", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token-abc"),
 			},
 			wantErr: &extension.ErrorResponse{
 				Code:    http.StatusBadRequest,
