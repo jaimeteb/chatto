@@ -120,6 +120,11 @@ type ListenerREST struct {
 	token                  string
 }
 
+// NewListenerREST creates a ListenerREST with command functions and a token
+func NewListenerREST(registeredCommandFuncs RegisteredCommandFuncs, token string) *ListenerREST {
+	return &ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: token}
+}
+
 // ServeREST serves the registered extension functions as a REST API
 func ServeREST(RegisteredCommandFuncs RegisteredCommandFuncs) error {
 	port := flag.Int("port", 8770, "Port to run extension server on")
@@ -178,7 +183,7 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	}
 	res := extFunc(&req)
 
-	log.Debugf("Request:    %v,    %v", req.FSM, req.Extension)
+	log.Debugf("Request:     %v,    %v", req.FSM, req.Extension)
 	log.Debugf("Response:    %v,    %v", *res.FSM, res.Answers)
 
 	js, err := json.Marshal(res)

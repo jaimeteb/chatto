@@ -1,6 +1,9 @@
 package rest_test
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"testing"
 
@@ -42,6 +45,56 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 				t.Errorf("Channel.ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Channel.ReceiveMessage() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+			}
+		})
+	}
+}
+func TestChannel_ValidateCallback(t *testing.T) {
+	setBearerToken := func(r *http.Request, t string) *http.Request {
+		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t))
+		return r
+	}
+
+	type args struct {
+		c *rest.Channel
+		r *http.Request
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "unauthorized call to secured rest channel",
+			args: args{
+				c: rest.New(rest.Config{CallbackToken: "my-test-token"}),
+				r: httptest.NewRequest("POST", "/channels/rest", nil),
+			},
+			want: false,
+		},
+		{
+			name: "call to secured rest channel with wrong token",
+			args: args{
+				c: rest.New(rest.Config{CallbackToken: "my-test-token"}),
+				r: setBearerToken(httptest.NewRequest("POST", "/channels/rest", nil), "my-wrong-token"),
+			},
+			want: false,
+		},
+		{
+			name: "authorized call to secured rest channel",
+			args: args{
+				c: rest.New(rest.Config{CallbackToken: "my-test-token"}),
+				r: setBearerToken(httptest.NewRequest("POST", "/channels/rest", nil), "my-test-token"),
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.args.c.ValidateCallback(tt.args.r)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Channel.ReceiveMessage() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
