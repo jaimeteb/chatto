@@ -2,7 +2,6 @@ package extension
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -19,11 +18,9 @@ import (
 )
 
 var (
-	extensionCommandNotFound = "extension command %s not found"
-	invalidHTTPMethod        = "got method %s, expected %s"
-	// ErrExtensionUnauthorized happens when the server requires a token
-	// but it is missing or is incorrect in the request
-	ErrExtensionUnauthorized = errors.New("missing or incorrect token")
+	invalidExtensionCommand = "extension command '%s' not found"
+	invalidHTTPMethod       = "got method '%s', expected '%s'"
+	invalidAuthToken        = "missing or incorrect authorization token"
 )
 
 // ExecuteCommandFuncRequest contains the instructions for executing a command function
@@ -54,6 +51,12 @@ type GetAllCommandFuncsResponse struct {
 type GetBuildVersionRequest struct {
 }
 
+// ErrorResponse is used when an error occurred processing a request
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 // RegisteredCommandFuncs maps commands to functions which are executed by extension servers
 type RegisteredCommandFuncs map[string]func(*ExecuteCommandFuncRequest) *ExecuteCommandFuncResponse
 
@@ -69,6 +72,13 @@ func (r *RegisteredCommandFuncs) Commands() []string {
 	}
 
 	return commands
+}
+
+func httpError(w http.ResponseWriter, errorResponse ErrorResponse) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(errorResponse.Code)
+	_ = json.NewEncoder(w).Encode(errorResponse)
 }
 
 // ListenerRPC contains the RegisteredCommandFuncs to be served through RPC
@@ -113,7 +123,7 @@ func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 func (l *ListenerRPC) ExecuteCommandFunc(req *ExecuteCommandFuncRequest, res *ExecuteCommandFuncResponse) error {
 	command, ok := l.RegisteredCommandFuncs[req.Command]
 	if !ok {
-		return fmt.Errorf(extensionCommandNotFound, req.Command)
+		return fmt.Errorf(invalidExtensionCommand, req.Command)
 	}
 	commandRes := command(req)
 
@@ -168,7 +178,7 @@ func ServeREST(registeredCommandFuncs RegisteredCommandFuncs) error {
 
 	logger.SetLogger(*debug)
 
-	l := ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: *token}
+	l := NewListenerREST(registeredCommandFuncs, *token)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/ext/command", l.ExecuteCommandFunc).Methods("POST")
@@ -193,13 +203,19 @@ func (l *ListenerREST) ExecuteCommandFunc(w http.ResponseWriter, r *http.Request
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
 
 		if l.token != reqToken {
-			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			httpError(w, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: invalidAuthToken,
+			})
 			return
 		}
 	}
 
 	if r.Method != http.MethodPost {
-		http.Error(w, fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodPost), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodPost),
+		})
 		return
 	}
 
@@ -207,13 +223,19 @@ func (l *ListenerREST) ExecuteCommandFunc(w http.ResponseWriter, r *http.Request
 
 	var req ExecuteCommandFuncRequest
 	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	commandFunc, ok := l.RegisteredCommandFuncs[req.Command]
 	if !ok {
-		http.Error(w, fmt.Sprintf(extensionCommandNotFound, req.Command), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: fmt.Sprintf(invalidExtensionCommand, req.Command),
+		})
 		return
 	}
 	res := commandFunc(&req)
@@ -223,14 +245,20 @@ func (l *ListenerREST) ExecuteCommandFunc(w http.ResponseWriter, r *http.Request
 
 	js, err := json.Marshal(res)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(js)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 }
@@ -242,26 +270,38 @@ func (l *ListenerREST) GetAllCommandFuncs(w http.ResponseWriter, r *http.Request
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
 
 		if l.token != reqToken {
-			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			httpError(w, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: invalidAuthToken,
+			})
 			return
 		}
 	}
 
 	if r.Method != http.MethodGet {
-		http.Error(w, fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodGet), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodGet),
+		})
 		return
 	}
 
 	js, err := json.Marshal(l.RegisteredCommandFuncs.Commands())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(js)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 }
@@ -269,7 +309,10 @@ func (l *ListenerREST) GetAllCommandFuncs(w http.ResponseWriter, r *http.Request
 // GetBuildVersion returns the current build version of the extension
 func (l *ListenerREST) GetBuildVersion(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodGet), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodGet),
+		})
 		return
 	}
 
@@ -277,14 +320,20 @@ func (l *ListenerREST) GetBuildVersion(w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(&buildResponse)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(js)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 }
