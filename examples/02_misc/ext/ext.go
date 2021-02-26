@@ -215,7 +215,7 @@ func miscFunc(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-var registeredFuncs = extension.RegisteredFuncs{
+var RegisteredCommandFuncs = extension.RegisteredCommandFuncs{
 	"weather": weatherFunc,
 	"joke":    jokeFunc,
 	"quote":   quoteFunc,
@@ -223,5 +223,5 @@ var registeredFuncs = extension.RegisteredFuncs{
 }
 
 func main() {
-	log.Fatalln(extension.ServeREST(registeredFuncs))
+	log.Fatalln(extension.ServeREST(RegisteredCommandFuncs))
 }

@@ -94,12 +94,12 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-var registeredFuncs = extension.RegisteredFuncs{
+var RegisteredCommandFuncs = extension.RegisteredCommandFuncs{
 	"search_pokemon": searchPokemon,
 }
 
 func main() {
-	if err := extension.ServeRPC(registeredFuncs); err != nil {
+	if err := extension.ServeRPC(RegisteredCommandFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

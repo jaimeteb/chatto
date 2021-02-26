@@ -24,6 +24,11 @@ type Conversation struct {
 	Existing ConversationConfig `mapstructure:"existing"`
 }
 
+// Auth is authorization for the bot API
+type Auth struct {
+	Token string `mapstructure:"token"`
+}
+
 // Config struct models the bot.yml configuration file
 type Config struct {
 	Name         string           `mapstructure:"bot_name"`
@@ -32,6 +37,7 @@ type Config struct {
 	Port         int              `mapstructure:"port"`
 	Path         string
 	Conversation Conversation `mapstructure:"conversation"`
+	Auth         Auth         `mapstructure:"auth"`
 }
 
 // ShouldReplyUnsure depending on the conversational settings lets

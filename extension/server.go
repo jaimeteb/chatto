@@ -8,12 +8,22 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/logger"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
+)
+
+var (
+	// ErrExtensionNotFound happens when an extension is requested but
+	// is not found in the extension server
+	ErrExtensionNotFound = errors.New("extension not found")
+	// ErrExtensionUnauthorized happens when the server requires a token
+	// but it is missing or is incorrect in the request
+	ErrExtensionUnauthorized = errors.New("missing or incorrect token")
 )
 
 // Request for an extension function
@@ -35,16 +45,16 @@ type GetAllFuncsResponse struct {
 	Funcs []string
 }
 
-// RegisteredFuncs maps bot commands to functions to be used in extensions
-type RegisteredFuncs map[string]func(*Request) *Response
+// RegisteredCommandFuncs maps bot commands to functions to be used in extensions
+type RegisteredCommandFuncs map[string]func(*Request) *Response
 
-// ListenerRPC contains the RegisteredFuncs to be served through RPC
+// ListenerRPC contains the RegisteredCommandFuncs to be served through RPC
 type ListenerRPC struct {
-	RegisteredFuncs RegisteredFuncs
+	RegisteredCommandFuncs RegisteredCommandFuncs
 }
 
 // ServeRPC serves the registered extension functions over RPC
-func ServeRPC(registeredFuncs RegisteredFuncs) error {
+func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
@@ -65,7 +75,7 @@ func ServeRPC(registeredFuncs RegisteredFuncs) error {
 	}
 
 	log.Infof("RPC extension server started. Using port %v", *port)
-	err = rpc.Register(&ListenerRPC{RegisteredFuncs: registeredFuncs})
+	err = rpc.Register(&ListenerRPC{RegisteredCommandFuncs: registeredCommandFuncs})
 	if err != nil {
 		log.Error(err)
 		return err
@@ -78,9 +88,9 @@ func ServeRPC(registeredFuncs RegisteredFuncs) error {
 
 // GetFunc returns a requested extension function
 func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
-	extFunc, ok := l.RegisteredFuncs[req.Extension]
+	extFunc, ok := l.RegisteredCommandFuncs[req.Extension]
 	if !ok {
-		return errors.New("extension not found")
+		return ErrExtensionNotFound
 	}
 	extRes := extFunc(req)
 
@@ -93,10 +103,10 @@ func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
 	return nil
 }
 
-// GetAllFuncs returns all functions registered in an RegisteredFuncs
+// GetAllFuncs returns all functions registered in an RegisteredCommandFuncs
 func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error {
 	allFuncs := make([]string, 0)
-	for funcName := range l.RegisteredFuncs {
+	for funcName := range l.RegisteredCommandFuncs {
 		allFuncs = append(allFuncs, funcName)
 	}
 	res.Funcs = allFuncs
@@ -104,24 +114,32 @@ func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error 
 	return nil
 }
 
-// ListenerREST contains the RegisteredFuncs to be served through REST
+// ListenerREST contains the RegisteredCommandFuncs to be served through REST
 type ListenerREST struct {
-	RegisteredFuncs RegisteredFuncs
+	RegisteredCommandFuncs RegisteredCommandFuncs
+	token                  string
+}
+
+// NewListenerREST creates a ListenerREST with command functions and a token
+func NewListenerREST(registeredCommandFuncs RegisteredCommandFuncs, token string) *ListenerREST {
+	return &ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: token}
 }
 
 // ServeREST serves the registered extension functions as a REST API
-func ServeREST(registeredFuncs RegisteredFuncs) error {
+func ServeREST(registeredCommandFuncs RegisteredCommandFuncs) error {
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 
 	sslKey := flag.String("ssl-key", "", "SSL key file for TLS secured server.")
 	sslCert := flag.String("ssl-cert", "", "SSL certificate for TLS secured server.")
 
+	token := flag.String("token", "", "Authorization token to be required by Chatto bot.")
+
 	flag.Parse()
 
 	logger.SetLogger(*debug)
 
-	l := ListenerREST{RegisteredFuncs: registeredFuncs}
+	l := ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: *token}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")
@@ -140,6 +158,16 @@ func ServeREST(registeredFuncs RegisteredFuncs) error {
 
 // GetFunc returns a requested extension function as a REST API
 func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
+	if l.token != "" {
+		reqToken := r.Header.Get("Authorization")
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+
+		if l.token != reqToken {
+			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			return
+		}
+	}
+
 	decoder := json.NewDecoder(r.Body)
 
 	var req Request
@@ -148,14 +176,14 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	extFunc, ok := l.RegisteredFuncs[req.Extension]
+	extFunc, ok := l.RegisteredCommandFuncs[req.Extension]
 	if !ok {
-		http.Error(w, errors.New("extension not found").Error(), http.StatusBadRequest)
+		http.Error(w, ErrExtensionNotFound.Error(), http.StatusBadRequest)
 		return
 	}
 	res := extFunc(&req)
 
-	log.Debugf("Request:    %v,    %v", req.FSM, req.Extension)
+	log.Debugf("Request:     %v,    %v", req.FSM, req.Extension)
 	log.Debugf("Response:    %v,    %v", *res.FSM, res.Answers)
 
 	js, err := json.Marshal(res)
@@ -172,10 +200,20 @@ func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetAllFuncs returns all functions registered in an RegisteredFuncs as a REST API
+// GetAllFuncs returns all functions registered in an RegisteredCommandFuncs as a REST API
 func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
+	if l.token != "" {
+		reqToken := r.Header.Get("Authorization")
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+
+		if l.token != reqToken {
+			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			return
+		}
+	}
+
 	allFuncs := make([]string, 0)
-	for funcName := range l.RegisteredFuncs {
+	for funcName := range l.RegisteredCommandFuncs {
 		allFuncs = append(allFuncs, funcName)
 	}
 

@@ -4,6 +4,7 @@ package telegram
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"strconv"
 
@@ -113,4 +114,10 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
 func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	// Not implemented
+}
+
+// ValidateCallback validates a callback to the channel
+func (c *Channel) ValidateCallback(r *http.Request) bool {
+	// Not implemented
+	return true
 }

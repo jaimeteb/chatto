@@ -4,6 +4,7 @@ package slack
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/query"
@@ -18,6 +19,7 @@ type MessageIn struct {
 	Challenge string    `json:"challenge"`
 	Type      string    `json:"type"`
 	Event     slack.Msg `json:"event"`
+	Token     string    `json:"token"`
 }
 
 // Config contains the Slack token
@@ -251,6 +253,11 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	if err != nil {
 		log.Error(err)
 	}
+}
+
+// ValidateCallback validates a callback to the channel
+func (c *Channel) ValidateCallback(r *http.Request) bool {
+	return true
 }
 
 // ErrURLVerification raised when an auth challenge is supposed to be performed

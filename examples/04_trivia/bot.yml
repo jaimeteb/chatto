@@ -3,6 +3,7 @@ extensions:
   type: REST
   url: http://localhost:8770
   # url: https://localhost:8770
+  # token: my-super-secret-token # extension must be run with the -token flag
 store:
   type: REDIS
   host: localhost
