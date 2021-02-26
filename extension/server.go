@@ -9,12 +9,11 @@ import (
 	"net/http"
 	"net/rpc"
 
-	"github.com/jaimeteb/chatto/version"
-
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/logger"
 	"github.com/jaimeteb/chatto/query"
+	"github.com/jaimeteb/chatto/version"
 	log "github.com/sirupsen/logrus"
 )
 
