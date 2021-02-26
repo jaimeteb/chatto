@@ -78,7 +78,7 @@ func New(extCfg Config) (Extension, error) {
 
 		log.Info("Loaded extensions (REST):")
 		for i, fun := range allFuncs {
-			log.Infof("%v    %v", i, fun)
+			log.Infof("%2d %v", i, fun)
 		}
 
 		extension = restExtention

@@ -120,7 +120,7 @@ func (b *Bot) slackChannelEvents() {
 }
 
 func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
-	if err := b.authorize(w, r); err != nil {
+	if err := b.authorize(r); err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
@@ -157,7 +157,7 @@ func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
-	if err := b.authorize(w, r); err != nil {
+	if err := b.authorize(r); err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
@@ -193,13 +193,13 @@ func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *Bot) authorize(w http.ResponseWriter, r *http.Request) error {
+func (b *Bot) authorize(r *http.Request) error {
 	if b.Config.Auth.Token != "" {
 		reqToken := r.Header.Get("Authorization")
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
 
 		if b.Config.Auth.Token != reqToken {
-			return errors.New("Unauthorized")
+			return errors.New("unauthorized")
 		}
 	}
 	return nil

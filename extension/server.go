@@ -54,7 +54,7 @@ type ListenerRPC struct {
 }
 
 // ServeRPC serves the registered extension functions over RPC
-func ServeRPC(RegisteredCommandFuncs RegisteredCommandFuncs) error {
+func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
@@ -75,7 +75,7 @@ func ServeRPC(RegisteredCommandFuncs RegisteredCommandFuncs) error {
 	}
 
 	log.Infof("RPC extension server started. Using port %v", *port)
-	err = rpc.Register(&ListenerRPC{RegisteredCommandFuncs: RegisteredCommandFuncs})
+	err = rpc.Register(&ListenerRPC{RegisteredCommandFuncs: registeredCommandFuncs})
 	if err != nil {
 		log.Error(err)
 		return err
@@ -126,7 +126,7 @@ func NewListenerREST(registeredCommandFuncs RegisteredCommandFuncs, token string
 }
 
 // ServeREST serves the registered extension functions as a REST API
-func ServeREST(RegisteredCommandFuncs RegisteredCommandFuncs) error {
+func ServeREST(registeredCommandFuncs RegisteredCommandFuncs) error {
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 
@@ -139,7 +139,7 @@ func ServeREST(RegisteredCommandFuncs RegisteredCommandFuncs) error {
 
 	logger.SetLogger(*debug)
 
-	l := ListenerREST{RegisteredCommandFuncs: RegisteredCommandFuncs, token: *token}
+	l := ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: *token}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")

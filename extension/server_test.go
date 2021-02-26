@@ -85,23 +85,6 @@ func TestExtension_ListenerREST_GetAllFuncs(t *testing.T) {
 			}
 		})
 	}
-
-	// req1, err := http.NewRequest("GET", "/ext/get_all_funcs", nil)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// w1 := httptest.NewRecorder()
-	// listener.GetAllFuncs(w1, req1)
-
-	// jsonStr2 := []byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`)
-	// req2, err := http.NewRequest("POST", "/ext/get_func", bytes.NewBuffer(jsonStr2))
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	// w2 := httptest.NewRecorder()
-	// listener.GetFunc(w2, req2)
 }
 
 func TestExtension_ListenerREST_GetFunc(t *testing.T) {
