@@ -2,7 +2,6 @@ package extension
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -110,7 +109,7 @@ func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 func (l *ListenerRPC) ExecuteCommandFunc(req *ExecuteCommandFuncRequest, res *ExecuteCommandFuncResponse) error {
 	command, ok := l.RegisteredCommandFuncs[req.Command]
 	if !ok {
-		return errors.New(fmt.Sprintf(extensionCommandNotFound, req.Command))
+		return fmt.Errorf(extensionCommandNotFound, req.Command)
 	}
 	commandRes := command(req)
 
