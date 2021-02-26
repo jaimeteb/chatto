@@ -62,8 +62,9 @@ func (e *RPC) GetAllCommandFuncs() ([]string, error) {
 
 // REST is a REST Client for extension command functions
 type REST struct {
-	URL  string
-	http *retryablehttp.Client
+	URL   string
+	http  *retryablehttp.Client
+	token string
 }
 
 // ExecuteCommandFunc runs the requested command function and returns the response
@@ -82,7 +83,16 @@ func (e *REST) ExecuteCommandFunc(question *query.Question, ext string, fsmDomai
 
 	// TODO: if fail -> don't change states
 
-	resp, err := e.http.Post(fmt.Sprintf("%s/ext/command", e.URL), "application/json", bytes.NewBuffer(jsonReq))
+	request, err := retryablehttp.NewRequest("POST", fmt.Sprintf("%s/ext/command", e.URL), bytes.NewBuffer(jsonReq))
+	if err != nil {
+		return nil, errors.New(fsmDomain.DefaultMessages.Error)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	if e.token != "" {
+		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", e.token))
+	}
+	resp, err := e.http.Do(request)
+
 	if err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
@@ -106,9 +116,15 @@ func (e *REST) ExecuteCommandFunc(question *query.Question, ext string, fsmDomai
 
 // GetAllCommandFuncs returns all command functions in the extension as a list of strings
 func (e *REST) GetAllCommandFuncs() ([]string, error) {
-	resp, err := e.http.Get(fmt.Sprintf("%s/ext/commands", e.URL))
+	request, err := retryablehttp.NewRequest("GET", fmt.Sprintf("%s/ext/commands", e.URL), nil)
 	if err != nil {
-		log.Error(err)
+		return nil, err
+	}
+	if e.token != "" {
+		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", e.token))
+	}
+	resp, err := e.http.Do(request)
+	if err != nil {
 		return nil, err
 	}
 

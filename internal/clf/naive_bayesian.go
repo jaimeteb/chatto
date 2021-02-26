@@ -19,12 +19,12 @@ type Classifier struct {
 }
 
 // Predict predict a class for a given text
-func (c *Classifier) Predict(text string) (string, float64) {
+func (c *Classifier) Predict(text string) (predictedClass string, proba float64) {
 	probabilities, likely, _ := c.Model.ProbScores(Pipeline(&text, &c.Pipeline))
 	class := string(c.Classes[likely])
 	probability := probabilities[likely]
 
-	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %0.2f%%", text, class, probability*100)
+	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f%%", text, class, probability)
 
 	if probability < c.Pipeline.Threshold {
 		return "", -1.0

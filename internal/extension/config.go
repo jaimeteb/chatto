@@ -12,10 +12,11 @@ import (
 
 // Config options for an extension function
 type Config struct {
-	Type string `mapstructure:"type"`
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
-	URL  string `mapstructure:"url"`
+	Type  string `mapstructure:"type"`
+	Host  string `mapstructure:"host"`
+	Port  int    `mapstructure:"port"`
+	URL   string `mapstructure:"url"`
+	Token string `mapstructure:"token"`
 }
 
 // New loads the extension configuration and connects to the server
@@ -68,7 +69,7 @@ func New(extCfg Config) (Extension, error) {
 		retryClient := retryablehttp.NewClient()
 		retryClient.Logger = log.New()
 
-		restExtention := &REST{URL: extCfg.URL, http: retryClient}
+		restExtention := &REST{URL: extCfg.URL, http: retryClient, token: extCfg.Token}
 
 		allFuncs, err := restExtention.GetAllCommandFuncs()
 		if err != nil {
@@ -77,7 +78,7 @@ func New(extCfg Config) (Extension, error) {
 
 		log.Info("Loaded extensions (REST):")
 		for i, fun := range allFuncs {
-			log.Infof("%v    %v", i, fun)
+			log.Infof("%2d %v", i, fun)
 		}
 
 		extension = restExtention

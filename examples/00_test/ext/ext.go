@@ -17,12 +17,12 @@ func greetFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.Execute
 	}
 }
 
-var registeredFuncs = extension.RegisteredCommandFuncs{
+var registeredCommandFuncs = extension.RegisteredCommandFuncs{
 	"any": greetFunc,
 }
 
 func main() {
-	if err := extension.ServeREST(registeredFuncs); err != nil {
+	if err := extension.ServeREST(registeredCommandFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

@@ -34,10 +34,11 @@ func TestBot_channelHandler(t *testing.T) {
 	defer ts.Close()
 
 	type args struct {
-		endpoint    string
-		message     []byte
-		mockReceive *gomock.Call
-		mockSend    *gomock.Call
+		endpoint     string
+		message      []byte
+		mockReceive  *gomock.Call
+		mockSend     *gomock.Call
+		mockValidate *gomock.Call
 	}
 	tests := []struct {
 		name    string
@@ -50,10 +51,11 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "rest endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/channels/rest", ts.URL),
-				message:     []byte(`{"sender": "42", "text": "on"}`),
-				mockReceive: restChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
-				mockSend:    restChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				endpoint:     fmt.Sprintf("%s/channels/rest", ts.URL),
+				message:      []byte(`{"sender": "42", "text": "on"}`),
+				mockReceive:  restChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
+				mockSend:     restChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				mockValidate: restChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
 			want: `[{"text":"Turning on.","image":""}]`,
 		},
@@ -61,10 +63,11 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "twilio endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/channels/twilio", ts.URL),
-				message:     []byte(`{"sender": "42", "text": "off"}`),
-				mockReceive: twilioChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "off"}}, nil),
-				mockSend:    twilioChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				endpoint:     fmt.Sprintf("%s/channels/twilio", ts.URL),
+				message:      []byte(`{"sender": "42", "text": "off"}`),
+				mockReceive:  twilioChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "off"}}, nil),
+				mockSend:     twilioChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				mockValidate: twilioChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
 			want: `[{"text":"Turning off.","image":""},{"text":"❌","image":""}]`,
 		},
@@ -72,10 +75,11 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "telegram endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/channels/telegram", ts.URL),
-				message:     []byte(`{"sender": "42", "text": "on"}`),
-				mockReceive: telegramChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
-				mockSend:    telegramChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				endpoint:     fmt.Sprintf("%s/channels/telegram", ts.URL),
+				message:      []byte(`{"sender": "42", "text": "on"}`),
+				mockReceive:  telegramChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
+				mockSend:     telegramChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				mockValidate: telegramChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
 			want: `[{"text":"Turning on.","image":""}]`,
 		},
@@ -83,10 +87,11 @@ func TestBot_channelHandler(t *testing.T) {
 			name: "slack endpoint test",
 			bot:  testBot,
 			args: args{
-				endpoint:    fmt.Sprintf("%s/channels/slack", ts.URL),
-				message:     []byte(`{"sender": "42", "text": "on"}`),
-				mockReceive: slackChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
-				mockSend:    slackChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				endpoint:     fmt.Sprintf("%s/channels/slack", ts.URL),
+				message:      []byte(`{"sender": "42", "text": "on"}`),
+				mockReceive:  slackChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
+				mockSend:     slackChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
+				mockValidate: slackChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
 			want: `[{"text":"Can't do that.","image":""}]`,
 		},
@@ -236,7 +241,7 @@ func TestBot_Predict(t *testing.T) {
 	ts := httptest.NewServer(testBot.Router)
 	defer ts.Close()
 
-	predictEndpoint := fmt.Sprintf("%s/predict", ts.URL)
+	predictEndpoint := fmt.Sprintf("%s/bot/predict", ts.URL)
 
 	type args struct {
 		inputText []byte
@@ -296,7 +301,7 @@ func TestBot_Details(t *testing.T) {
 	ts := httptest.NewServer(testBot.Router)
 	defer ts.Close()
 
-	detailsEndpoint := fmt.Sprintf("%s/senders", ts.URL)
+	detailsEndpoint := fmt.Sprintf("%s/bot/senders", ts.URL)
 
 	testBot.Store.Set("marcopolo", &fsm.FSM{})
 

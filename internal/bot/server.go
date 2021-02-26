@@ -2,9 +2,11 @@ package bot
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/internal/channels"
@@ -13,6 +15,9 @@ import (
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
+
+// ErrValidationFailed happens when a channel cannot validate an incoming callback
+var ErrValidationFailed error = errors.New("the callback token is invalid")
 
 // Prediction models a classifier prediction and its original string
 type Prediction struct {
@@ -38,6 +43,11 @@ func (b *Bot) slackChannelHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *Bot) channelHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
+	if !chnl.ValidateCallback(r) {
+		http.Error(w, ErrValidationFailed.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -110,6 +120,11 @@ func (b *Bot) slackChannelEvents() {
 }
 
 func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
+	if err := b.authorize(r); err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	if vars == nil {
 		log.Errorf("unable to get sender from request uri: %s", r.URL.RawPath)
@@ -142,6 +157,11 @@ func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
+	if err := b.authorize(r); err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 
 	var question query.Question
@@ -171,6 +191,18 @@ func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (b *Bot) authorize(r *http.Request) error {
+	if b.Config.Auth.Token != "" {
+		reqToken := r.Header.Get("Authorization")
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+
+		if b.Config.Auth.Token != reqToken {
+			return errors.New("unauthorized")
+		}
+	}
+	return nil
 }
 
 // Run starts the bot which is a long running process
@@ -212,8 +244,8 @@ func (b *Bot) RegisterRoutes() {
 	}
 
 	// Prediction and Sender Channels
-	r.HandleFunc("/predict", b.predictHandler).Methods("POST")
-	r.HandleFunc("/senders/{sender}", b.detailsHandler).Methods("GET")
+	r.HandleFunc("/bot/predict", b.predictHandler).Methods("POST")
+	r.HandleFunc("/bot/senders/{sender}", b.detailsHandler).Methods("GET")
 
 	b.Router = r
 }

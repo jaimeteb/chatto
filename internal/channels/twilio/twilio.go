@@ -4,6 +4,7 @@ package twilio
 
 import (
 	"bytes"
+	"net/http"
 	"net/url"
 
 	"github.com/ajg/form"
@@ -29,6 +30,8 @@ type MessageIn struct {
 	NumMedia         int    `form:"NumMedia"`
 	NumSegments      int    `form:"NumSegments"`
 	APIVersion       string `form:"ApiVersion"`
+	ProfileName      string `form:"ProfileName"`
+	WaID             string `form:"WaId"`
 }
 
 // Config models Twilio configuration
@@ -47,6 +50,7 @@ type Client interface {
 type Channel struct {
 	Client Client
 	Number string
+	token  string
 }
 
 // New returns an initialized telegram client
@@ -55,7 +59,7 @@ func New(config Config) *Channel {
 
 	log.Infof("Added Twilio client: %v", client.AccountSid)
 
-	return &Channel{Client: client.Messages}
+	return &Channel{Client: client.Messages, Number: config.Number, token: config.AuthToken}
 }
 
 // SendMessage for Twilio
@@ -106,4 +110,10 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
 func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	// Not implemented
+}
+
+// ValidateCallback validates a callback to the channel
+func (c *Channel) ValidateCallback(r *http.Request) bool {
+	// Not implemented
+	return true
 }

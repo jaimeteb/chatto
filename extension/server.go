@@ -2,11 +2,13 @@ package extension
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
 	"net/rpc"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/fsm"
@@ -19,6 +21,9 @@ import (
 var (
 	extensionCommandNotFound = "extension command %s not found"
 	invalidHTTPMethod        = "got method %s, expected %s"
+	// ErrExtensionUnauthorized happens when the server requires a token
+	// but it is missing or is incorrect in the request
+	ErrExtensionUnauthorized = errors.New("missing or incorrect token")
 )
 
 // ExecuteCommandFuncRequest contains the instructions for executing a command function
@@ -76,7 +81,6 @@ func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
-
 	flag.Parse()
 
 	logger.SetLogger(*debug)
@@ -142,6 +146,12 @@ func (l *ListenerRPC) GetBuildVersion(_ *GetBuildVersionRequest, res *version.Bu
 // ListenerREST contains the RegisteredCommandFuncs to be served through REST
 type ListenerREST struct {
 	RegisteredCommandFuncs RegisteredCommandFuncs
+	token                  string
+}
+
+// NewListenerREST creates a ListenerREST with command functions and a token
+func NewListenerREST(registeredCommandFuncs RegisteredCommandFuncs, token string) *ListenerREST {
+	return &ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: token}
 }
 
 // ServeREST serves the registered extension functions as a REST API
@@ -152,11 +162,13 @@ func ServeREST(registeredCommandFuncs RegisteredCommandFuncs) error {
 	sslKey := flag.String("ssl-key", "", "SSL key file for TLS secured server.")
 	sslCert := flag.String("ssl-cert", "", "SSL certificate for TLS secured server.")
 
+	token := flag.String("token", "", "Authorization token to be required by Chatto bot.")
+
 	flag.Parse()
 
 	logger.SetLogger(*debug)
 
-	l := ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs}
+	l := ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: *token}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/ext/command", l.ExecuteCommandFunc).Methods("POST")
@@ -176,6 +188,16 @@ func ServeREST(registeredCommandFuncs RegisteredCommandFuncs) error {
 
 // ExecuteCommandFunc runs the requested command function and returns the response
 func (l *ListenerREST) ExecuteCommandFunc(w http.ResponseWriter, r *http.Request) {
+	if l.token != "" {
+		reqToken := r.Header.Get("Authorization")
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+
+		if l.token != reqToken {
+			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			return
+		}
+	}
+
 	if r.Method != http.MethodPost {
 		http.Error(w, fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodPost), http.StatusBadRequest)
 		return
@@ -215,6 +237,16 @@ func (l *ListenerREST) ExecuteCommandFunc(w http.ResponseWriter, r *http.Request
 
 // GetAllCommandFuncs returns all command functions in RegisteredCommandFuncs as a list of strings
 func (l *ListenerREST) GetAllCommandFuncs(w http.ResponseWriter, r *http.Request) {
+	if l.token != "" {
+		reqToken := r.Header.Get("Authorization")
+		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
+
+		if l.token != reqToken {
+			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			return
+		}
+	}
+
 	if r.Method != http.MethodGet {
 		http.Error(w, fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodGet), http.StatusBadRequest)
 		return
