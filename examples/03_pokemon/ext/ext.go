@@ -12,7 +12,7 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-func searchPokemon(req *extension.Request) (res *extension.Response) {
+func searchPokemon(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
 	m := req.FSM
 
 	pokemon := m.Slots["pokemon"]
@@ -27,7 +27,7 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 		message = "Something went wrong..."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extension.Response{
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -40,7 +40,7 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 		message = "Pokémon not found, try with another input."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extension.Response{
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -56,7 +56,7 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 		message = "Pokémon not found, try with another input."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extension.Response{
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -70,7 +70,7 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 		message = "Pokémon not found, try with another input."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extension.Response{
+		return &extension.ExecuteCommandFuncResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -85,7 +85,7 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 	pokemonWeight := pokemonResp["weight"].(float64)
 	message = fmt.Sprintf("Name: %s \nID: %.2f \nHeight: %.2f \nWeight: %.2f", pokemonName, pokemonID, pokemonHeight, pokemonWeight)
 
-	return &extension.Response{
+	return &extension.ExecuteCommandFuncResponse{
 		FSM: &fsm.FSM{
 			State: intoState,
 			Slots: req.FSM.Slots,
@@ -94,12 +94,12 @@ func searchPokemon(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-var RegisteredCommandFuncs = extension.RegisteredCommandFuncs{
+var registeredCommandFuncs = extension.RegisteredCommandFuncs{
 	"search_pokemon": searchPokemon,
 }
 
 func main() {
-	if err := extension.ServeRPC(RegisteredCommandFuncs); err != nil {
+	if err := extension.ServeRPC(registeredCommandFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

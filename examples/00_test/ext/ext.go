@@ -7,8 +7,8 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-func greetFunc(req *extension.Request) (res *extension.Response) {
-	return &extension.Response{
+func greetFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
+	return &extension.ExecuteCommandFuncResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{{
 			Text:  "Hello Universe",
@@ -17,12 +17,12 @@ func greetFunc(req *extension.Request) (res *extension.Response) {
 	}
 }
 
-var RegisteredCommandFuncs = extension.RegisteredCommandFuncs{
+var registeredCommandFuncs = extension.RegisteredCommandFuncs{
 	"any": greetFunc,
 }
 
 func main() {
-	if err := extension.ServeREST(RegisteredCommandFuncs); err != nil {
+	if err := extension.ServeREST(registeredCommandFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

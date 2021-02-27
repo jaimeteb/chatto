@@ -2,7 +2,6 @@ package extension
 
 import (
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"net"
@@ -14,39 +13,73 @@ import (
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/logger"
 	"github.com/jaimeteb/chatto/query"
+	"github.com/jaimeteb/chatto/version"
 	log "github.com/sirupsen/logrus"
 )
 
 var (
-	// ErrExtensionNotFound happens when an extension is requested but
-	// is not found in the extension server
-	ErrExtensionNotFound = errors.New("extension not found")
-	// ErrExtensionUnauthorized happens when the server requires a token
-	// but it is missing or is incorrect in the request
-	ErrExtensionUnauthorized = errors.New("missing or incorrect token")
+	invalidExtensionCommand = "extension command '%s' not found"
+	invalidHTTPMethod       = "got method '%s', expected '%s'"
+	invalidAuthToken        = "missing or incorrect authorization token"
 )
 
-// Request for an extension function
-type Request struct {
-	FSM       *fsm.FSM        `json:"fsm"`
-	Extension string          `json:"extension"`
-	Question  *query.Question `json:"question"`
-	Domain    *fsm.BaseDomain `json:"domain"`
+// ExecuteCommandFuncRequest contains the instructions for executing a command function
+type ExecuteCommandFuncRequest struct {
+	FSM      *fsm.FSM        `json:"fsm"`
+	Domain   *fsm.BaseDomain `json:"domain"`
+	Command  string          `json:"command"`
+	Question *query.Question `json:"question"`
 }
 
-// Response from an extension function
-type Response struct {
+// ExecuteCommandFuncResponse contains the result of executing a command function
+type ExecuteCommandFuncResponse struct {
 	FSM     *fsm.FSM       `json:"fsm"`
 	Answers []query.Answer `json:"answers"`
 }
 
-// GetAllFuncsResponse contains a list of all registered functions
-type GetAllFuncsResponse struct {
-	Funcs []string
+// GetAllCommandFuncsRequest is empty for now to match RPC interface. Maybe later
+// we will use it for filtering/searching commands
+type GetAllCommandFuncsRequest struct {
 }
 
-// RegisteredCommandFuncs maps bot commands to functions to be used in extensions
-type RegisteredCommandFuncs map[string]func(*Request) *Response
+// GetAllCommandFuncsResponse contains a list of all registered command functions
+type GetAllCommandFuncsResponse struct {
+	Commands []string
+}
+
+// GetBuildVersionRequest is empty for now to match RPC interface.
+type GetBuildVersionRequest struct {
+}
+
+// ErrorResponse is used when an error occurred processing a request
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+// RegisteredCommandFuncs maps commands to functions which are executed by extension servers
+type RegisteredCommandFuncs map[string]func(*ExecuteCommandFuncRequest) *ExecuteCommandFuncResponse
+
+// Commands returns a list of all registered function command names
+func (r *RegisteredCommandFuncs) Commands() []string {
+	if r == nil {
+		return []string{}
+	}
+
+	commands := make([]string, 0, len(*r))
+	for command := range *r {
+		commands = append(commands, command)
+	}
+
+	return commands
+}
+
+func httpError(w http.ResponseWriter, errorResponse ErrorResponse) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(errorResponse.Code)
+	_ = json.NewEncoder(w).Encode(errorResponse)
+}
 
 // ListenerRPC contains the RegisteredCommandFuncs to be served through RPC
 type ListenerRPC struct {
@@ -62,7 +95,7 @@ func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 
 	logger.SetLogger(*debug)
 
-	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%v:%v", *host, *port))
+	addr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", *host, *port))
 	if err != nil {
 		log.Error(err)
 		return err
@@ -74,7 +107,7 @@ func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 		return err
 	}
 
-	log.Infof("RPC extension server started. Using port %v", *port)
+	log.Infof("RPC extension server started. Using port %d", *port)
 	err = rpc.Register(&ListenerRPC{RegisteredCommandFuncs: registeredCommandFuncs})
 	if err != nil {
 		log.Error(err)
@@ -86,31 +119,37 @@ func ServeRPC(registeredCommandFuncs RegisteredCommandFuncs) error {
 	return nil
 }
 
-// GetFunc returns a requested extension function
-func (l *ListenerRPC) GetFunc(req *Request, res *Response) error {
-	extFunc, ok := l.RegisteredCommandFuncs[req.Extension]
+// ExecuteCommandFunc runs the requested command function and returns the response
+func (l *ListenerRPC) ExecuteCommandFunc(req *ExecuteCommandFuncRequest, res *ExecuteCommandFuncResponse) error {
+	command, ok := l.RegisteredCommandFuncs[req.Command]
 	if !ok {
-		return ErrExtensionNotFound
+		return fmt.Errorf(invalidExtensionCommand, req.Command)
 	}
-	extRes := extFunc(req)
+	commandRes := command(req)
 
-	res.FSM = extRes.FSM
-	res.Answers = extRes.Answers
+	res.FSM = commandRes.FSM
+	res.Answers = commandRes.Answers
 
-	log.Debugf("Request:    %v,    %v", req.FSM, req.Extension)
-	log.Debugf("Response:    %v,    %v", *res.FSM, res.Answers)
+	log.Debugf("ExecuteCommandFuncRequest:    %v,    %v", req.FSM, req.Command)
+	log.Debugf("ExecuteCommandFuncResponse:    %v,    %v", *res.FSM, res.Answers)
 
 	return nil
 }
 
-// GetAllFuncs returns all functions registered in an RegisteredCommandFuncs
-func (l *ListenerRPC) GetAllFuncs(req *Request, res *GetAllFuncsResponse) error {
-	allFuncs := make([]string, 0)
-	for funcName := range l.RegisteredCommandFuncs {
-		allFuncs = append(allFuncs, funcName)
-	}
-	res.Funcs = allFuncs
+// GetAllCommandFuncs returns all functions registered in the RegisteredCommandFuncs map
+func (l *ListenerRPC) GetAllCommandFuncs(_ *GetAllCommandFuncsRequest, res *GetAllCommandFuncsResponse) error {
+	res.Commands = l.RegisteredCommandFuncs.Commands()
 	log.Debug(res)
+	return nil
+}
+
+// GetBuildVersion returns the current build version of the extension
+func (l *ListenerRPC) GetBuildVersion(_ *GetBuildVersionRequest, res *version.BuildResponse) error {
+	buildResponse := version.Build()
+	res.Version = buildResponse.Version
+	res.Commit = buildResponse.Commit
+	res.BuiltAt = buildResponse.BuiltAt
+	res.BuiltBy = buildResponse.BuiltBy
 	return nil
 }
 
@@ -139,94 +178,162 @@ func ServeREST(registeredCommandFuncs RegisteredCommandFuncs) error {
 
 	logger.SetLogger(*debug)
 
-	l := ListenerREST{RegisteredCommandFuncs: registeredCommandFuncs, token: *token}
+	l := NewListenerREST(registeredCommandFuncs, *token)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/ext/get_func", l.GetFunc).Methods("POST")
-	r.HandleFunc("/ext/get_all_funcs", l.GetAllFuncs).Methods("GET")
+	r.HandleFunc("/ext/command", l.ExecuteCommandFunc).Methods("POST")
+	r.HandleFunc("/ext/commands", l.GetAllCommandFuncs).Methods("GET")
+	r.HandleFunc("/ext/version", l.GetBuildVersion).Methods("GET")
 
 	if *sslKey != "" && *sslCert != "" {
-		log.Infof("REST extension server started with TLS. Using port %v", *port)
+		log.Infof("REST extension server started with TLS. Using port %d", *port)
 		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", *port), *sslCert, *sslKey, r))
 	} else {
-		log.Infof("REST extension server started. Using port %v", *port)
+		log.Infof("REST extension server started. Using port %d", *port)
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), r))
 	}
 
 	return nil
 }
 
-// GetFunc returns a requested extension function as a REST API
-func (l *ListenerREST) GetFunc(w http.ResponseWriter, r *http.Request) {
+// ExecuteCommandFunc runs the requested command function and returns the response
+func (l *ListenerREST) ExecuteCommandFunc(w http.ResponseWriter, r *http.Request) {
 	if l.token != "" {
 		reqToken := r.Header.Get("Authorization")
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
 
 		if l.token != reqToken {
-			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			httpError(w, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: invalidAuthToken,
+			})
 			return
 		}
+	}
+
+	if r.Method != http.MethodPost {
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodPost),
+		})
+		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 
-	var req Request
+	var req ExecuteCommandFuncRequest
 	if err := decoder.Decode(&req); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		})
 		return
 	}
 
-	extFunc, ok := l.RegisteredCommandFuncs[req.Extension]
+	commandFunc, ok := l.RegisteredCommandFuncs[req.Command]
 	if !ok {
-		http.Error(w, ErrExtensionNotFound.Error(), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusNotFound,
+			Message: fmt.Sprintf(invalidExtensionCommand, req.Command),
+		})
 		return
 	}
-	res := extFunc(&req)
+	res := commandFunc(&req)
 
-	log.Debugf("Request:     %v,    %v", req.FSM, req.Extension)
-	log.Debugf("Response:    %v,    %v", *res.FSM, res.Answers)
+	log.Debugf("ExecuteCommandFuncRequest:    %v,    %v", req.FSM, req.Command)
+	log.Debugf("ExecuteCommandFuncResponse:    %v,    %v", *res.FSM, res.Answers)
 
 	js, err := json.Marshal(res)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(js)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 }
 
-// GetAllFuncs returns all functions registered in an RegisteredCommandFuncs as a REST API
-func (l *ListenerREST) GetAllFuncs(w http.ResponseWriter, r *http.Request) {
+// GetAllCommandFuncs returns all command functions in RegisteredCommandFuncs as a list of strings
+func (l *ListenerREST) GetAllCommandFuncs(w http.ResponseWriter, r *http.Request) {
 	if l.token != "" {
 		reqToken := r.Header.Get("Authorization")
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
 
 		if l.token != reqToken {
-			http.Error(w, ErrExtensionUnauthorized.Error(), http.StatusUnauthorized)
+			httpError(w, ErrorResponse{
+				Code:    http.StatusUnauthorized,
+				Message: invalidAuthToken,
+			})
 			return
 		}
 	}
 
-	allFuncs := make([]string, 0)
-	for funcName := range l.RegisteredCommandFuncs {
-		allFuncs = append(allFuncs, funcName)
+	if r.Method != http.MethodGet {
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodGet),
+		})
+		return
 	}
 
-	js, err := json.Marshal(allFuncs)
+	js, err := json.Marshal(l.RegisteredCommandFuncs.Commands())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(js)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+}
+
+// GetBuildVersion returns the current build version of the extension
+func (l *ListenerREST) GetBuildVersion(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		httpError(w, ErrorResponse{
+			Code:    http.StatusBadRequest,
+			Message: fmt.Sprintf(invalidHTTPMethod, r.Method, http.MethodGet),
+		})
+		return
+	}
+
+	buildResponse := version.Build()
+
+	js, err := json.Marshal(&buildResponse)
+	if err != nil {
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(js)
+	if err != nil {
+		httpError(w, ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
 		return
 	}
 }
