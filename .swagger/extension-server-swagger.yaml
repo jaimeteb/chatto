@@ -1,0 +1,328 @@
+openapi: 3.0.0
+info:
+  title: Chatto Extension
+  version: 1.0.0
+  contact:
+    name: Chatto
+    email: jaimeteb@gmail.com
+  license:
+    name: MIT
+    url: "https://github.com/jaimeteb/chatto/blob/master/LICENSE"
+  description: >-
+    Chatto extensions are services that execute commands and return an answer to
+    the Chatto bot. Extensions are written in any language and do whatever you
+    want.
+paths:
+  /ext/commands:
+    get:
+      summary: Get all registered command functions
+      description: Returns the names of all registered command functions the extension server provides
+      tags:
+        - command
+      parameters: []
+      operationId: getAllCommandFuncs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllCommandFuncsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 400
+                message: "got method 'POST', expected 'GET'"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 401
+                message: "missing or incorrect authorization token"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 500
+                message: "something went horribly wrong"
+  /ext/command:
+    post:
+      summary: Execute registered command function
+      description: Returns the answer from executing the command and FSM which allows
+      tags:
+        - command
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecuteCommandFuncRequest"
+      operationId: executeCommandFunc
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecuteCommandFuncResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 400
+                message: "got method 'GET', expected 'POST'"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 401
+                message: "missing or incorrect authorization token"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 404
+                message: "extension command 'i_dont_exist' not found"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 500
+                message: "something went horribly wrong"
+  /ext/version:
+    get:
+      summary: Get the current build version
+      description: Returns the current build version of the extension server
+      tags:
+        - version
+      security: []
+      parameters: []
+      operationId: getBuildVersion
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 400
+                message: "got method 'POST', expected 'GET'"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/Error"
+              example:
+                code: 500
+                message: "something went horribly wrong"
+externalDocs:
+  description: >-
+    The extensions in Chatto are pieces of code that can be executed instead of
+    messages, and can also alter the state of the conversation. In the fsm.yml
+    file, the extensions are contained in the extension field of the functions.
+
+    Extensions are executed as services, and can be written in Go, using the
+    chatto/extension and chatto/query packages, or they can be written in any
+    language, as long as the services are compatible.
+  url: "https://chatto.jaimeteb.com/extensions"
+security:
+  - bearerAuth: []
+servers: []
+components:
+  links: {}
+  callbacks: {}
+  schemas:
+    GetAllCommandFuncsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/Command"
+      example:
+        - "weather"
+        - "joke"
+        - "quote"
+        - "misc"
+    ExecuteCommandFuncResponse:
+      type: object
+      properties:
+        fsm:
+          $ref: "#/components/schemas/FSM"
+        answers:
+          $ref: "#/components/schemas/Answers"
+    ExecuteCommandFuncRequest:
+      type: object
+      properties:
+        fsm:
+          $ref: "#/components/schemas/FSM"
+        command:
+          $ref: "#/components/schemas/Command"
+        question:
+          $ref: "#/components/schemas/Question"
+        domain:
+          $ref: "#/components/schemas/FSMDomain"
+    FSMDomain:
+      type: object
+      properties:
+        state_table:
+          $ref: "#/components/schemas/StateTable"
+        command_list:
+          $ref: "#/components/schemas/CommandList"
+        default_messages:
+          $ref: "#/components/schemas/DefaultMessages"
+    StateTable:
+      type: object
+      properties:
+        state:
+          type: integer
+      example:
+        weather: 1
+        joke: 2
+    CommandList:
+      type: array
+      items:
+        type: string
+      example:
+        - "weather"
+        - "joke"
+    Command:
+      type: string
+      example: "weather"
+    DefaultMessages:
+      type: object
+      properties:
+        unknown:
+          type: string
+        unsure:
+          type: string
+        error:
+          type: string
+      example:
+        unknown: "Unknown command, try something different."
+        unsure: "Not sure I understood, try something different."
+        error: "There was an error, try again later."
+    FSM:
+      type: object
+      properties:
+        state:
+          $ref: "#/components/schemas/State"
+        slots:
+          $ref: "#/components/schemas/Slots"
+    State:
+      type: integer
+      example: 1
+    Slots:
+      type: object
+      properties:
+        slot:
+          type: string
+      example:
+        johndoe: "mexico city, mexico"
+        janedoe: "london, england"
+    Question:
+      type: object
+      properties:
+        sender:
+          type: string
+        text:
+          type: string
+      example:
+        sender: "johndoe"
+        text: "whats the weather in mexico city mexico"
+    Answers:
+      type: array
+      items:
+        $ref: "#/components/schemas/Answer"
+    Answer:
+      type: object
+      properties:
+        text:
+          type: string
+        image:
+          type: string
+      example:
+        text: "It is sunny and 23.0 degrees celsius in Mexico City, Mexico today"
+        image: "https://ssl.gstatic.com/onebox/weather/48/sunny.png"
+    Version:
+      type: object
+      properties:
+        version:
+          type: string
+        commit:
+          type: string
+        built_at:
+          type: string
+          format: date-time
+        built_by:
+          type: string
+      example:
+        version: "v1.0.1"
+        commit: "f72db7e15abf1b1ff5f3fb81363b6728e9a46fef"
+        built_at: "0001-01-01 00:00:00 +0000 UTC"
+        built_by: "goreleaser"
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: command
+    description: >-
+      Command functions are commands that the Chatto bot executes when a message
+      matches the classifier.
+  - name: version
+    description: >-
+      Get the running build version of the extension server.
