@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"sync"
 	"time"
 
 	redis "github.com/go-redis/redis/v8"
@@ -14,7 +13,6 @@ import (
 )
 
 var ctx = context.Background()
-var mutex = &sync.RWMutex{}
 
 // StoreConfig struct models a Store configuration in bot.yml
 type StoreConfig struct {
@@ -45,9 +43,7 @@ type RedisStore struct {
 
 // Exists for CacheStoreFSM
 func (s *CacheStore) Exists(user string) (e bool) {
-	mutex.Lock()
 	_, ok := s.C.Get(user)
-	mutex.Unlock()
 	return ok
 }
 
@@ -62,9 +58,7 @@ func (s *RedisStore) Exists(user string) (e bool) {
 
 // Get method for CacheStoreFSM
 func (s *CacheStore) Get(user string) *fsm.FSM {
-	mutex.Lock()
 	v, _ := s.C.Get(user)
-	mutex.Unlock()
 	return v.(*fsm.FSM)
 }
 
@@ -93,9 +87,7 @@ func (s *RedisStore) Get(user string) *fsm.FSM {
 
 // Set method for CacheStoreFSM
 func (s *CacheStore) Set(user string, m *fsm.FSM) {
-	mutex.Lock()
 	s.C.Set(user, m, 0)
-	mutex.Unlock()
 }
 
 // Set method for RedisStoreFSM
