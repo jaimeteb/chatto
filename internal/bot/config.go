@@ -118,7 +118,7 @@ func loadName(name string) string {
 func New(botConfig *Config) (*Bot, error) {
 	b := &Bot{
 		Name:   loadName(botConfig.Name),
-		Store:  fsm.NewStore(botConfig.Store),
+		Store:  fsm.NewStore(&botConfig.Store),
 		Config: botConfig,
 	}
 

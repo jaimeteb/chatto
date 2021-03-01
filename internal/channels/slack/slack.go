@@ -158,11 +158,7 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 	go func() {
 		for evt := range c.SocketClientEvents {
 			switch evt.Type {
-			case socketmode.EventTypeHello:
-				// Ignore
-			case socketmode.EventTypeInteractive:
-				// Ignore
-			case socketmode.EventTypeSlashCommand:
+			case socketmode.EventTypeHello, socketmode.EventTypeInteractive, socketmode.EventTypeSlashCommand:
 				// Ignore
 			case socketmode.EventTypeInvalidAuth:
 				log.Error("Invalid auth when connecting to Slack...")
@@ -244,7 +240,7 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 					log.Debugf("Unsupported Events API event received")
 				}
 			default:
-				// log.Debugf("Unexpected event type received: %s", evt.Type)
+				log.Debugf("Unexpected event type received: %s", evt.Type)
 			}
 		}
 	}()

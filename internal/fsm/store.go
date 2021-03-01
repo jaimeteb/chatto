@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"sync"
 	"time"
 
 	redis "github.com/go-redis/redis/v8"
@@ -14,7 +13,6 @@ import (
 )
 
 var ctx = context.Background()
-var mutex = &sync.RWMutex{}
 
 // StoreConfig struct models a Store configuration in bot.yml
 type StoreConfig struct {
@@ -22,6 +20,7 @@ type StoreConfig struct {
 	TTL      int    `mapstructure:"ttl"`
 	Purge    int    `mapstructure:"purge"`
 	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
 	Password string `mapstructure:"password"`
 }
 
@@ -45,9 +44,7 @@ type RedisStore struct {
 
 // Exists for CacheStoreFSM
 func (s *CacheStore) Exists(user string) (e bool) {
-	mutex.Lock()
 	_, ok := s.C.Get(user)
-	mutex.Unlock()
 	return ok
 }
 
@@ -62,9 +59,7 @@ func (s *RedisStore) Exists(user string) (e bool) {
 
 // Get method for CacheStoreFSM
 func (s *CacheStore) Get(user string) *fsm.FSM {
-	mutex.Lock()
 	v, _ := s.C.Get(user)
-	mutex.Unlock()
 	return v.(*fsm.FSM)
 }
 
@@ -93,9 +88,7 @@ func (s *RedisStore) Get(user string) *fsm.FSM {
 
 // Set method for CacheStoreFSM
 func (s *CacheStore) Set(user string, m *fsm.FSM) {
-	mutex.Lock()
 	s.C.Set(user, m, 0)
-	mutex.Unlock()
 }
 
 // Set method for RedisStoreFSM
@@ -119,20 +112,27 @@ func (s *RedisStore) Set(user string, m *fsm.FSM) {
 }
 
 // NewStore loads a Store according to the configuration
-func NewStore(storeConfig StoreConfig) Store {
+func NewStore(storeConfig *StoreConfig) Store {
 	var machines Store
 
 	if storeConfig.TTL == 0 {
 		storeConfig.TTL = -1
 	}
 	if storeConfig.Purge == 0 {
-		storeConfig.Purge = -1
+		if storeConfig.TTL != 0 {
+			storeConfig.Purge = storeConfig.TTL
+		} else {
+			storeConfig.Purge = -1
+		}
+	}
+	if storeConfig.Port == "" {
+		storeConfig.Port = "6379"
 	}
 
 	switch storeConfig.Type {
 	case "REDIS":
 		RDB := redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%v:6379", storeConfig.Host),
+			Addr:     fmt.Sprintf("%s:%s", storeConfig.Host, storeConfig.Port),
 			Password: storeConfig.Password,
 			DB:       0,
 		})

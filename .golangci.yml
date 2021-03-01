@@ -7,7 +7,7 @@ linters-settings:
     threshold: 100
   funlen:
     lines: 100
-    statements: 50
+    statements: 55
   goconst:
     min-len: 2
     min-occurrences: 2
@@ -25,7 +25,7 @@ linters-settings:
       - whyNoLint
       - wrapperFunc
   gocyclo:
-    min-complexity: 15
+    min-complexity: 25
   golint:
     min-confidence: 0
   gomnd:
@@ -75,7 +75,6 @@ linters:
     - lll
     - misspell
     - nakedret
-    - noctx
     - nolintlint
     - rowserrcheck
     - scopelint
@@ -98,6 +97,7 @@ linters:
   # - goerr113
   # - maligned
   # - nestif
+  # - noctx
   # - prealloc
   # - testpackage
   # - wsl
