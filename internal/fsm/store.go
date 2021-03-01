@@ -112,7 +112,7 @@ func (s *RedisStore) Set(user string, m *fsm.FSM) {
 }
 
 // NewStore loads a Store according to the configuration
-func NewStore(storeConfig StoreConfig) Store {
+func NewStore(storeConfig *StoreConfig) Store {
 	var machines Store
 
 	if storeConfig.TTL == 0 {

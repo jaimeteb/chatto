@@ -398,7 +398,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 
 	b := &bot.Bot{
 		Name:   botConfig.Name,
-		Store:  fsmint.NewStore(botConfig.Store),
+		Store:  fsmint.NewStore(&botConfig.Store),
 		Config: botConfig,
 	}
 

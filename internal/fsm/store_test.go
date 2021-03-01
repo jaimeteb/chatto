@@ -24,7 +24,7 @@ func closeRedisServer() {
 }
 
 func TestCacheStore(t *testing.T) {
-	machines := fsmint.NewStore(fsmint.StoreConfig{Type: "CACHE"})
+	machines := fsmint.NewStore(&fsmint.StoreConfig{Type: "CACHE"})
 
 	if resp1 := machines.Exists("foo"); resp1 != false {
 		t.Errorf("incorrect, got: %v, want: %v.", resp1, "false")
@@ -59,7 +59,7 @@ func TestRedisStore(t *testing.T) {
 
 	fmt.Println(redisServer.Addr())
 
-	machines := fsmint.NewStore(fsmint.StoreConfig{
+	machines := fsmint.NewStore(&fsmint.StoreConfig{
 		Type:     "REDIS",
 		Host:     redisHost,
 		Port:     redisPort,
@@ -101,7 +101,7 @@ func TestRedisStore(t *testing.T) {
 }
 
 func TestRedisStoreFail(t *testing.T) {
-	machines := fsmint.NewStore(fsmint.StoreConfig{
+	machines := fsmint.NewStore(&fsmint.StoreConfig{
 		Type:     "REDIS",
 		Host:     "localhost",
 		Password: "foo",
