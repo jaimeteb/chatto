@@ -20,6 +20,7 @@ type StoreConfig struct {
 	TTL      int    `mapstructure:"ttl"`
 	Purge    int    `mapstructure:"purge"`
 	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
 	Password string `mapstructure:"password"`
 }
 
@@ -118,13 +119,20 @@ func NewStore(storeConfig StoreConfig) Store {
 		storeConfig.TTL = -1
 	}
 	if storeConfig.Purge == 0 {
-		storeConfig.Purge = -1
+		if storeConfig.TTL != 0 {
+			storeConfig.Purge = storeConfig.TTL
+		} else {
+			storeConfig.Purge = -1
+		}
+	}
+	if storeConfig.Port == "" {
+		storeConfig.Port = "6379"
 	}
 
 	switch storeConfig.Type {
 	case "REDIS":
 		RDB := redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%v:6379", storeConfig.Host),
+			Addr:     fmt.Sprintf("%s:%s", storeConfig.Host, storeConfig.Port),
 			Password: storeConfig.Password,
 			DB:       0,
 		})

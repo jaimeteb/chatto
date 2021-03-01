@@ -1,11 +1,25 @@
 package fsm_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/alicebob/miniredis"
 	"github.com/jaimeteb/chatto/fsm"
 	fsmint "github.com/jaimeteb/chatto/internal/fsm"
 )
+
+var redisServer *miniredis.Miniredis = miniredis.NewMiniRedis()
+
+func startRedisServer(pw string) (host, port string) {
+	redisServer.RequireAuth(pw)
+	redisServer.Start()
+	return redisServer.Host(), redisServer.Port()
+}
+
+func closeRedisServer() {
+	redisServer.Close()
+}
 
 func TestCacheStore(t *testing.T) {
 	machines := fsmint.NewStore(fsmint.StoreConfig{Type: "CACHE"})
@@ -38,11 +52,24 @@ func TestCacheStore(t *testing.T) {
 }
 
 func TestRedisStore(t *testing.T) {
+	redisHost, redisPort := startRedisServer("pass")
+	defer closeRedisServer()
+
+	fmt.Println(redisServer.Addr())
+
 	machines := fsmint.NewStore(fsmint.StoreConfig{
 		Type:     "REDIS",
-		Host:     "localhost",
+		Host:     redisHost,
+		Port:     redisPort,
 		Password: "pass",
 	})
+
+	switch machines.(type) {
+	case *fsmint.RedisStore:
+		break
+	default:
+		t.Error("incorrect, want: *RedisStore")
+	}
 
 	if resp1 := machines.Exists("foo"); resp1 != false {
 		t.Errorf("incorrect, got: %v, want: %v.", resp1, "false")
