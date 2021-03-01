@@ -75,7 +75,6 @@ linters:
     - lll
     - misspell
     - nakedret
-    - noctx
     - nolintlint
     - rowserrcheck
     - scopelint
@@ -98,6 +97,7 @@ linters:
   # - goerr113
   # - maligned
   # - nestif
+  # - noctx
   # - prealloc
   # - testpackage
   # - wsl

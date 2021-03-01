@@ -207,7 +207,7 @@ func (b *Bot) authorize(r *http.Request) error {
 
 // Run starts the bot which is a long running process
 func (b *Bot) Run() {
-	// log.Info("\n" + LOGO)
+	log.Info("\n" + LOGO)
 	log.Info("Bot started...")
 
 	// Start event listeners

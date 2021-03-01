@@ -55,7 +55,7 @@ var clfFile string = `classification:
       - "unhappy"
       - "not good"
       - "not very good"
-      - "extremly sad"
+      - "extremely sad"
       - "so saad"
       - "so sad "
 
@@ -221,7 +221,7 @@ func main() {
 	}
 
 	for fileName, fileContent := range fileMap {
-		if err := ioutil.WriteFile(path.Join(*filePath, fileName), []byte(fileContent), 0644); err != nil {
+		if err := ioutil.WriteFile(path.Join(*filePath, fileName), []byte(fileContent), 0600); err != nil {
 			fmt.Printf("Couldn't write %s file: %v\n", fileName, err)
 			return
 		}

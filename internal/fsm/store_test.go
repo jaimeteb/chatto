@@ -13,7 +13,9 @@ var redisServer *miniredis.Miniredis = miniredis.NewMiniRedis()
 
 func startRedisServer(pw string) (host, port string) {
 	redisServer.RequireAuth(pw)
-	redisServer.Start()
+	if err := redisServer.Start(); err != nil {
+		return "localhost", "6379"
+	}
 	return redisServer.Host(), redisServer.Port()
 }
 

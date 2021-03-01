@@ -244,7 +244,7 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 					log.Debugf("Unsupported Events API event received")
 				}
 			default:
-				// log.Debugf("Unexpected event type received: %s", evt.Type)
+				log.Debugf("Unexpected event type received: %s", evt.Type)
 			}
 		}
 	}()
