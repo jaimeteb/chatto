@@ -43,6 +43,25 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -X github.com/jaimeteb/chatto/internal/version.version={{.Version}} -X github.com/jaimeteb/chatto/internal/version.commit={{.Commit}} -X github.com/jaimeteb/chatto/internal/version.date={{ .CommitDate }} -X github.com/jaimeteb/chatto/internal/version.builtBy=goreleaser
+  - id: chatto-init
+    binary: chatto-init
+    main: ./cmd/chatto-init/main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/jaimeteb/chatto/internal/version.version={{.Version}} -X github.com/jaimeteb/chatto/internal/version.commit={{.Commit}} -X github.com/jaimeteb/chatto/internal/version.date={{ .CommitDate }} -X github.com/jaimeteb/chatto/internal/version.builtBy=goreleaser
 
 archives:
   - id: chatto
@@ -61,6 +80,19 @@ archives:
   - id: chatto-cli
     builds:
       - chatto-cli
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+  - id: chatto-init
+    builds:
+      - chatto-init
     name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
     replacements:
       darwin: Darwin
