@@ -67,7 +67,7 @@ func New(extCfg Config) (Extension, error) {
 		extension = rpcExtension
 	case "REST":
 		retryClient := retryablehttp.NewClient()
-		retryClient.Logger = log.New()
+		retryClient.Logger = nil
 
 		restExtention := &REST{URL: extCfg.URL, http: retryClient, token: extCfg.Token}
 

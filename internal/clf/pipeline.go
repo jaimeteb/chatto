@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var removeSymbolRe = regexp.MustCompile(`\W`)
+var removeSymbolRe = regexp.MustCompile(`\W+`)
 
 // PipelineConfig defines a Pipeline configuration
 type PipelineConfig struct {
