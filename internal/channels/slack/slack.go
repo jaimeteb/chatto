@@ -183,7 +183,6 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 					log.Warnf("Ignored %+v", evt)
 					continue
 				}
-
 				c.SocketClient.Ack(*evt.Request)
 
 				switch eventsAPIEvent.Type {
@@ -215,7 +214,6 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 						}
 					case *slackevents.AppMentionEvent:
 						if ev.BotID != "" {
-							// Do not interact with bots.
 							continue
 						}
 
