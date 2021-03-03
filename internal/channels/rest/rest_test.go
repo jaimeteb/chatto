@@ -34,6 +34,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 					Sender: "jaimeteb",
 					Text:   "Hey.",
 				},
+				Channel: "rest",
 			},
 		},
 	}

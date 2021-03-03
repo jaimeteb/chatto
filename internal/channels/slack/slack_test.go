@@ -92,6 +92,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 						TS:      "2021010202045",
 					},
 				},
+				Channel: "slack",
 			},
 		},
 	}
@@ -171,6 +172,7 @@ func TestChannel_ReceiveMessages(t *testing.T) {
 						TS:      "2021010202045",
 					},
 				},
+				Channel: "slack",
 			},
 		},
 	}

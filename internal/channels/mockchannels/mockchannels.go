@@ -76,6 +76,20 @@ func (mr *MockChannelMockRecorder) SendMessage(response interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockChannel)(nil).SendMessage), response)
 }
 
+// String mocks base method.
+func (m *MockChannel) String() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "String")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// String indicates an expected call of String.
+func (mr *MockChannelMockRecorder) String() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockChannel)(nil).String))
+}
+
 // ValidateCallback mocks base method.
 func (m *MockChannel) ValidateCallback(r *http.Request) bool {
 	m.ctrl.T.Helper()
