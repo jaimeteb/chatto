@@ -93,6 +93,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 						Recipient: "789",
 					},
 				},
+				Channel: "telegram",
 			},
 		},
 	}

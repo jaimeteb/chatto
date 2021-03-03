@@ -1,5 +1,10 @@
+import os
+import logging
+
 from typing import List
 from flask import Flask, Response, request, jsonify
+
+debug = True if os.getenv("DEBUG", "false") == "true" else False
 
 app = Flask(__name__)
 
@@ -77,14 +82,15 @@ registered_funcs = {
 }
 
 
-@app.route("/ext/get_all_funcs", methods=["GET"])
+@app.route("/ext/commands", methods=["GET"])
 def get_all_funcs():
     return jsonify(list(registered_funcs.keys()))
 
-@app.route("/ext/get_func", methods=["POST"])
+@app.route("/ext/command", methods=["POST"])
 def get_func():
     data = request.get_json()
-    req = data.get("extension")
+    app.logger.debug(data)
+    req = data.get("command")
     f = registered_funcs.get(req)
     if not f:
         return Response(status=400)
@@ -92,4 +98,4 @@ def get_func():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8770)
+    app.run(host="0.0.0.0", port=8770, debug=debug)

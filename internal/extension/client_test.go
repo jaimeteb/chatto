@@ -43,7 +43,7 @@ func TestExtensionREST(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := extensionREST.ExecuteCommandFunc(&query.Question{Text: "hello"}, "any", &fsm.Domain{}, &fsm.FSM{})
+	resp, err := extensionREST.ExecuteCommandFunc(&query.Question{Text: "hello"}, "any", "", &fsm.Domain{}, &fsm.FSM{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestExtensionRPCPokemon(t *testing.T) {
 		},
 	}
 
-	resp, err := extensionRPC.ExecuteCommandFunc(&query.Question{Text: "pikachu"}, "search_pokemon", fsmDomain, &testFSM)
+	resp, err := extensionRPC.ExecuteCommandFunc(&query.Question{Text: "pikachu"}, "search_pokemon", "", fsmDomain, &testFSM)
 	if err != nil {
 		t.Fatal(err)
 	}

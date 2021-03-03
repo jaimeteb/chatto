@@ -49,6 +49,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 			Text:   messageIn.Text,
 			Sender: messageIn.Sender,
 		},
+		Channel: c.String(),
 	}
 
 	return receive, nil
@@ -70,4 +71,8 @@ func (c *Channel) ValidateCallback(r *http.Request) bool {
 		}
 	}
 	return true
+}
+
+func (c *Channel) String() string {
+	return "rest"
 }

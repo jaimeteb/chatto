@@ -106,6 +106,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 				Recipient: sender,
 			},
 		},
+		Channel: c.String(),
 	}
 
 	return receive, nil
@@ -120,4 +121,8 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 func (c *Channel) ValidateCallback(r *http.Request) bool {
 	// Not implemented
 	return true
+}
+
+func (c *Channel) String() string {
+	return "telegram"
 }

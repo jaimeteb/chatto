@@ -29,6 +29,7 @@ type ExecuteCommandFuncRequest struct {
 	Domain   *fsm.BaseDomain `json:"domain"`
 	Command  string          `json:"command"`
 	Question *query.Question `json:"question"`
+	Channel  string          `json:"channel"`
 }
 
 // ExecuteCommandFuncResponse contains the result of executing a command function

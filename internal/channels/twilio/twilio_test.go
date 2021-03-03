@@ -92,6 +92,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 						Recipient: "42",
 					},
 				},
+				Channel: "twilio",
 			},
 		},
 	}
