@@ -142,6 +142,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 				TS:      ts,
 			},
 		},
+		Channel: c.String(),
 	}
 
 	return receive, nil
@@ -191,7 +192,6 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 					switch ev := innerEvent.Data.(type) {
 					case *slackevents.MessageEvent:
 						if ev.BotID != "" {
-							// Do not interact with bots.
 							continue
 						}
 
@@ -211,6 +211,7 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 									TS:      ts,
 								},
 							},
+							Channel: c.String(),
 						}
 					case *slackevents.AppMentionEvent:
 						if ev.BotID != "" {
@@ -234,6 +235,7 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 									TS:      ts,
 								},
 							},
+							Channel: c.String(),
 						}
 					}
 				default:
@@ -263,4 +265,8 @@ type ErrURLVerification struct {
 
 func (e ErrURLVerification) Error() string {
 	return "must perform challenge auth verification"
+}
+
+func (c *Channel) String() string {
+	return "slack"
 }

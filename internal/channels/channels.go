@@ -41,6 +41,8 @@ type Channel interface {
 	SendMessage(response *messages.Response) error
 	// ValidateCallback validates a callback to the channel
 	ValidateCallback(r *http.Request) bool
+	// String returns the channel's name
+	String() string
 }
 
 // LoadConfig loads channels configuration from chn.yml

@@ -10,6 +10,7 @@ import (
 type Receive struct {
 	Question  *query.Question `json:"question"`
 	ReplyOpts *ReplyOpts
+	Channel   string
 }
 
 // Conversation returns a string of the unique conversations

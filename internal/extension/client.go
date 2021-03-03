@@ -19,7 +19,7 @@ import (
 // do whatever you want.
 type Extension interface {
 	GetAllCommandFuncs() ([]string, error)
-	ExecuteCommandFunc(question *query.Question, extension string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
+	ExecuteCommandFunc(question *query.Question, extension, channel string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
 }
 
 // RPC is an RPC Client for extension command functions
@@ -28,12 +28,13 @@ type RPC struct {
 }
 
 // ExecuteCommandFunc runs the requested command function and returns the response
-func (e *RPC) ExecuteCommandFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+func (e *RPC) ExecuteCommandFunc(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := extension.ExecuteCommandFuncRequest{
 		FSM:      machine,
 		Command:  ext,
 		Question: question,
 		Domain:   fsmDomain.NoFuncs(),
+		Channel:  chn,
 	}
 
 	res := extension.ExecuteCommandFuncResponse{}
@@ -68,12 +69,13 @@ type REST struct {
 }
 
 // ExecuteCommandFunc runs the requested command function and returns the response
-func (e *REST) ExecuteCommandFunc(question *query.Question, ext string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+func (e *REST) ExecuteCommandFunc(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := extension.ExecuteCommandFuncRequest{
 		FSM:      machine,
 		Command:  ext,
 		Question: question,
 		Domain:   fsmDomain.NoFuncs(),
+		Channel:  chn,
 	}
 
 	jsonReq, err := json.Marshal(req)
