@@ -54,7 +54,7 @@ func New(extCfg Config) (Extension, error) {
 
 		rpcExtension := &RPC{client}
 
-		allFuncs, err := rpcExtension.GetAllCommandFuncs()
+		allFuncs, err := rpcExtension.GetAllExtensions()
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func New(extCfg Config) (Extension, error) {
 
 		restExtention := &REST{URL: extCfg.URL, http: retryClient, token: extCfg.Token}
 
-		allFuncs, err := restExtention.GetAllCommandFuncs()
+		allFuncs, err := restExtention.GetAllExtensions()
 		if err != nil {
 			return nil, err
 		}
