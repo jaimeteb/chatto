@@ -57,7 +57,7 @@ func TestBot_channelHandler(t *testing.T) {
 				mockSend:     restChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: restChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
-			want: `[{"text":"Turning on.","image":""}]`,
+			want: `[{"text":"Turning on."}]`,
 		},
 		{
 			name: "twilio endpoint test",
@@ -69,7 +69,7 @@ func TestBot_channelHandler(t *testing.T) {
 				mockSend:     twilioChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: twilioChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
-			want: `[{"text":"Turning off.","image":""},{"text":"❌","image":""}]`,
+			want: `[{"text":"Turning off."},{"text":"❌"}]`,
 		},
 		{
 			name: "telegram endpoint test",
@@ -81,7 +81,7 @@ func TestBot_channelHandler(t *testing.T) {
 				mockSend:     telegramChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: telegramChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
-			want: `[{"text":"Turning on.","image":""}]`,
+			want: `[{"text":"Turning on."}]`,
 		},
 		{
 			name: "slack endpoint test",
@@ -93,7 +93,7 @@ func TestBot_channelHandler(t *testing.T) {
 				mockSend:     slackChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: slackChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
-			want: `[{"text":"Can't do that.","image":""}]`,
+			want: `[{"text":"Can't do that."}]`,
 		},
 	}
 	for _, tt := range tests {

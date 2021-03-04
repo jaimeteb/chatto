@@ -42,6 +42,7 @@ func (b *Bot) slackChannelHandler(w http.ResponseWriter, r *http.Request) {
 	b.ChannelHandler(w, r, b.Channels.Slack)
 }
 
+// ChannelHandler takes an incoming http.Request and passes it to a channel for it to respond
 func (b *Bot) ChannelHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
 	if !chnl.ValidateCallback(r) {
 		http.Error(w, ErrValidationFailed.Error(), http.StatusUnauthorized)
@@ -251,7 +252,7 @@ func (b *Bot) RegisterRoutes() {
 }
 
 func writeAnswer(w http.ResponseWriter, answers []query.Answer) {
-	js, err := json.Marshal(answers)
+	js, err := json.Marshal(cleanAnswers(answers))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -264,4 +265,18 @@ func writeAnswer(w http.ResponseWriter, answers []query.Answer) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func cleanAnswers(answers []query.Answer) []map[string]string {
+	finalAnswers := make([]map[string]string, len(answers))
+	for i, answer := range answers {
+		finalAnswers[i] = make(map[string]string)
+		if answer.Text != "" {
+			finalAnswers[i]["text"] = answer.Text
+		}
+		if answer.Image != "" {
+			finalAnswers[i]["image"] = answer.Image
+		}
+	}
+	return finalAnswers
 }
