@@ -6,19 +6,17 @@ commands:
   - "turn_on"
   - "turn_off"
 
-functions:
-  - transition:
-      from:
-        - "off"
-      into: "on"
+transitions:
+  - from:
+      - "off"
+    into: "on"
     command: "turn_on"
     message: 
       - text: "Turning on."
 
-  - transition:
-      from:
-        - "on"
-      into: "off"
+  - from:
+      - "on"
+    into: "off"
     command: "turn_off"
     message:
       - text: "Turning off."

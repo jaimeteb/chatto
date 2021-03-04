@@ -7,21 +7,22 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-// Transition describes the states of the transition
-// (from one state into another) if the functions command
-// is executed
-type Transition struct {
-	From []string `yaml:"from"`
-	Into string   `yaml:"into"`
-}
+// // Transition describes the states of the transition
+// // (from one state into another) if the functions command
+// // is executed
+// type Transition struct {
+// 	From []string `yaml:"from"`
+// 	Into string   `yaml:"into"`
+// }
 
-// Function lists the transitions available for the FSM
-type Function struct {
-	Transition Transition `yaml:"transition"`
-	Command    string     `yaml:"command"`
-	Slot       Slot       `yaml:"slot"`
-	Extension  string     `yaml:"extension"`
-	Message    []Message  `yaml:"message"`
+// Transition lists the transitions available for the FSM
+type Transition struct {
+	From      []string  `yaml:"from"`
+	Into      string    `yaml:"into"`
+	Command   string    `yaml:"command"`
+	Slot      Slot      `yaml:"slot"`
+	Extension string    `yaml:"extension"`
+	Message   []Message `yaml:"message"`
 }
 
 // Slot is used to save information from the user's input
@@ -67,22 +68,22 @@ func NewStateTable(states []string) StateTable {
 type TransitionTable map[CmdStateTuple]TransitionFunc
 
 // NewTransitionTable initializes a new TransitionTable
-func NewTransitionTable(functions []Function, stateTable StateTable) TransitionTable {
-	transitionTable := make(TransitionTable, len(functions))
+func NewTransitionTable(transitions []Transition, stateTable StateTable) TransitionTable {
+	transitionTable := make(TransitionTable, len(transitions))
 
-	for n := range functions {
-		function := functions[n]
+	for n := range transitions {
+		transition := transitions[n]
 
-		for _, from := range function.Transition.From {
+		for _, from := range transition.From {
 			cmdStateTuple := CmdStateTuple{
-				Cmd:   function.Command,
+				Cmd:   transition.Command,
 				State: stateTable[from],
 			}
 
 			transitionTable[cmdStateTuple] = NewTransitionFunc(
-				stateTable[function.Transition.Into],
-				function.Extension,
-				function.Message,
+				stateTable[transition.Into],
+				transition.Extension,
+				transition.Message,
 			)
 		}
 	}
@@ -95,20 +96,20 @@ func NewTransitionTable(functions []Function, stateTable StateTable) TransitionT
 type SlotTable map[CmdStateTuple]Slot
 
 // NewSlotTable initializes a new SlotTable
-func NewSlotTable(functions []Function, stateTable StateTable) SlotTable {
-	slotTable := make(SlotTable, len(functions))
+func NewSlotTable(transitions []Transition, stateTable StateTable) SlotTable {
+	slotTable := make(SlotTable, len(transitions))
 
-	for n := range functions {
-		function := functions[n]
+	for n := range transitions {
+		transition := transitions[n]
 
-		for _, from := range function.Transition.From {
+		for _, from := range transition.From {
 			cmdStateTuple := CmdStateTuple{
-				Cmd:   function.Command,
+				Cmd:   transition.Command,
 				State: stateTable[from],
 			}
 
-			if function.Slot != (Slot{}) {
-				slotTable[cmdStateTuple] = function.Slot
+			if transition.Slot != (Slot{}) {
+				slotTable[cmdStateTuple] = transition.Slot
 			}
 		}
 	}
@@ -132,13 +133,13 @@ type Domain struct {
 }
 
 // NewDomain initializes a new Domain
-func NewDomain(commands, states []string, functions []Function, defaults Defaults) *Domain {
+func NewDomain(commands, states []string, transitions []Transition, defaults Defaults) *Domain {
 	fsmDomain := &Domain{}
 	fsmDomain.CommandList = commands
 	fsmDomain.DefaultMessages = defaults
 	fsmDomain.StateTable = NewStateTable(states)
-	fsmDomain.TransitionTable = NewTransitionTable(functions, fsmDomain.StateTable)
-	fsmDomain.SlotTable = NewSlotTable(functions, fsmDomain.StateTable)
+	fsmDomain.TransitionTable = NewTransitionTable(transitions, fsmDomain.StateTable)
+	fsmDomain.SlotTable = NewSlotTable(transitions, fsmDomain.StateTable)
 
 	return fsmDomain
 }
