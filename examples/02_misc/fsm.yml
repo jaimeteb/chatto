@@ -14,7 +14,7 @@ transitions:
       - "initial"
     into: "initial"
     command: "hi"
-    message:
+    answers:
       - text: |-
           Hi! I can do these things:
           * Tell the weather
@@ -26,7 +26,7 @@ transitions:
       - "initial"
     into: "ask_location"
     command: "weather"
-    message:
+    answers:
       - text: "What's your location?"
 
   - from:

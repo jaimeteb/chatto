@@ -7,22 +7,17 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-// // Transition describes the states of the transition
-// // (from one state into another) if the functions command
-// // is executed
-// type Transition struct {
-// 	From []string `yaml:"from"`
-// 	Into string   `yaml:"into"`
-// }
-
 // Transition lists the transitions available for the FSM
+// Describes the states of the transition
+// (from one state into another) if the functions command
+// is executed
 type Transition struct {
-	From      []string  `yaml:"from"`
-	Into      string    `yaml:"into"`
-	Command   string    `yaml:"command"`
-	Slot      Slot      `yaml:"slot"`
-	Extension string    `yaml:"extension"`
-	Message   []Message `yaml:"message"`
+	From      []string `yaml:"from"`
+	Into      string   `yaml:"into"`
+	Command   string   `yaml:"command"`
+	Slot      Slot     `yaml:"slot"`
+	Extension string   `yaml:"extension"`
+	Answers   []Answer `yaml:"answers"`
 }
 
 // Slot is used to save information from the user's input
@@ -40,8 +35,8 @@ type Defaults struct {
 	Error   string `yaml:"error" json:"error"`
 }
 
-// Message that is sent when a transition is executed
-type Message struct {
+// Answer that is sent when a transition is executed
+type Answer struct {
 	Text  string `yaml:"text"`
 	Image string `yaml:"image"`
 }
@@ -83,7 +78,7 @@ func NewTransitionTable(transitions []Transition, stateTable StateTable) Transit
 			transitionTable[cmdStateTuple] = NewTransitionFunc(
 				stateTable[transition.Into],
 				transition.Extension,
-				transition.Message,
+				transition.Answers,
 			)
 		}
 	}
@@ -159,15 +154,15 @@ type CmdStateTuple struct {
 
 // TransitionFunc performs a state transition for the FSM.
 // TODO: Document how the TransitionFunc works
-type TransitionFunc func(m *FSM) (extension string, messages []Message)
+type TransitionFunc func(m *FSM) (extension string, answers []Answer)
 
 // NewTransitionFunc generates a new transition function
 // that will transition the FSM into the specified state
 // and return the extension and the states defined messages
-func NewTransitionFunc(state int, extension string, messages []Message) TransitionFunc {
-	return func(m *FSM) (string, []Message) {
+func NewTransitionFunc(state int, extension string, answers []Answer) TransitionFunc {
+	return func(m *FSM) (string, []Answer) {
 		m.State = state
-		return extension, messages
+		return extension, answers
 	}
 }
 

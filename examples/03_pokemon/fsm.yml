@@ -12,14 +12,14 @@ transitions:
       - initial
     into: search_pokemon
     command: search_pokemon
-    message:
+    answers:
       - text: "What is the Pokémon's name or number?"
 
   - from:
       - initial
     into: search_pokemon
     command: greet
-    message:
+    answers:
      - text: "What is the Pokémon's name or number?"
 
   - from:
@@ -35,7 +35,7 @@ transitions:
       - any
     into: initial
     command: faq
-    message:
+    answers:
       - text: "This is a simple chatbot created with Chatto"
       - text: "You can find out more about it here: https://github.com/jaimeteb/chatto"
       - text: "😊"

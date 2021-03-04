@@ -32,7 +32,7 @@ func TestLoadConfig(t *testing.T) {
 						Into: "on",
 						// },
 						Command: "turn_on",
-						Message: []fsm.Message{{
+						Answers: []fsm.Answer{{
 							Text: "Turning on.",
 						}},
 					},
@@ -42,7 +42,7 @@ func TestLoadConfig(t *testing.T) {
 						Into: "off",
 						// },
 						Command: "turn_off",
-						Message: []fsm.Message{
+						Answers: []fsm.Answer{
 							{
 								Text: "Turning off.",
 							},

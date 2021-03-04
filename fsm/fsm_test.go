@@ -19,7 +19,7 @@ var (
 			Into: "hello",
 			// },
 			Command: "hey_friend",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "Hey friend!",
 			}},
 		},
@@ -35,7 +35,7 @@ var (
 			Into: "search_pokemon",
 			// },
 			Command: "search_pokemon",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
@@ -45,7 +45,7 @@ var (
 			Into: "search_pokemon",
 			// },
 			Command: "greet",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
@@ -73,7 +73,7 @@ var (
 			Into: "on",
 			// },
 			Command: "turn_on",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "Turning on.",
 			}},
 			Slot: fsm.Slot{
@@ -87,7 +87,7 @@ var (
 			Into: "off",
 			// },
 			Command: "turn_off",
-			Message: []fsm.Message{
+			Answers: []fsm.Answer{
 				{
 					Text: "Turning off.",
 				},

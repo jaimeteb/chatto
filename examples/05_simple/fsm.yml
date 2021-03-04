@@ -11,14 +11,14 @@ transitions:
       - "off"
     into: "on"
     command: "turn_on"
-    message: 
+    answers: 
       - text: "Turning on."
 
   - from:
       - "on"
     into: "off"
     command: "turn_off"
-    message:
+    answers:
       - text: "Turning off."
       - text: "❌"
 

@@ -13,7 +13,7 @@ transitions:
       - initial
     into: question_1
     command: start
-    message: 
+    answers: 
       - text: "Welcome to the trivia!\n\
         Question 1:\n\
         How many squares are there on a chessboard?\n\
@@ -55,7 +55,7 @@ transitions:
       - any
     into: initial
     command: end
-    message: 
+    answers: 
       - text: "Bye bye!"
 
 defaults:
