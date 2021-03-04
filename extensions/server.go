@@ -1,4 +1,4 @@
-package extension
+package extensions
 
 import (
 	"encoding/json"
@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	invalidExtensionCommand = "extension command '%s' not found"
-	invalidHTTPMethod       = "got method '%s', expected '%s'"
-	invalidAuthToken        = "missing or incorrect authorization token"
+	invalidExtension  = "extension '%s' not found"
+	invalidHTTPMethod = "got method '%s', expected '%s'"
+	invalidAuthToken  = "missing or incorrect authorization token"
 )
 
 // ExecuteExtensionRequest contains the instructions for executing a command function
@@ -124,7 +124,7 @@ func ServeRPC(registeredExtensions RegisteredExtensions) error {
 func (l *ListenerRPC) ExecuteExtension(req *ExecuteExtensionRequest, res *ExecuteExtensionResponse) error {
 	command, ok := l.RegisteredExtensions[req.Extension]
 	if !ok {
-		return fmt.Errorf(invalidExtensionCommand, req.Extension)
+		return fmt.Errorf(invalidExtension, req.Extension)
 	}
 	commandRes := command(req)
 
@@ -235,7 +235,7 @@ func (l *ListenerREST) ExecuteExtension(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		httpError(w, ErrorResponse{
 			Code:    http.StatusNotFound,
-			Message: fmt.Sprintf(invalidExtensionCommand, req.Extension),
+			Message: fmt.Sprintf(invalidExtension, req.Extension),
 		})
 		return
 	}

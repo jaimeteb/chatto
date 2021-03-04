@@ -140,7 +140,7 @@ var extFile string = `package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/extensions"
 	"github.com/jaimeteb/chatto/query"
 )
 

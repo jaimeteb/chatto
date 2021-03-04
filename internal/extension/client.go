@@ -8,7 +8,7 @@ import (
 	"net/rpc"
 
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/extensions"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
@@ -29,7 +29,7 @@ type RPC struct {
 
 // ExecuteExtension runs the requested command function and returns the response
 func (e *RPC) ExecuteExtension(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := extension.ExecuteExtensionRequest{
+	req := extensions.ExecuteExtensionRequest{
 		FSM:       machine,
 		Extension: ext,
 		Question:  question,
@@ -37,7 +37,7 @@ func (e *RPC) ExecuteExtension(question *query.Question, ext, chn string, fsmDom
 		Channel:   chn,
 	}
 
-	res := extension.ExecuteExtensionResponse{}
+	res := extensions.ExecuteExtensionResponse{}
 
 	err := e.Client.Call("ListenerRPC.ExecuteExtension", &req, &res)
 	if err != nil {
@@ -51,8 +51,8 @@ func (e *RPC) ExecuteExtension(question *query.Question, ext, chn string, fsmDom
 
 // GetAllExtensions returns all command functions in the extension as a list of strings
 func (e *RPC) GetAllExtensions() ([]string, error) {
-	req := new(extension.ExecuteExtensionRequest)
-	res := new(extension.GetAllExtensionsResponse)
+	req := new(extensions.ExecuteExtensionRequest)
+	res := new(extensions.GetAllExtensionsResponse)
 	if err := e.Client.Call("ListenerRPC.GetAllExtensions", &req, &res); err != nil {
 		log.Error(err)
 		return nil, err
@@ -70,7 +70,7 @@ type REST struct {
 
 // ExecuteExtension runs the requested command function and returns the response
 func (e *REST) ExecuteExtension(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := extension.ExecuteExtensionRequest{
+	req := extensions.ExecuteExtensionRequest{
 		FSM:       machine,
 		Extension: ext,
 		Question:  question,
@@ -106,7 +106,7 @@ func (e *REST) ExecuteExtension(question *query.Question, ext, chn string, fsmDo
 		}
 	}()
 
-	res := extension.ExecuteExtensionResponse{}
+	res := extensions.ExecuteExtensionResponse{}
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}

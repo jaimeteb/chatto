@@ -1,5 +1,5 @@
 // nolint:bodyclose
-package extension_test
+package extensions_test
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ import (
 	"github.com/jaimeteb/chatto/version"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/extensions"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 )
@@ -23,8 +23,8 @@ var (
 	commandsPath = "/extensions"
 	commandPath  = "/extension"
 	versionPath  = "/version"
-	greetFunc    = func(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
-		return &extension.ExecuteExtensionResponse{
+	greetFunc    = func(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+		return &extensions.ExecuteExtensionResponse{
 			FSM: req.FSM,
 			Answers: []query.Answer{{
 				Text:  "Hello Universe",
@@ -32,7 +32,7 @@ var (
 			}},
 		}
 	}
-	RegisteredExtensions = extension.RegisteredExtensions{
+	RegisteredExtensions = extensions.RegisteredExtensions{
 		"any": greetFunc,
 	}
 )
@@ -44,19 +44,19 @@ func setBearerToken(r *http.Request, t string) *http.Request {
 
 func TestExtension_ListenerREST_GetBuildVersion(t *testing.T) {
 	type args struct {
-		l *extension.ListenerREST
+		l *extensions.ListenerREST
 		r *http.Request
 	}
 	tests := []struct {
 		name    string
 		args    args
 		want    *version.BuildResponse
-		wantErr *extension.ErrorResponse
+		wantErr *extensions.ErrorResponse
 	}{
 		{
 			name: "get build version",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token"),
 				r: httptest.NewRequest("GET", versionPath, nil),
 			},
 			want: &version.BuildResponse{
@@ -69,10 +69,10 @@ func TestExtension_ListenerREST_GetBuildVersion(t *testing.T) {
 		{
 			name: "get build version with invalid http method",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token"),
 				r: httptest.NewRequest("POST", versionPath, nil),
 			},
-			wantErr: &extension.ErrorResponse{
+			wantErr: &extensions.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "got method 'POST', expected 'GET'",
 			},
@@ -87,7 +87,7 @@ func TestExtension_ListenerREST_GetBuildVersion(t *testing.T) {
 			_ = json.Unmarshal(body, &got)
 
 			if w.Code != http.StatusOK {
-				gotErr := &extension.ErrorResponse{}
+				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
 					t.Errorf("Extension.ListenerREST.GetBuildVersion() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
@@ -105,19 +105,19 @@ func TestExtension_ListenerREST_GetBuildVersion(t *testing.T) {
 
 func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 	type args struct {
-		l *extension.ListenerREST
+		l *extensions.ListenerREST
 		r *http.Request
 	}
 	tests := []struct {
 		name    string
 		args    args
 		want    []string
-		wantErr *extension.ErrorResponse
+		wantErr *extensions.ErrorResponse
 	}{
 		{
 			name: "get all funcs",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, ""),
+				l: extensions.NewListenerREST(RegisteredExtensions, ""),
 				r: httptest.NewRequest("GET", commandsPath, nil),
 			},
 			want: []string{"any"},
@@ -125,10 +125,10 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 		{
 			name: "get all funcs without auth",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token"),
 				r: httptest.NewRequest("GET", commandsPath, nil),
 			},
-			wantErr: &extension.ErrorResponse{
+			wantErr: &extensions.ErrorResponse{
 				Code:    http.StatusUnauthorized,
 				Message: "missing or incorrect authorization token",
 			},
@@ -136,7 +136,7 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 		{
 			name: "get all funcs with auth",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token-abc"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token-abc"),
 				r: setBearerToken(httptest.NewRequest("GET", commandsPath, nil), "my-test-token-abc"),
 			},
 			want: []string{"any"},
@@ -144,10 +144,10 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 		{
 			name: "get all funcs with invalid http method",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token-123"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token-123"),
 				r: setBearerToken(httptest.NewRequest("POST", commandsPath, nil), "my-test-token-123"),
 			},
-			wantErr: &extension.ErrorResponse{
+			wantErr: &extensions.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "got method 'POST', expected 'GET'",
 			},
@@ -162,7 +162,7 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 			_ = json.Unmarshal(body, &got)
 
 			if w.Code != http.StatusOK {
-				gotErr := &extension.ErrorResponse{}
+				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
 					t.Errorf("Extension.ListenerREST.GetAllExtensions() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
@@ -180,22 +180,22 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 
 func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 	type args struct {
-		l *extension.ListenerREST
+		l *extensions.ListenerREST
 		r *http.Request
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *extension.ExecuteExtensionResponse
-		wantErr *extension.ErrorResponse
+		want    *extensions.ExecuteExtensionResponse
+		wantErr *extensions.ErrorResponse
 	}{
 		{
 			name: "execute command func",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, ""),
-				r: httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"command": "any", "fsm": {"state": 0, "slots": {}}}`))),
+				l: extensions.NewListenerREST(RegisteredExtensions, ""),
+				r: httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`))),
 			},
-			want: &extension.ExecuteExtensionResponse{
+			want: &extensions.ExecuteExtensionResponse{
 				FSM: &fsm.FSM{State: 0, Slots: fsm.NewFSM().Slots},
 				Answers: []query.Answer{{
 					Text:  "Hello Universe",
@@ -206,10 +206,10 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 		{
 			name: "execute command func with auth",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token"),
-				r: setBearerToken(httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"command": "any", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token"),
+				r: setBearerToken(httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token"),
 			},
-			want: &extension.ExecuteExtensionResponse{
+			want: &extensions.ExecuteExtensionResponse{
 				FSM: &fsm.FSM{State: 0, Slots: fsm.NewFSM().Slots},
 				Answers: []query.Answer{{
 					Text:  "Hello Universe",
@@ -220,11 +220,11 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 		{
 			name: "execute command func without auth",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token"),
-				r: httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"command": "any", "fsm": {"state": 0, "slots": {}}}`))),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token"),
+				r: httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`))),
 			},
-			want: &extension.ExecuteExtensionResponse{},
-			wantErr: &extension.ErrorResponse{
+			want: &extensions.ExecuteExtensionResponse{},
+			wantErr: &extensions.ErrorResponse{
 				Code:    http.StatusUnauthorized,
 				Message: "missing or incorrect authorization token",
 			},
@@ -232,22 +232,22 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 		{
 			name: "execute invalid command func",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token-123"),
-				r: setBearerToken(httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"command": "i_dont_exist", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token-123"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token-123"),
+				r: setBearerToken(httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"extension": "i_dont_exist", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token-123"),
 			},
-			want: &extension.ExecuteExtensionResponse{},
-			wantErr: &extension.ErrorResponse{
+			want: &extensions.ExecuteExtensionResponse{},
+			wantErr: &extensions.ErrorResponse{
 				Code:    http.StatusNotFound,
-				Message: "extension command 'i_dont_exist' not found",
+				Message: "extension 'i_dont_exist' not found",
 			},
 		},
 		{
 			name: "execute command func with invalid http method",
 			args: args{
-				l: extension.NewListenerREST(RegisteredExtensions, "my-test-token-abc"),
-				r: setBearerToken(httptest.NewRequest("GET", commandPath, bytes.NewBuffer([]byte(`{"command": "any", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token-abc"),
+				l: extensions.NewListenerREST(RegisteredExtensions, "my-test-token-abc"),
+				r: setBearerToken(httptest.NewRequest("GET", commandPath, bytes.NewBuffer([]byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token-abc"),
 			},
-			wantErr: &extension.ErrorResponse{
+			wantErr: &extensions.ErrorResponse{
 				Code:    http.StatusBadRequest,
 				Message: "got method 'GET', expected 'POST'",
 			},
@@ -257,12 +257,12 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			tt.args.l.ExecuteExtension(w, tt.args.r)
-			got := &extension.ExecuteExtensionResponse{}
+			got := &extensions.ExecuteExtensionResponse{}
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			_ = json.Unmarshal(body, got)
 
 			if w.Code != http.StatusOK {
-				gotErr := &extension.ErrorResponse{}
+				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
 					t.Errorf("Extension.ListenerREST.ExecuteExtension() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
@@ -279,14 +279,14 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 }
 
 func TestExtensionRPCServer(t *testing.T) {
-	listener := extension.ListenerRPC{RegisteredExtensions: RegisteredExtensions}
+	listener := extensions.ListenerRPC{RegisteredExtensions: RegisteredExtensions}
 
-	err := listener.GetAllExtensions(nil, new(extension.GetAllExtensionsResponse))
+	err := listener.GetAllExtensions(nil, new(extensions.GetAllExtensionsResponse))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	req := extension.ExecuteExtensionRequest{
+	req := extensions.ExecuteExtensionRequest{
 		Extension: "any",
 		FSM: &fsm.FSM{
 			State: 0,
@@ -294,7 +294,7 @@ func TestExtensionRPCServer(t *testing.T) {
 		},
 	}
 
-	err = listener.ExecuteExtension(&req, new(extension.ExecuteExtensionResponse))
+	err = listener.ExecuteExtension(&req, new(extensions.ExecuteExtensionResponse))
 	if err != nil {
 		t.Fatal(err)
 	}
