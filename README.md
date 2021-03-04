@@ -98,7 +98,7 @@ classification:
 <a name="yourfirstbotfsm"></a>
 ### The **fsm.yml** file
 
-The **fsm.yml** file defines the transitions between states, the commands that make these transitions, and the messages to be sent in them. Start with this file contents:
+The **fsm.yml** file defines the transitions between states, the commands that make these transitions, and the answers to be sent in them. Start with this file contents:
 
 ```yaml
 states:
@@ -109,21 +109,19 @@ commands:
   - "turn_on"
   - "turn_off"
 
-functions:
-  - transition:
-      from:
-        - "off"
-      into: "on"
+transitions:
+  - from:
+      - "off"
+    into: "on"
     command: "turn_on"
-    message:
+    answers:
       - text: "Turning on."
 
-  - transition:
-      from:
-        - "on"
-      into: "off"
+  - from:
+      - "on"
+    into: "off"
     command: "turn_off"
-    message:
+    answers:
       - text: "Turning off."
       - text: "❌"
 
