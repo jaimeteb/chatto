@@ -92,8 +92,8 @@ func (c *Client) Submit(question *query.Question) ([]query.Answer, error) {
 	}()
 
 	answers := []query.Answer{}
-	if err = json.NewDecoder(resp.Body).Decode(&answers); err != nil {
-		return nil, err
+	if decodeErr := json.NewDecoder(resp.Body).Decode(&answers); decodeErr != nil {
+		return nil, decodeErr
 	}
 
 	return answers, nil
