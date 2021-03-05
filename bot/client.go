@@ -14,21 +14,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Client allows you to chat with botto. Great for testing
-// or integrating with your own tools
+// Client allows you to chat with botto through the REST channel
+// Great for testing or integrating with your own tools
 type Client struct {
-	URL  string
-	HTTP *retryablehttp.Client
+	URL   string
+	token string
+	http  *retryablehttp.Client
 }
 
 // NewClient instantiates a new botto client
-func NewClient(url string, port int) *Client {
+func NewClient(url string, port int, token string) *Client {
 	client := &Client{
-		URL:  fmt.Sprintf("%s:%d/channels/rest", url, port),
-		HTTP: retryablehttp.NewClient(),
+		URL:   fmt.Sprintf("%s:%d/channels/rest", url, port),
+		token: token,
+		http:  retryablehttp.NewClient(),
 	}
 
-	client.HTTP.Logger = log.New()
+	client.http.Logger = log.New()
 
 	return client
 }
@@ -67,14 +69,30 @@ func (c *Client) Submit(question *query.Question) ([]query.Answer, error) {
 		return nil, err
 	}
 
-	resp, err := c.HTTP.Post(c.URL, "Content-Type: application/json", bytes.NewBuffer(questionJSON))
+	req, err := retryablehttp.NewRequest("POST", c.URL, bytes.NewBuffer(questionJSON))
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	if c.token != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		err = resp.Body.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}()
 
 	answers := []query.Answer{}
-	if err := json.NewDecoder(resp.Body).Decode(&answers); err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&answers); err != nil {
 		return nil, err
 	}
 
