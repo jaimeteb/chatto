@@ -338,3 +338,47 @@ func (l *ListenerREST) GetBuildVersion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// ExecuteCommandFuncResponseOption functions represent an option to build a new ExecuteCommandFuncResponse
+type ExecuteCommandFuncResponseOption func(*ExecuteCommandFuncResponse)
+
+// NewExecuteCommandFuncResponse creates a new ExecuteCommandFuncResponse based on the data from
+// the ExecuteCommandFuncRequest that was sent to the extension command function
+func (r *ExecuteCommandFuncRequest) NewExecuteCommandFuncResponse(opts ...ExecuteCommandFuncResponseOption) *ExecuteCommandFuncResponse {
+	response := ExecuteCommandFuncResponse{
+		FSM:     r.FSM,
+		Answers: make([]query.Answer, 0),
+	}
+	for _, o := range opts {
+		o(&response)
+	}
+	return &response
+}
+
+// WithAnswer appends a text and image answer to the response
+func WithAnswer(text, image string) ExecuteCommandFuncResponseOption {
+	return func(r *ExecuteCommandFuncResponse) {
+		r.Answers = append(r.Answers, query.Answer{Text: text, Image: image})
+	}
+}
+
+// WithTextAnswer appends a text answer to the response
+func WithTextAnswer(text string) ExecuteCommandFuncResponseOption {
+	return func(r *ExecuteCommandFuncResponse) {
+		r.Answers = append(r.Answers, query.Answer{Text: text})
+	}
+}
+
+// WithState sets a different state to the response's FSM
+func WithState(state int) ExecuteCommandFuncResponseOption {
+	return func(r *ExecuteCommandFuncResponse) {
+		r.FSM.State = state
+	}
+}
+
+// WithSlot sets a slot value to the response's FSM
+func WithSlot(key, value string) ExecuteCommandFuncResponseOption {
+	return func(r *ExecuteCommandFuncResponse) {
+		r.FSM.Slots[key] = value
+	}
+}

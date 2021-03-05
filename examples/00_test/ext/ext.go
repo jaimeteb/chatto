@@ -3,26 +3,21 @@ package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/extension"
-	"github.com/jaimeteb/chatto/query"
+	ext "github.com/jaimeteb/chatto/extension"
 )
 
-func greetFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
-	return &extension.ExecuteCommandFuncResponse{
-		FSM: req.FSM,
-		Answers: []query.Answer{{
-			Text:  "Hello Universe",
-			Image: "https://i.imgur.com/pPdjh6x.jpg",
-		}},
-	}
+func greetFunc(req *ext.ExecuteCommandFuncRequest) (res *ext.ExecuteCommandFuncResponse) {
+	return req.NewExecuteCommandFuncResponse(
+		ext.WithTextAnswer("Hello Universe"),
+	)
 }
 
-var registeredCommandFuncs = extension.RegisteredCommandFuncs{
+var registeredCommandFuncs = ext.RegisteredCommandFuncs{
 	"any": greetFunc,
 }
 
 func main() {
-	if err := extension.ServeREST(registeredCommandFuncs); err != nil {
+	if err := ext.ServeREST(registeredCommandFuncs); err != nil {
 		log.Fatalln(err)
 	}
 }

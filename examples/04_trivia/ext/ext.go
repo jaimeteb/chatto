@@ -4,8 +4,6 @@ import (
 	"log"
 
 	"github.com/jaimeteb/chatto/extension"
-	"github.com/jaimeteb/chatto/fsm"
-	"github.com/jaimeteb/chatto/query"
 )
 
 func validateAnswer1(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
@@ -13,23 +11,20 @@ func validateAnswer1(req *extension.ExecuteCommandFuncRequest) (res *extension.E
 	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extension.ExecuteCommandFuncResponse{
-			FSM: &fsm.FSM{
-				State: fsmDomain.StateTable["question_1"],
-				Slots: req.FSM.Slots,
-			},
-			Answers: []query.Answer{{Text: "Select one of the options"}},
-		}
+		return req.NewExecuteCommandFuncResponse(
+			extension.WithTextAnswer("Select one of the options"),
+			extension.WithState(fsmDomain.StateTable["question_1"]),
+		)
 	}
 
-	return &extension.ExecuteCommandFuncResponse{
-		FSM: req.FSM,
-		Answers: []query.Answer{{Text: "Question 2:\n" +
+	return req.NewExecuteCommandFuncResponse(
+		extension.WithTextAnswer("Question 2:\n" +
 			"What is the capital of the state of Utah?\n" +
 			"1. Salt Lake City\n" +
 			"2. Jefferson City\n" +
-			"3. Cheyenne"}},
-	}
+			"3. Cheyenne"),
+	)
+
 }
 
 func validateAnswer2(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
@@ -37,23 +32,19 @@ func validateAnswer2(req *extension.ExecuteCommandFuncRequest) (res *extension.E
 	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extension.ExecuteCommandFuncResponse{
-			FSM: &fsm.FSM{
-				State: fsmDomain.StateTable["question_2"],
-				Slots: req.FSM.Slots,
-			},
-			Answers: []query.Answer{{Text: "Select one of the options"}},
-		}
+		return req.NewExecuteCommandFuncResponse(
+			extension.WithTextAnswer("Select one of the options"),
+			extension.WithState(fsmDomain.StateTable["question_2"]),
+		)
 	}
 
-	return &extension.ExecuteCommandFuncResponse{
-		FSM: req.FSM,
-		Answers: []query.Answer{{Text: "Question 3:\n" +
+	return req.NewExecuteCommandFuncResponse(
+		extension.WithTextAnswer("Question 3:\n" +
 			"Who painted Starry Night?\n" +
 			"1. Pablo Picasso\n" +
 			"2. Claude Monet\n" +
-			"3. Vincent Van Gogh"}},
-	}
+			"3. Vincent Van Gogh"),
+	)
 }
 
 func calculateScore(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
@@ -62,13 +53,10 @@ func calculateScore(req *extension.ExecuteCommandFuncRequest) (res *extension.Ex
 	slt := req.FSM.Slots
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extension.ExecuteCommandFuncResponse{
-			FSM: &fsm.FSM{
-				State: fsmDomain.StateTable["question_3"],
-				Slots: req.FSM.Slots,
-			},
-			Answers: []query.Answer{{Text: "Select one of the options"}},
-		}
+		return req.NewExecuteCommandFuncResponse(
+			extension.WithTextAnswer("Select one of the options"),
+			extension.WithState(fsmDomain.StateTable["question_3"]),
+		)
 	}
 
 	answer1 := slt["answer_1"]
@@ -98,10 +86,9 @@ func calculateScore(req *extension.ExecuteCommandFuncRequest) (res *extension.Ex
 		message = "You got 3/3 answers right.\nYou are good! Congrats!"
 	}
 
-	return &extension.ExecuteCommandFuncResponse{
-		FSM:     req.FSM,
-		Answers: []query.Answer{{Text: message}},
-	}
+	return req.NewExecuteCommandFuncResponse(
+		extension.WithTextAnswer(message),
+	)
 }
 
 var registeredCommandFuncs = extension.RegisteredCommandFuncs{
