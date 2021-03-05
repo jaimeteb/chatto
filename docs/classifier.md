@@ -15,13 +15,13 @@ classification:
       - "off"
 ```
 
-Under **classification** you can list the commands and their respective training data under **texts**.
+Under `classification` you can list the commands and their respective training data under `texts`.
 
 The Naïve-Bayes Classifier requires at least two classes to be added.
 
 ## Pipeline
 
-You can optionally configure the pipeline steps by adding the *pipeline* object to the **clf.yml** file: 
+You can optionally configure the pipeline steps by adding the `pipeline` object to the **clf.yml** file: 
 
 ```yaml
 pipeline:
@@ -32,6 +32,6 @@ pipeline:
 
 Currenty, the pipeline steps are:
 
-- Removal of symbols
-- Conversion into lowercase
-- Classification (threshold) 
+1. Removal of symbols
+2. Conversion into lowercase
+3. Classification (threshold) 

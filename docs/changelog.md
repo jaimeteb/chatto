@@ -1,6 +1,12 @@
 # Changelog
 
 ---
+## v0.6.2
+
+* Add `bot.Answer` un public `bot` package.
+* Add channel name in extension request body.
+
+---
 ## v0.6.1
 
 * Add `chatto-init` binary.

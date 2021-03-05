@@ -26,7 +26,7 @@ slack:
 
 ### Telegram
 
-You can connect your Chatto bot to [Telegram](https://core.telegram.org/bots) by providing your Telegram Bot Key, either directly in the **chn.yml** file or by setting the **TELEGRAM_BOT_KEY** environment variable.
+You can connect your Chatto bot to [Telegram](https://core.telegram.org/bots) by providing your Telegram Bot Key, either directly in the **chn.yml** file or by setting the `TELEGRAM_BOT_KEY` environment variable.
 
 You must [set the bot's webhook](https://core.telegram.org/bots/api#setwebhook) to the `/channels/telegram` endpoint in order to receive messages.
 
@@ -36,9 +36,9 @@ You must [set the bot's webhook](https://core.telegram.org/bots/api#setwebhook) 
 
 ### Twilio
 
-Similarly, connect your bot to [Twilio](https://www.twilio.com/messaging-api) by adding your credentials to the file or by setting the corresponding environment variables (**TWILIO_ACCOUNT_SID**, etc.).
+Similarly, connect your bot to [Twilio](https://www.twilio.com/messaging-api) by adding your credentials to the file or by setting the corresponding environment variables (`TWILIO_ACCOUNT_SID`, etc.).
 
-You must set the webhooks to the `/endpoints/twilio` endpoint in order to receive messages.
+You must set the webhooks to the `/channels/twilio` endpoint in order to receive messages.
 
 <p align="center">
 <img src="/img/twilio_channel.jpg" alt="Twilio" width="300"/>
@@ -47,6 +47,7 @@ You must set the webhooks to the `/endpoints/twilio` endpoint in order to receiv
 ### Slack
 
 You can connect your bot to your Slack workspace by adding your [Slack App](https://api.slack.com/apps) Tokens to the **chn.yml** file directly or set the `SLACK_TOKEN` and `SLACK_APP_TOKEN` environment variables.
+
 #### Event Subscriptions
 
 You can use Slack Event Subscriptions to interact with your bot. To receive messages make sure you:

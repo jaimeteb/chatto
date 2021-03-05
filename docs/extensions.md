@@ -1,12 +1,12 @@
 # Extensions
 
-The extensions in Chatto are pieces of code that can be executed instead of messages, and can also alter the state of the conversation. In the **fsm.yml** file, the extensions are contained in the `extension` field, under `functions`.
+The extensions in Chatto are pieces of code that can be executed instead of messages, and can also alter the state of the conversation. In the **fsm.yml** file, the extensions are contained in the `extension` field, under `transitions`.
 
-Extensions are executed as services, and can be written in Go, using the **chatto/extension** and **chatto/query** packages, or they can be written in any language, as long as the services are compatible.
+Extensions are executed as services, and can be written in Go, using the [`chatto/extensions`](https://godoc.org/github.com/jaimeteb/chatto/extensions) and [`chatto/query`](https://godoc.org/github.com/jaimeteb/chatto/query) packages, or they can be written in any language, as long as the services are compatible.
 
 ## Go
 
-In Golang, the format for a Chatto extension is as follows:
+In Golang, the format for a Chatto extension server is as follows:
 
 ```go
 package main
@@ -14,14 +14,14 @@ package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/extensions"
 	"github.com/jaimeteb/chatto/query"
 )
 
 // GreetFunc returns the message "Hello Universe" and an image
 // and does not modify the Finite State Machine (FSM)
-func GreetFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
-	return &extension.ExecuteCommandFuncResponse{
+func GreetFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+	return &extensions.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{{
 			Text:  "Hello Universe",
@@ -30,34 +30,41 @@ func GreetFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.Execute
 	}
 }
 
-// registeredCommandFuncs maps the name "any" to the GreetFunc command function
-var registeredCommandFuncs = extension.RegisteredCommandFuncs{
+// registeredExtensions maps the name "any" to the GreetFunc extension
+var registeredExtensions = extensions.RegisteredExtensions{
 	"any": GreetFunc,
 }
 
 func main() {
 	// Run the extensions via REST
-	log.Fatal(extension.ServeREST(registeredCommandFuncs))
+	log.Fatal(extensions.ServeREST(registeredExtensions))
 }
 ```
 
-You must use either `ServeRPC` or `ServeREST` in the main function in order to run the extension server and pass your own **extension.RegisteredCommandFuncs**, which maps the extension command names to their respective functions.
+You must use either `ServeRPC` or `ServeREST` in the main function in order to run the extension server and pass your own [`extensions.RegisteredExtensions`](https://godoc.org/github.com/jaimeteb/chatto/extensions#RegisteredExtensions), which maps the extension names to their respective functions.
 
 There are currently two ways to serve the extensions:
 
-- **RPC**: By using `extension.ServeRPC(extension.RegisteredCommandFuncs)`
-- **REST**: By using `extension.ServeREST(extension.RegisteredCommandFuncs)`
+- **RPC**: By using [`extensions.ServeRPC`](https://godoc.org/github.com/jaimeteb/chatto/extensions#ServeRPC)
+- **REST**: By using [`extensions.ServeREST`](https://godoc.org/github.com/jaimeteb/chatto/extensions#ServeREST)
 
 When running the extensions, use the flag `-port` to specify a service port (extensions will use port `8770` by default).
 
-The extension functions must have the `func(*extension.ExecuteCommandFuncRequest) *extension.ExecuteCommandFuncResponse` signature, where:
+The extension functions must have the signature:
 
-* [`ExecuteCommandFuncRequest`](https://godoc.org/github.com/jaimeteb/chatto/extension#ExecuteCommandFuncRequest) contains:
+```go
+func(*extensions.ExecuteExtensionRequest) *extensions.ExecuteExtensionResponse
+```
+
+Where:
+
+* [`ExecuteExtensionRequest`](https://godoc.org/github.com/jaimeteb/chatto/extensions#ExecuteExtensionRequest) contains:
 	* The current FSM
+	* The channel that received the request
 	* The requested extension
 	* The input question (the sender and the text)
 	* The Domain (*fsm.yml* data)
-* [`ExecuteCommandFuncResponse`](https://godoc.org/github.com/jaimeteb/chatto/extension#ExecuteCommandFuncResponse) must contain:
+* [`ExecuteExtensionResponse`](https://godoc.org/github.com/jaimeteb/chatto/extensions#ExecuteExtensionResponse) must contain:
 	* The resulting FSM
 	* The answers (messages) to be sent to the user
 
@@ -85,19 +92,19 @@ def greet_func(data: dict) -> dict:
 		]
 	})
 
-registered_command_funcs = {
-    "ext_any": greet_func,
+registered_extensions = {
+    "<any": greet_func,
 }
 
-@app.route("/ext/get_all_funcs", methods=["GET"])
+@app.route("/extensions", methods=["GET"])
 def get_all_funcs():
-    return jsonify(list(registered_command_funcs.keys()))
+    return jsonify(list(registered_extensions.keys()))
 
-@app.route("/ext/get_func", methods=["POST"])
+@app.route("/extension", methods=["POST"])
 def get_func():
     data = request.get_json()
     req = data.get("extension")
-    f = registered_command_funcs.get(req)
+    f = registered_extensions.get(req)
     if not f:
         return Response(status=400)
     return f(data)
@@ -106,13 +113,13 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8770)
 ```
 
-In this case, the Flask app emulates the function of [`ServeREST`](https://godoc.org/github.com/jaimeteb/chatto/extension#ServeREST), while **greet_func** and **registered_command_funcs** correspond to **GreetFunc** and **registeredCommandFuncs** respectively, from the Go example.
+In this case, the Flask app emulates the function of [`ServeREST`](https://godoc.org/github.com/jaimeteb/chatto/extensions#ServeREST), while `greet_func` and `registered_extensions` correspond to `GreetFunc` and `registeredExtensions` respectively, from the Go example.
 
 ### Extension REST
 
 An extension REST service must implement these routes:
 
-- `GET /ext/commands`
+- `GET /extensions`
 
 	This route should return an array with the names of the registered extensions.
 
@@ -125,7 +132,7 @@ An extension REST service must implement these routes:
 	]
 	```
 
-- `POST /ext/command`
+- `POST /extension`
 
 	This route should return the resulting Finite State Machine object after the extension's execution, along with the answers.
 
@@ -140,6 +147,7 @@ An extension REST service must implement these routes:
 			}
 		},
 		"extension": "val_ans_1",
+		"channel": "rest",
 		"question": {
 			"sender": "cli",
 			"text": "2"
@@ -166,6 +174,7 @@ An extension REST service must implement these routes:
 	```
 
 	Example response:
+
 	```json
 	{
 		"fsm": {
@@ -182,13 +191,13 @@ An extension REST service must implement these routes:
 	}
 	```
 
-## Messages
+## Answers
 
-The messages returned from the extensions follow the same rules as [the **fsm.yml** messages](/finitestatemachine/#messages). In Go, you can use the helper [`query.Answers`](https://godoc.org/github.com/jaimeteb/chatto/query#Answers) function to create answers from [`query.Answer`](https://godoc.org/github.com/jaimeteb/chatto/query#Answer)s, strings or maps.
+The answers returned from the extensions follow the same rules as [the **fsm.yml** messages](/finitestatemachine/#messages). In Go, you can use the helper [`query.Answers`](https://godoc.org/github.com/jaimeteb/chatto/query#Answers) function to create answers from [`query.Answer`](https://godoc.org/github.com/jaimeteb/chatto/query#Answer), strings or maps.
 
 ```go
-func GreetFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
-	return &extension.ExecuteCommandFuncResponse{
+func GreetFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+	return &extensions.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		// Answers: query.Answers("Hello Universe"),		// This is a simple string answer
 		// Answers: query.Answers("Hello", "Universe"),		// This is a slice of answers

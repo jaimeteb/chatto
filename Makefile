@@ -7,6 +7,10 @@ godoc:
 test:
 	go test -race ./... -cover -coverprofile=coverage.txt
 
+test-docker:
+	docker build -t jaimeteb/chatto-test -f utils/docker-test/Dockerfile .
+	docker run --rm jaimeteb/chatto-test
+
 generate:
 	go generate ./...
 
@@ -18,3 +22,6 @@ snapshot:
 
 release:
 	goreleaser release --rm-dist
+
+docs:
+	mkdocs build --clean

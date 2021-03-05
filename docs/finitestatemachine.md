@@ -11,21 +11,19 @@ commands:
   - "turn_on"
   - "turn_off"
 
-functions:
-  - transition:
-      from:
-        - "off"
-      into: "on"
+transitions:
+  - from:
+      - "off"
+    into: "on"
     command: "turn_on"
-    message:
+    answers:
       - text: "Turning on."
 
-  - transition:
-      from:
-        - "on"
-      into: "off"
+  - from:
+      - "on"
+    into: "off"
     command: "turn_off"
-    message:
+    answers:
       - text: "Turning off."
       - text: "❌"
 
@@ -33,35 +31,34 @@ defaults:
   unknown: "Can't do that."
 ```
 
-Under **functions** you can list the transitions available for the FSM. The object **transition** describes the states of the transition (**from** a list of states **into** another state) if **command** is executed; **message** is the list of messages to send to the user.
+Under `transitions` you can list the transitions available for the FSM. Each object describes the states of the transition (`from` a list of states `into` another state) if `command` is executed; `answers` is the list of messages to send to the user.
 
 In other words:
 
 ```yaml
-  - transition:
-      from:
-        - "off"              # the list of origin states
-      into: "on"             # the target state
+  - from:
+      - "off"                # the list of origin states
+    into: "on"               # the target state
     command: "turn_on"       # the command that will do the transition
-    message:
-      - text: "Turning on."  # the message that gets sent in the transition
+    answers:
+      - text: "Turning on."  # the answers that are sent after the transition
 ```
 
-All the states used in the transitions must be declared under **states**. Similarly, all the commands used must be declared under **commands**, and these have to correspond with the ones listed in the [classifier](/classifier).
+All the states used in the transitions must be declared under `states`. Similarly, all the commands used must be declared under `commands`, and these have to correspond with the ones listed in the [classifier](/classifier).
 
-## Messages
+## Answers
 
-Messages are formed by a *text* field and/or an *image* URL. For example:
+Answers are formed by a *text* field and/or an *image* URL. For example:
 
 ```yaml
-    message:
+    answers:
       - text: "Single message."
 
-    message:
+    answers:
       - text: "A list"
       - text: "of simple messages"
 
-    message:
+    answers:
       - text: "An image will be attached"
       - text: "to this message"
         image: https://i.imgur.com/8MU0IUT.jpeg
@@ -74,35 +71,33 @@ The special state **any** can help you go from any state into another, if the co
 ```yaml
   # The "end" command will move from any state into the
   # initial state, sending the message "Bye bye!"
-  - transition:
-      from:
-        - any
-      into: initial
+  - from:
+      - any
+    into: initial
     command: end
-    message:
+    answers:
       - text: "Bye bye!"
 ```
 
-Also, the special command **any** is used to transition between states, regardless of the command predicted. This command doesn't have to be declared.
+Also, the special command **any** is used to transition between states, regardless of the command predicted. This command doesn't have to be declared either.
 
 ```yaml
   # When in the "search_pokemon" state, any command will do the
   # transition into the initial state
-  - transition:
-      from:
-        - search_pokemon
-      into: initial
+  - from:
+      - search_pokemon
+    into: initial
     command: any
     extension: search_pokemon
 ```
 
 ## Default Messages
 
-In the **fsm.yml** file, the *defaults* section is used to set the messages that will be returned when the following events happen:
+In the **fsm.yml** file, the `defaults` section is used to set the messages that will be returned when the following events happen:
 
-- **unknown**: The current state does not transition into another one with the predicted command.
-- **unsure**: The command prediction confidence was below the threshold.
-- **error**: An error ocurred during the execution of an extension.
+- **`unknown`**: The current state does not transition into another one with the predicted command.
+- **`unsure`**: The command prediction confidence was below the threshold.
+- **`error`**: An error ocurred during the execution of an extension.
 
 Here's an example of default messages:
 
@@ -115,13 +110,12 @@ defaults:
 
 ## Slots
 
-You can save information from the user's input by using slots. In the **fsm.yml** file, slots are declared as such:
+You can save information from the user's input by using `slot` objects. In the **fsm.yml** file, slots are declared as such:
 
 ```yaml
-  - transition:
-      from:
-        - question_1
-      into: question_2
+  - from:
+      - question_1
+    into: question_2
     command: any
     extension: val_ans_1
     slot:
@@ -133,7 +127,7 @@ In this example, in the transition from **question_1** to **question_2**, a slot
 
 The supported slot modes are:
 
-* **whole_text**: Saves the entire input in the slot.
+* **`whole_text`**: Saves the entire input in the slot.
 
     ```yaml
     slot:
@@ -141,7 +135,7 @@ The supported slot modes are:
       mode: whole_text
     ```
 
-* **regex**: Saves the first Regular Expression match found.
+* **`regex`**: Saves the first Regular Expression match found.
 
     ```yaml
     slot:

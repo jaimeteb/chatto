@@ -1,6 +1,6 @@
 # Bot configuration
 
-The **bot.yml** file is used to configure the name of the bot, how and where the extensions will be consumed, how will the FSMs will be stored, and when to reply with defaults.
+The **bot.yml** file is used to configure the name of the bot, how and where the extensions will be consumed, how will the FSMs be stored, and when to reply with defaults.
 
 ```yaml
 bot_name: "test_bot"
@@ -17,9 +17,9 @@ store:
 
 ## Extensions
 
-To configure the extensions, the following parameters are required for RPC and REST types respectively:
+To configure the extensions, the following parameters are required for `RPC` and `REST` types respectively:
 
-* For type **RPC**:
+* For type **`RPC`**:
     * Host
     * Port
 
@@ -30,7 +30,7 @@ To configure the extensions, the following parameters are required for RPC and R
       port: 8770
     ```
   
-* For type **REST**:
+* For type **`REST`**:
     * URL
     
     ```yaml
@@ -41,19 +41,19 @@ To configure the extensions, the following parameters are required for RPC and R
 
 ## Store
 
-The FSMs for the bot can be stored locally (default type **CACHE**) or in Redis. You can set a Time To Live (in seconds) for the Finite State Machines in either type of storage.
+The FSMs for the bot can be stored locally (default) or in Redis. You can set a time to live (in seconds) for the Finite State Machines in either type of storage.
 
 ### Cache
 
-By default, Chatto uses the cache storage. You can set a TTL for the FSMs with the **ttl** parameter. If a TTL is not specified, the FSMs will be stored forever.
+By default, Chatto uses the cache storage. You can set a TTL for the FSMs with the `ttl` parameter. If a TTL is not specified, the FSMs will be stored forever.
 
-Also, a purge time is required, which is the time interval to delete the expired FSMs.
+Also, a `purge` time can be set, which is the time interval to delete the expired FSMs.
 
 ```yaml
 store:
-type: CACHE
-ttl: 3600
-purge: 7200
+  type: CACHE
+  ttl: 3600
+  purge: 7200
 ```
 
 ### Redis
@@ -64,6 +64,7 @@ In order to use Redis, provide the following values:
 
 * Host
 * Password
+* Port (will default to 6379)
 * TTL (will default to -1)
 
 ```yaml
@@ -89,9 +90,9 @@ store:
   password:     # STORE_PASSWORD=pass
 ```
 
-## Default Messages per Conversation
+## Default messages per conversation
 
-You can control whether or not to use certain default messages in new or existing conversations using the **conversations** object in this file. If nothing is specified, the bot will always use the default messages.
+You can control whether or not to use certain default messages in new or existing conversations using the `conversations` object in this file. If nothing is specified, the bot will always use the default messages.
 
 For example:
 

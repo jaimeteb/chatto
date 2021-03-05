@@ -46,7 +46,7 @@ If a token is provided, requests to `/channels/rest` will require the token in t
 
 ### Token
 
-REST extensions can also require a token. The `extension.ServeREST` function reads a `token` flag. For example:
+REST extensions can also require a token. The `extensions.ServeREST` function reads a `token` flag. For example:
 
 ```bash
 go run examples/04_trivia/ext/ext.go -token my-extension-authorization-token
@@ -64,7 +64,7 @@ extensions:
 
 ### SSL
 
-REST extensions can be served over HTTPS. The `extension.ServeREST` function reads the `ssl-key` and `ssl-cert`. For example:
+REST extensions can be served over HTTPS. The `extensions.ServeREST` function reads the `ssl-key` and `ssl-cert` flags. For example:
 
 ```bash
 go run examples/04_trivia/ext/ext.go -ssl-key localhost.key -ssl-cert localhost.crt

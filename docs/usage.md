@@ -46,7 +46,7 @@ Download the `chatto-init` binary to generate a sample Chatto project on the dir
 chatto-init -path my-chatto/
 ```
 
-And a project will be initialized at `my-chatto`.
+A Chatto project will be initialized at `my-chatto`.
 
 ## Docker Compose
 
