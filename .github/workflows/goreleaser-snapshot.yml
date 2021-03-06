@@ -3,11 +3,13 @@ name: goreleaser
 on:
   push:
     branches:
+      - '*'
     paths-ignore:
       - '**.md'
   pull_request:
     paths-ignore:
       - '**.md'
+      - 'docs/**'
 
 jobs:
   goreleaser_snapshot:

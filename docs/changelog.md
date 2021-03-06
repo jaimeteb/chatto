@@ -1,6 +1,21 @@
 # Changelog
 
 ---
+## v0.7.0
+
+* Support token auth for the `chatto-cli` REST channel client.
+* Rename and reorganize **fsm.yml** to make transitions more intuitive to write:
+	* Rename FSM `functions` to `transitions`
+	* Rename fsm `message` to `answers`
+	* Rename extension `CommandFuncs` to `Extensions`
+	* Renane `extension` pakcage to `extensions`
+* Make channel handlers public.
+* Add `bot.cleanAnswers` to remove empty parameters in response body.
+
+!!! warning
+	Package and function names were changed since the last version.
+
+---
 ## v0.6.2
 
 * Add `bot.Answer` un public `bot` package.
