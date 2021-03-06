@@ -1,0 +1,45 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'docs/**'
+
+env:
+  PYTHON_VERSION: 3.x
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up Python runtime
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      -
+        name: Install Python dependencies
+        run: |
+          pip install \
+            mkdocs==1.1.2 \
+            mkdocs-material==6.2.4
+      -
+        name: Build documentation
+        run: |
+          mkdocs build --clean
+      -
+        name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+      -
+        name: Upload to bucket
+        run: |
+          gsutil rsync -m -r site/ gs://${{ secrets.GCS_BUCKET }}
