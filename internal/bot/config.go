@@ -111,7 +111,7 @@ func loadName(name string) string {
 		return name
 	}
 
-	return "botto"
+	return "chatto"
 }
 
 // New initializes and returns a new Bot

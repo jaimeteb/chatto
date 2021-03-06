@@ -14,7 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Client allows you to chat with botto through the REST channel
+// Client allows you to chat with chatto through the REST channel
 // Great for testing or integrating with your own tools
 type Client struct {
 	URL   string
@@ -22,7 +22,7 @@ type Client struct {
 	http  *retryablehttp.Client
 }
 
-// NewClient instantiates a new botto client
+// NewClient instantiates a new chatto client
 func NewClient(url string, port int, token string) *Client {
 	client := &Client{
 		URL:   fmt.Sprintf("%s:%d/channels/rest", url, port),
@@ -62,7 +62,7 @@ func (c *Client) CLI() {
 	}
 }
 
-// Submit a question to botto bot and get an answer
+// Submit a question to chatto bot and get an answer
 func (c *Client) Submit(question *query.Question) ([]query.Answer, error) {
 	questionJSON, err := json.Marshal(question)
 	if err != nil {
