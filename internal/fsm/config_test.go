@@ -25,24 +25,24 @@ func TestLoadConfig(t *testing.T) {
 			want: &fsmint.Config{
 				States:   []string{"off", "on"},
 				Commands: []string{"turn_on", "turn_off"},
-				Functions: []fsm.Function{
+				Transitions: []fsm.Transition{
 					{
-						Transition: fsm.Transition{
-							From: []string{"off"},
-							Into: "on",
-						},
+						// Transition: fsm.Transition{
+						From: []string{"off"},
+						Into: "on",
+						// },
 						Command: "turn_on",
-						Message: []fsm.Message{{
+						Answers: []fsm.Answer{{
 							Text: "Turning on.",
 						}},
 					},
 					{
-						Transition: fsm.Transition{
-							From: []string{"on"},
-							Into: "off",
-						},
+						// Transition: fsm.Transition{
+						From: []string{"on"},
+						Into: "off",
+						// },
 						Command: "turn_off",
-						Message: []fsm.Message{
+						Answers: []fsm.Answer{
 							{
 								Text: "Turning off.",
 							},

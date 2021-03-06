@@ -90,48 +90,43 @@ commands:
   - "yes"
   - "no"
 
-functions:
-  - transition:
-      from:
-        - initial
-      into: ask_mood
+transitions:
+  - from:
+      - initial
+    into: ask_mood
     command: greet
-    message: 
+    answers: 
       - text: "Hello! How are you?"
 
-  - transition:
-      from:
-        - ask_mood
-      into: initial
+  - from:
+      - ask_mood
+    into: initial
     command: good
-    message: 
+    answers: 
       - text: "Great! :)"
 
-  - transition:
-      from:
-        - ask_mood
-      into: say_bad
+  - from:
+      - ask_mood
+    into: say_bad
     command: bad
-    message:
+    answers:
       - text: "Oh don't be sad :("
         image: https://i.imgur.com/8MU0IUT.jpeg
       - text: "Did that help?"
     # extension: dont_feel_bad
 
-  - transition:
-      from:
-        - say_bad
-      into: initial
+  - from:
+      - say_bad
+    into: initial
     command: "yes"
-    message:
+    answers:
       - text: "I'm glad! :)"
 
-  - transition:
-      from:
-        - say_bad
-      into: initial
+  - from:
+      - say_bad
+    into: initial
     command: "no"
-    message: 
+    answers: 
       - text: "Oh I'm sorry"
 
 defaults:
@@ -145,12 +140,12 @@ var extFile string = `package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/extensions"
 	"github.com/jaimeteb/chatto/query"
 )
 
-func dontFeelBad(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
-	return &extension.ExecuteCommandFuncResponse{
+func dontFeelBad(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
+	return &extension.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{
 			{
@@ -164,12 +159,12 @@ func dontFeelBad(req *extension.ExecuteCommandFuncRequest) (res *extension.Execu
 	}
 }
 
-var registeredCommandFuncs = extension.RegisteredCommandFuncs{
+var registeredExtensions = extension.RegisteredExtensions{
 	"dont_feel_bad": dontFeelBad,
 }
 
 func main() {
-	if err := extension.ServeREST(registeredCommandFuncs); err != nil {
+	if err := extension.ServeREST(registeredExtensions); err != nil {
 		log.Fatalln(err)
 	}
 }

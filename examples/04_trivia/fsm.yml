@@ -8,13 +8,12 @@ commands:
   - start
   - end
 
-functions:
-  - transition:
-      from:
-        - initial
-      into: question_1
+transitions:
+  - from:
+      - initial
+    into: question_1
     command: start
-    message: 
+    answers: 
       - text: "Welcome to the trivia!\n\
         Question 1:\n\
         How many squares are there on a chessboard?\n\
@@ -22,10 +21,9 @@ functions:
         2. 64\n\
         3. 100"
 
-  - transition:
-      from:
-        - question_1
-      into: question_2
+  - from:
+      - question_1
+    into: question_2
     command: any
     extension: val_ans_1
     slot:
@@ -33,10 +31,9 @@ functions:
       mode: regex
       regex: "[0-9]+"
 
-  - transition:
-      from:
-        - question_2
-      into: question_3
+  - from:
+      - question_2
+    into: question_3
     command: any
     extension: val_ans_2
     slot:
@@ -44,10 +41,9 @@ functions:
       mode: regex
       regex: "[0-9]+"
 
-  - transition:
-      from:
-        - question_3
-      into: initial
+  - from:
+      - question_3
+    into: initial
     command: any
     extension: score
     slot:
@@ -55,12 +51,11 @@ functions:
       mode: regex
       regex: "[0-9]+"
 
-  - transition:
-      from:
-        - any
-      into: initial
+  - from:
+      - any
+    into: initial
     command: end
-    message: 
+    answers: 
       - text: "Bye bye!"
 
 defaults:

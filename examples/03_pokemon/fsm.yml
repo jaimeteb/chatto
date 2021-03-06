@@ -7,39 +7,35 @@ commands:
   - "search_pokemon"
   - "faq"
 
-functions:
-  - transition:
-      from:
-        - initial
-      into: search_pokemon
+transitions:
+  - from:
+      - initial
+    into: search_pokemon
     command: search_pokemon
-    message:
+    answers:
       - text: "What is the Pokémon's name or number?"
 
-  - transition:
-      from:
-        - initial
-      into: search_pokemon
+  - from:
+      - initial
+    into: search_pokemon
     command: greet
-    message:
+    answers:
      - text: "What is the Pokémon's name or number?"
 
-  - transition:
-      from:
-        - search_pokemon
-      into: initial
+  - from:
+      - search_pokemon
+    into: initial
     command: any
     slot:
       name: pokemon
       mode: whole_text
     extension: search_pokemon
 
-  - transition:
-      from:
-        - any
-      into: initial
+  - from:
+      - any
+    into: initial
     command: faq
-    message:
+    answers:
       - text: "This is a simple chatbot created with Chatto"
       - text: "You can find out more about it here: https://github.com/jaimeteb/chatto"
       - text: "😊"

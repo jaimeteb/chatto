@@ -7,28 +7,25 @@ commands:
   - "turn_off"
   - "hello_universe"
 
-functions:
-  - transition:
-      from:
-        - "off"
-      into: "on"
+transitions:
+  - from:
+      - "off"
+    into: "on"
     command: "turn_on"
     message: 
       - text: "Turning on."
 
-  - transition:
-      from:
-        - "on"
-      into: "off"
+  - from:
+      - "on"
+    into: "off"
     command: "turn_off"
     message:
       - text: "Turning off."
       - text: "❌"
 
-  - transition:
-      from:
-        - "any"
-      into: "off"
+  - from:
+      - "any"
+    into: "off"
     command: "hello_universe"
     extension: "any"
 

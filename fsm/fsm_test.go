@@ -12,14 +12,14 @@ var (
 	// Hello
 	helloCommands  = []string{"hey_friend"}
 	helloStates    = []string{"hello"}
-	helloFunctions = []fsm.Function{
+	helloFunctions = []fsm.Transition{
 		{
-			Transition: fsm.Transition{
-				From: []string{"any"},
-				Into: "hello",
-			},
+			// Transition: fsm.Transition{
+			From: []string{"any"},
+			Into: "hello",
+			// },
 			Command: "hey_friend",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "Hey friend!",
 			}},
 		},
@@ -28,32 +28,32 @@ var (
 	// Pokemon test
 	pokemonCommands  = []string{"initial", "search_pokemon"}
 	pokemonStates    = []string{"greet", "search_pokemon"}
-	pokemonFunctions = []fsm.Function{
+	pokemonFunctions = []fsm.Transition{
 		{
-			Transition: fsm.Transition{
-				From: []string{"initial"},
-				Into: "search_pokemon",
-			},
+			// Transition: fsm.Transition{
+			From: []string{"initial"},
+			Into: "search_pokemon",
+			// },
 			Command: "search_pokemon",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
 		{
-			Transition: fsm.Transition{
-				From: []string{"initial"},
-				Into: "search_pokemon",
-			},
+			// Transition: fsm.Transition{
+			From: []string{"initial"},
+			Into: "search_pokemon",
+			// },
 			Command: "greet",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
 		{
-			Transition: fsm.Transition{
-				From: []string{"search_pokemon"},
-				Into: "initial",
-			},
+			// Transition: fsm.Transition{
+			From: []string{"search_pokemon"},
+			Into: "initial",
+			// },
 			Command:   "any",
 			Extension: "search_pokemon",
 			Slot: fsm.Slot{
@@ -66,14 +66,14 @@ var (
 	// On off test
 	onOffCommands  = []string{"turn_on", "turn_off"}
 	onOffStates    = []string{"off", "on"}
-	onOffFunctions = []fsm.Function{
+	onOffFunctions = []fsm.Transition{
 		{
-			Transition: fsm.Transition{
-				From: []string{"off"},
-				Into: "on",
-			},
+			// Transition: fsm.Transition{
+			From: []string{"off"},
+			Into: "on",
+			// },
 			Command: "turn_on",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "Turning on.",
 			}},
 			Slot: fsm.Slot{
@@ -82,12 +82,12 @@ var (
 			},
 		},
 		{
-			Transition: fsm.Transition{
-				From: []string{"on"},
-				Into: "off",
-			},
+			// Transition: fsm.Transition{
+			From: []string{"on"},
+			Into: "off",
+			// },
 			Command: "turn_off",
-			Message: []fsm.Message{
+			Answers: []fsm.Answer{
 				{
 					Text: "Turning off.",
 				},
