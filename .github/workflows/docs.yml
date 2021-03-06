@@ -41,5 +41,7 @@ jobs:
           export_default_credentials: true
       -
         name: Upload to bucket
+        env:
+          GCS_BUCKET: ${{ secrets.GCS_BUCKET }}
         run: |
-          gsutil rsync -m -r site/ gs://${{ secrets.GCS_BUCKET }}
+          gsutil rsync -m -r site/ gs://$GCS_BUCKET
