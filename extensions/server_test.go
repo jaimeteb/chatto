@@ -196,7 +196,7 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 				r: httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`))),
 			},
 			want: &extensions.ExecuteExtensionResponse{
-				FSM: &fsm.FSM{State: 0, Slots: fsm.NewFSM().Slots},
+				FSM: &fsm.FSM{State: fsm.StateInitial, Slots: fsm.NewFSM().Slots},
 				Answers: []query.Answer{{
 					Text:  "Hello Universe",
 					Image: "https://i.imgur.com/pPdjh6x.jpg",
@@ -210,7 +210,7 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 				r: setBearerToken(httptest.NewRequest("POST", commandPath, bytes.NewBuffer([]byte(`{"extension": "any", "fsm": {"state": 0, "slots": {}}}`))), "my-test-token"),
 			},
 			want: &extensions.ExecuteExtensionResponse{
-				FSM: &fsm.FSM{State: 0, Slots: fsm.NewFSM().Slots},
+				FSM: &fsm.FSM{State: fsm.StateInitial, Slots: fsm.NewFSM().Slots},
 				Answers: []query.Answer{{
 					Text:  "Hello Universe",
 					Image: "https://i.imgur.com/pPdjh6x.jpg",
@@ -289,7 +289,7 @@ func TestExtensionRPCServer(t *testing.T) {
 	req := extensions.ExecuteExtensionRequest{
 		Extension: "any",
 		FSM: &fsm.FSM{
-			State: 0,
+			State: fsm.StateInitial,
 			Slots: make(map[string]string),
 		},
 	}
