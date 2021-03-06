@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'docs/**'
+      - '.github/**'
 
 env:
   PYTHON_VERSION: 3.x
@@ -43,4 +44,4 @@ jobs:
       -
         name: Upload to bucket
         run: |
-          gsutil rsync -m -r site/ gs://$GCS_BUCKET
+          gsutil -m rsync -r site/ gs://$GCS_BUCKET
