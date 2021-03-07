@@ -2,6 +2,7 @@ package bot
 
 import (
 	"strings"
+	"time"
 
 	"github.com/jaimeteb/chatto/internal/channels"
 	"github.com/jaimeteb/chatto/internal/clf"
@@ -76,6 +77,7 @@ func LoadConfig(path string, port int) (*Config, error) {
 	config.SetConfigName("bot")
 	config.AddConfigPath(path)
 	config.AutomaticEnv()
+	config.SetEnvPrefix("CHATTO_BOT")
 	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	config.SetDefault("conversation.new.reply_unsure", true)
 	config.SetDefault("conversation.new.reply_unknown", true)
@@ -130,14 +132,16 @@ func New(botConfig *Config) (*Bot, error) {
 	b.Channels = channels.New(channelsConfig)
 
 	// Load FSM Domain
-	fsmConfig, err := fsm.LoadConfig(botConfig.Path)
+	fsmReloadChan := make(chan fsm.Config)
+	fsmConfig, err := fsm.LoadConfig(botConfig.Path, fsmReloadChan)
 	if err != nil {
 		return nil, err
 	}
 	b.Domain = fsm.NewDomainFromConfig(fsmConfig)
 
 	// Load Classifier
-	classifConfig, err := clf.LoadConfig(botConfig.Path)
+	classifReloadChan := make(chan clf.Config)
+	classifConfig, err := clf.LoadConfig(botConfig.Path, classifReloadChan)
 	if err != nil {
 		return nil, err
 	}
@@ -153,9 +157,27 @@ func New(botConfig *Config) (*Bot, error) {
 	// Register HTTP handlers
 	b.RegisterRoutes()
 
+	// Reload the FSM Domain and CLF Classifier if the configs change
+	receiveAndReload(b, fsmReloadChan, classifReloadChan)
+
 	log.Infof("My name is '%v'", b.Name)
 
 	return b, nil
+}
+
+func receiveAndReload(b *Bot, fsmReloadChan chan fsm.Config, classifReloadChan chan clf.Config) {
+	go func() {
+		for {
+			select {
+			case fsmConfig := <-fsmReloadChan:
+				b.Domain = fsm.NewDomainFromConfig(&fsmConfig)
+			case classifConfig := <-classifReloadChan:
+				b.Classifier = clf.New(&classifConfig)
+			default:
+				time.Sleep(5 * time.Second)
+			}
+		}
+	}()
 }
 
 // LOGO for Chatto

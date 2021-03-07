@@ -42,6 +42,10 @@ func (b *Bot) slackChannelHandler(w http.ResponseWriter, r *http.Request) {
 	b.ChannelHandler(w, r, b.Channels.Slack)
 }
 
+func (b *Bot) healthzHandler(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 // ChannelHandler takes an incoming http.Request and passes it to a channel for it to respond
 func (b *Bot) ChannelHandler(w http.ResponseWriter, r *http.Request, chnl channels.Channel) {
 	if !chnl.ValidateCallback(r) {
@@ -244,7 +248,8 @@ func (b *Bot) RegisterRoutes() {
 		r.HandleFunc("/channels/slack", b.slackChannelHandler).Methods("POST")
 	}
 
-	// Prediction and Sender Channels
+	// Other bot endpoints
+	r.HandleFunc("/bot/healthz", b.healthzHandler).Methods("GET")
 	r.HandleFunc("/bot/predict", b.predictHandler).Methods("POST")
 	r.HandleFunc("/bot/senders/{sender}", b.detailsHandler).Methods("GET")
 

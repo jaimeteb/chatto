@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/jaimeteb/chatto/bot"
 	"github.com/jaimeteb/chatto/internal/logger"
@@ -19,6 +21,10 @@ func main() {
 	if *vers {
 		fmt.Println(version.BuildStr())
 		return
+	}
+
+	if strings.ToLower(os.Getenv("CHATTO_BOT_DEBUG")) == "true" {
+		*debug = true
 	}
 
 	logger.SetLogger(*debug)

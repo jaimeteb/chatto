@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: chatto-config-secrets
+  namespace: default
+type: Opaque
+data:
+  # rather-cousin-LIMP-scull
+  CHATTO_BOT_AUTH_TOKEN: cmF0aGVyLWNvdXNpbi1MSU1QLXNjdWxsCg==
+  # hornpipe-VALENCY-itch-sentry
+  CHATTO_CHN_REST_CALLBACK_TOKEN: aG9ybnBpcGUtVkFMRU5DWS1pdGNoLXNlbnRyeQo=
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chatto-config-envs
+  namespace: default
+data:
+  CHATTO_BOT_BOT_NAME: "kube-chatto"
+  CHATTO_BOT_DEBUG: "true"
+  CHATTO_BOT_CONVERSATION_NEW_REPLY_UNSURE: "true"
+  CHATTO_BOT_CONVERSATION_NEW_REPLY_UNKNOWN: "true"
+  CHATTO_BOT_CONVERSATION_NEW_REPLY_ERROR: "true"
+  CHATTO_BOT_CONVERSATION_EXISTING_REPLY_UNSURE: "true"
+  CHATTO_BOT_CONVERSATION_EXISTING_REPLY_UNKNOWN: "true"
+  CHATTO_BOT_CONVERSATION_EXISTING_REPLY_ERROR: "true"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chatto-config-files
+  namespace: default
+data:
+  fsm.yml: |
+    states:
+      - "question"
+      - "answer"
+
+    commands:
+      - "favorite_color"
+      - "favorite_food"
+      - "thanks"
+
+    transitions:
+      - from:
+          - "question"
+        into: "answer"
+        command: "favorite_color"
+        answers:
+          - text: "My favorite color is platinum."
+
+      - from:
+          - "question"
+        into: "answer"
+        command: "favorite_food"
+        answers:
+          - text: "My favorite food is lithium ion."
+
+      - from:
+          - "answer"
+        into: "question"
+        command: "thanks"
+        answers:
+          - text: ":thumbsup: no problem-o"
+  clf.yml: |
+    classification:
+      - command: "favorite_color"
+        texts:
+          - "what is your favorite color"
+          - "do you have a favorite color"
+
+      - command: "favorite_food"
+        texts:
+          - "what is your favorite food"
+          - "do you have a favorite food"
+
+      - command: "thanks"
+        texts:
+          - "cool"
+          - "thanks"
+          - "thank you"
+          - "thank you very much"
+          - "appreciate it"
+          - "awesome"
+
+    pipeline:
+      remove_symbols: true
+      lower: true
+      threshold: 0.8
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatto
+  namespace: default
+  labels:
+    app: chatto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatto
+  template:
+    metadata:
+      namespace: default
+      labels:
+        app: chatto
+    spec:
+      containers:
+        - name: chatto
+          image: jaimeteb/chatto
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4770
+          readinessProbe:
+            httpGet:
+              path: /bot/healthz
+              port: 4770
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+          envFrom:
+            - secretRef:
+                name: chatto-config-secrets
+            - configMapRef:
+                name: chatto-config-envs
+          volumeMounts:
+            - name: chatto-config-volume
+              mountPath: /data
+      volumes:
+        - name: chatto-config-volume
+          configMap:
+            name: chatto-config-files
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatto-service
+  namespace: default
+spec:
+  selector:
+    app: chatto
+  ports:
+    - name: http
+      protocol: TCP
+      port: 4770
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chatto-ingress
+  namespace: default
+spec:
+  rules:
+    - host: chatto.example.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: chatto-service
+                port:
+                  number: 4770
