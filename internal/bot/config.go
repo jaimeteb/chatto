@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var watchSleep = 5 * time.Second
+
 // ConversationConfig for the bot
 type ConversationConfig struct {
 	ReplyUnsure  bool `mapstructure:"reply_unsure"`
@@ -174,7 +176,7 @@ func receiveAndReload(b *Bot, fsmReloadChan chan fsm.Config, classifReloadChan c
 			case classifConfig := <-classifReloadChan:
 				b.Classifier = clf.New(&classifConfig)
 			default:
-				time.Sleep(5 * time.Second)
+				time.Sleep(watchSleep)
 			}
 		}
 	}()

@@ -23,7 +23,7 @@ func main() {
 		return
 	}
 
-	if strings.ToLower(os.Getenv("CHATTO_BOT_DEBUG")) == "true" {
+	if strings.EqualFold(os.Getenv("CHATTO_BOT_DEBUG"), "true") {
 		*debug = true
 	}
 
