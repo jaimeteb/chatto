@@ -1,21 +1,9 @@
-states:
-  - "initial"
-  - "ask_location"
-
-commands:
-  - "hi"
-  - "weather"
-  - "joke"
-  - "misc"
-  - "quote"
-
-functions:
-  - transition:
-      from:
-        - "initial"
-      into: "initial"
+transitions:
+  - from:
+      - "initial"
+    into: "initial"
     command: "hi"
-    message:
+    answers:
       - text: |-
           Hi! I can do these things:
           * Tell the weather
@@ -23,39 +11,34 @@ functions:
           * Get a random quote
           * Answer random questions
 
-  - transition:
-      from:
-        - "initial"
-      into: "ask_location"
+  - from:
+      - "initial"
+    into: "ask_location"
     command: "weather"
-    message:
+    answers:
       - text: "What's your location?"
 
-  - transition:
-      from:
-        - "ask_location"
-      into: "initial"
+  - from:
+      - "ask_location"
+    into: "initial"
     command: "any"
     extension: weather
 
-  - transition:
-      from:
-        - "initial"
-      into: "initial"
+  - from:
+      - "initial"
+    into: "initial"
     command: "joke"
     extension: joke
 
-  - transition:
-      from:
-        - "initial"
-      into: "initial"
+  - from:
+      - "initial"
+    into: "initial"
     command: "quote"
     extension: quote
 
-  - transition:
-      from:
-        - "initial"
-      into: "initial"
+  - from:
+      - "initial"
+    into: "initial"
     command: "misc"
     extension: misc
 

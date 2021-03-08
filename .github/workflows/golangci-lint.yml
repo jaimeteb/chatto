@@ -3,11 +3,13 @@ name: golangci-lint
 on:
   push:
     branches:
+      - '*'
     paths-ignore:
       - '**.md'
   pull_request:
     paths-ignore:
       - '**.md'
+      - 'docs/**'
 
 jobs:
   golangci:

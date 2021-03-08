@@ -23,26 +23,20 @@ func TestLoadConfig(t *testing.T) {
 			name: "test loading a valid path",
 			args: args{path: "../" + testutils.Examples05SimplePath},
 			want: &fsmint.Config{
-				States:   []string{"off", "on"},
-				Commands: []string{"turn_on", "turn_off"},
-				Functions: []fsm.Function{
+				Transitions: []fsm.Transition{
 					{
-						Transition: fsm.Transition{
-							From: []string{"off"},
-							Into: "on",
-						},
+						From:    []string{"initial"},
+						Into:    "on",
 						Command: "turn_on",
-						Message: []fsm.Message{{
+						Answers: []fsm.Answer{{
 							Text: "Turning on.",
 						}},
 					},
 					{
-						Transition: fsm.Transition{
-							From: []string{"on"},
-							Into: "off",
-						},
+						From:    []string{"on"},
+						Into:    "initial",
 						Command: "turn_off",
-						Message: []fsm.Message{
+						Answers: []fsm.Answer{
 							{
 								Text: "Turning off.",
 							},

@@ -1,58 +1,39 @@
-states:
-  - "initial"
-  - "ask_mood"
-  - "say_good"
-  - "say_bad"
-  - "say_bye"
-
-commands:
-  - "greet"
-  - "good"
-  - "bad"
-  - "yes"
-  - "no"
-
-functions:
-  - transition:
-      from:
-        - initial
-      into: ask_mood
+transitions:
+  - from:
+      - initial
+    into: ask_mood
     command: greet
-    message: 
+    answers: 
       - text: "Hello! How are you?"
 
-  - transition:
-      from:
-        - ask_mood
-      into: initial
+  - from:
+      - ask_mood
+    into: initial
     command: good
-    message: 
+    answers: 
       - text: "Great! :)"
 
-  - transition:
-      from:
-        - ask_mood
-      into: say_bad
+  - from:
+      - ask_mood
+    into: say_bad
     command: bad
-    message:
+    answers:
       - text: "Oh don't be sad :("
         image: https://i.imgur.com/8MU0IUT.jpeg
       - text: "Did that help?"
 
-  - transition:
-      from:
-        - say_bad
-      into: initial
+  - from:
+      - say_bad
+    into: initial
     command: "yes"
-    message:
+    answers:
       - text: "I'm glad! :)"
 
-  - transition:
-      from:
-        - say_bad
-      into: initial
+  - from:
+      - say_bad
+    into: initial
     command: "no"
-    message: 
+    answers: 
       - text: "Oh I'm sorry"
 
 defaults:

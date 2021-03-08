@@ -10,8 +10,9 @@ import (
 )
 
 func main() {
-	url := flag.String("url", "http://localhost", "Specify url to use.")
-	port := flag.Int("port", 4770, "Specify port to use.")
+	url := flag.String("url", "http://localhost", "Specify REST channel url to use.")
+	port := flag.Int("port", 4770, "Specify REST channel port to use.")
+	token := flag.String("token", "", "Specify REST channel auth token to use.")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 	vers := flag.Bool("version", false, "Display version.")
 	flag.Parse()
@@ -23,7 +24,7 @@ func main() {
 
 	logger.SetLogger(*debug)
 
-	client := bot.NewClient(*url, *port)
+	client := bot.NewClient(*url, *port, *token)
 
 	client.CLI()
 }

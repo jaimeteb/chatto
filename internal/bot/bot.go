@@ -40,6 +40,12 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 
 	previousState := machine.State
 
+	// Set existing conversation to false if in the initial state
+	// because initial state means this is a new conversation
+	if machine.State == fsm.StateInitial {
+		isExistingConversation = false
+	}
+
 	answers, ext, err := machine.ExecuteCmd(cmd, receiveMsg.Question.Text, b.Domain)
 	if err != nil {
 		switch e := err.(type) {
@@ -67,7 +73,7 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 			return nil, &ErrUnknownExtension{Extension: ext}
 		}
 
-		answers, err = b.Extension.ExecuteCommandFunc(receiveMsg.Question, ext, receiveMsg.Channel, b.Domain, machine)
+		answers, err = b.Extension.ExecuteExtension(receiveMsg.Question, ext, receiveMsg.Channel, b.Domain, machine)
 		if err != nil {
 			return nil, err
 		}

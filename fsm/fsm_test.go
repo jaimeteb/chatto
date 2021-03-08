@@ -10,50 +10,38 @@ import (
 
 var (
 	// Hello
-	helloCommands  = []string{"hey_friend"}
-	helloStates    = []string{"hello"}
-	helloFunctions = []fsm.Function{
+	helloFunctions = []fsm.Transition{
 		{
-			Transition: fsm.Transition{
-				From: []string{"any"},
-				Into: "hello",
-			},
+			From:    []string{"any"},
+			Into:    "hello",
 			Command: "hey_friend",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "Hey friend!",
 			}},
 		},
 	}
 
 	// Pokemon test
-	pokemonCommands  = []string{"initial", "search_pokemon"}
-	pokemonStates    = []string{"greet", "search_pokemon"}
-	pokemonFunctions = []fsm.Function{
+	pokemonFunctions = []fsm.Transition{
 		{
-			Transition: fsm.Transition{
-				From: []string{"initial"},
-				Into: "search_pokemon",
-			},
+			From:    []string{"initial"},
+			Into:    "search_pokemon",
 			Command: "search_pokemon",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
 		{
-			Transition: fsm.Transition{
-				From: []string{"initial"},
-				Into: "search_pokemon",
-			},
+			From:    []string{"initial"},
+			Into:    "search_pokemon",
 			Command: "greet",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
 		{
-			Transition: fsm.Transition{
-				From: []string{"search_pokemon"},
-				Into: "initial",
-			},
+			From:      []string{"search_pokemon"},
+			Into:      "initial",
 			Command:   "any",
 			Extension: "search_pokemon",
 			Slot: fsm.Slot{
@@ -64,16 +52,12 @@ var (
 	}
 
 	// On off test
-	onOffCommands  = []string{"turn_on", "turn_off"}
-	onOffStates    = []string{"off", "on"}
-	onOffFunctions = []fsm.Function{
+	onOffFunctions = []fsm.Transition{
 		{
-			Transition: fsm.Transition{
-				From: []string{"off"},
-				Into: "on",
-			},
+			From:    []string{"initial"},
+			Into:    "on",
 			Command: "turn_on",
-			Message: []fsm.Message{{
+			Answers: []fsm.Answer{{
 				Text: "Turning on.",
 			}},
 			Slot: fsm.Slot{
@@ -82,12 +66,10 @@ var (
 			},
 		},
 		{
-			Transition: fsm.Transition{
-				From: []string{"on"},
-				Into: "off",
-			},
+			From:    []string{"on"},
+			Into:    "initial",
 			Command: "turn_off",
-			Message: []fsm.Message{
+			Answers: []fsm.Answer{
 				{
 					Text: "Turning off.",
 				},
@@ -132,47 +114,47 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 		{
 			name: "invalid command should be unknown",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
 				command:   "ruhrow",
 				txt:       "blah blah blah",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers:   nil,
 			wantExtension: "",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{},
 			wantErr:       true,
 		},
 		{
 			name: "empty command should be unsure",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
 				command:   "",
 				txt:       "blah blah blah",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers:   nil,
 			wantExtension: "",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{},
 			wantErr:       true,
 		},
 		{
 			name: "hello command should run hey_friend from any state",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
 				command:   "hey_friend",
 				txt:       "hey there",
-				fsmDomain: fsm.NewDomain(helloCommands, helloStates, helloFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(helloFunctions, defaultResponses),
 			},
 			wantAnswers: []query.Answer{{
 				Text: "Hey friend!",
@@ -191,24 +173,24 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "any",
 				txt:       "pikachu",
-				fsmDomain: fsm.NewDomain(pokemonCommands, pokemonStates, pokemonFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(pokemonFunctions, defaultResponses),
 			},
 			wantAnswers:   nil,
 			wantExtension: "search_pokemon",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{"pokemon": "pikachu"},
 			wantErr:       false,
 		},
 		{
 			name: "turn_on command should turn on",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
 				command:   "turn_on",
 				txt:       "turn it on",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers: []query.Answer{{
 				Text: "Turning on.",
@@ -227,7 +209,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "turn_off",
 				txt:       "turn it off",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers: []query.Answer{
 				{
@@ -238,7 +220,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 				},
 			},
 			wantExtension: "",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{"off": "turn it off"},
 			wantErr:       false,
 		},

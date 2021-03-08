@@ -1,0 +1,61 @@
+site_name: Chatto
+site_url: https://chatto.jaimeteb.com
+site_author: Jaime Tenorio
+site_description: >-
+  Simple chatbot framework written in Go,
+  with configurations in YAML.
+  The aim of this project is to create very
+  simple text-based chatbots using a few
+  configuration files. 
+
+repo_name: jaimeteb/chatto
+repo_url: https://github.com/jaimeteb/chatto
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jaimeteb
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/jaimeteb/chatto
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/jaimetenoriob/
+
+markdown_extensions:
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - admonition
+
+theme:
+  name: material
+  palette:
+    primary: red
+  favicon: img/favicon-32x32.png
+  features:
+    - navigation.tabs
+  icon:
+    logo: chatto_logo
+  custom_dir: docs/overrides
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: gettingstarted.md
+    - Your first bot: yourfirstbot.md
+    - Usage: usage.md
+    - Classifier: classifier.md
+    - Finite State Machine: finitestatemachine.md
+    - Extensions: extensions.md
+    - Bot configuration: botconfiguration.md
+    - Channels: channels.md
+    - Endpoints: endpoints.md
+    - Security: security.md
+  - Examples:
+    - Mood Bot: examples/moodbot.md
+    - Pokemon Search: examples/pokemon.md
+    - Miscellaneous Bot: examples/misc.md
+    - Trivia: examples/trivia.md
+  - Changelog: changelog.md

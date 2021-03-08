@@ -11,7 +11,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/extensions"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 )
@@ -83,15 +83,15 @@ type serpResponseAnswerSource struct {
 	Link string `json:"link"`
 }
 
-func errFunc(req *extension.ExecuteCommandFuncRequest, err error) *extension.ExecuteCommandFuncResponse {
+func errFunc(req *extensions.ExecuteExtensionRequest, err error) *extensions.ExecuteExtensionResponse {
 	log.Errorf("%#v", err)
-	return &extension.ExecuteCommandFuncResponse{
+	return &extensions.ExecuteExtensionResponse{
 		FSM:     req.FSM,
 		Answers: []query.Answer{{Text: req.Domain.DefaultMessages.Error}},
 	}
 }
 
-func weatherFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
+func weatherFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
 	location := url.QueryEscape(req.Question.Text)
 
 	resp, err := http.Get(fmt.Sprintf(weatherURL, weatherKey, location))
@@ -121,7 +121,7 @@ func weatherFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.Execu
 		)
 	case 400:
 		message = "Sorry, I couldn't find your location, try with another one please."
-		return &extension.ExecuteCommandFuncResponse{
+		return &extensions.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: req.Domain.StateTable["ask_location"],
 				Slots: req.FSM.Slots,
@@ -132,13 +132,13 @@ func weatherFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.Execu
 		return errFunc(req, errors.New(resp.Status))
 	}
 
-	return &extension.ExecuteCommandFuncResponse{
+	return &extensions.ExecuteExtensionResponse{
 		FSM:     req.FSM,
 		Answers: []query.Answer{{Text: message}},
 	}
 }
 
-func jokeFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
+func jokeFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
 	resp, err := http.Get(jokeURL)
 	if err != nil {
 		return errFunc(req, err)
@@ -150,13 +150,13 @@ func jokeFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteC
 		return errFunc(req, err)
 	}
 
-	return &extension.ExecuteCommandFuncResponse{
+	return &extensions.ExecuteExtensionResponse{
 		FSM:     req.FSM,
 		Answers: []query.Answer{{Text: jokeResp.Joke}},
 	}
 }
 
-func quoteFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
+func quoteFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
 	resp, err := http.Get(quoteURL)
 	if err != nil {
 		return errFunc(req, err)
@@ -168,13 +168,13 @@ func quoteFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.Execute
 		return errFunc(req, err)
 	}
 
-	return &extension.ExecuteCommandFuncResponse{
+	return &extensions.ExecuteExtensionResponse{
 		FSM:     req.FSM,
 		Answers: []query.Answer{{Text: fmt.Sprintf("%s\n    - %s", quoteResp.Content, quoteResp.Author)}},
 	}
 }
 
-func miscFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteCommandFuncResponse) {
+func miscFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
 	q := url.QueryEscape(strings.ReplaceAll(req.Question.Text, " ", "+"))
 
 	resp, err := http.Get(fmt.Sprintf(serpURL, serpKey, q))
@@ -189,7 +189,7 @@ func miscFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteC
 	}
 
 	if serpResp.AnswerBox.AnswerBoxType == 0 || len(serpResp.AnswerBox.Answers) == 0 {
-		return &extension.ExecuteCommandFuncResponse{
+		return &extensions.ExecuteExtensionResponse{
 			FSM:     req.FSM,
 			Answers: []query.Answer{{Text: "I'm sorry, I couldn't find an answer to that question."}},
 		}
@@ -198,7 +198,7 @@ func miscFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteC
 	answer := serpResp.AnswerBox.Answers[0]
 
 	if answer.Answer == "" {
-		return &extension.ExecuteCommandFuncResponse{
+		return &extensions.ExecuteExtensionResponse{
 			FSM:     req.FSM,
 			Answers: []query.Answer{{Text: "I'm sorry, I couldn't find an answer to that question."}},
 		}
@@ -209,13 +209,13 @@ func miscFunc(req *extension.ExecuteCommandFuncRequest) (res *extension.ExecuteC
 		message += " \nSource: " + answer.Source.Link
 	}
 
-	return &extension.ExecuteCommandFuncResponse{
+	return &extensions.ExecuteExtensionResponse{
 		FSM:     req.FSM,
 		Answers: []query.Answer{{Text: message}},
 	}
 }
 
-var registeredCommandFuncs = extension.RegisteredCommandFuncs{
+var registeredExtensions = extensions.RegisteredExtensions{
 	"weather": weatherFunc,
 	"joke":    jokeFunc,
 	"quote":   quoteFunc,
@@ -223,5 +223,5 @@ var registeredCommandFuncs = extension.RegisteredCommandFuncs{
 }
 
 func main() {
-	log.Fatalln(extension.ServeREST(registeredCommandFuncs))
+	log.Fatalln(extensions.ServeREST(registeredExtensions))
 }

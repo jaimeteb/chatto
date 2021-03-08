@@ -75,23 +75,23 @@ def score(data: dict) -> dict:
         "answers": make_answers(message),
     })
 
-registered_funcs = {
+registered_extensions = {
     "val_ans_1": validate_ans_1,
     "val_ans_2": validate_ans_2,
     "score": score,
 }
 
 
-@app.route("/ext/commands", methods=["GET"])
+@app.route("/extensions", methods=["GET"])
 def get_all_funcs():
-    return jsonify(list(registered_funcs.keys()))
+    return jsonify(list(registered_extensions.keys()))
 
-@app.route("/ext/command", methods=["POST"])
+@app.route("/extension", methods=["POST"])
 def get_func():
     data = request.get_json()
     app.logger.debug(data)
     req = data.get("command")
-    f = registered_funcs.get(req)
+    f = registered_extensions.get(req)
     if not f:
         return Response(status=400)
     return f(data)

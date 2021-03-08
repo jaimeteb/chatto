@@ -33,11 +33,11 @@ func TestCacheStore(t *testing.T) {
 	machines.Set(
 		"foo",
 		&fsm.FSM{
-			State: 0,
+			State: fsm.StateInitial,
 			Slots: make(map[string]string),
 		},
 	)
-	if resp2 := machines.Get("foo"); resp2.State != 0 {
+	if resp2 := machines.Get("foo"); resp2.State != fsm.StateInitial {
 		t.Errorf("incorrect, got: %v, want: %v.", resp2, "0")
 	}
 
@@ -80,11 +80,11 @@ func TestRedisStore(t *testing.T) {
 	machines.Set(
 		"foo",
 		&fsm.FSM{
-			State: 0,
+			State: fsm.StateInitial,
 			Slots: make(map[string]string),
 		},
 	)
-	if resp2 := machines.Get("foo"); resp2.State != 0 {
+	if resp2 := machines.Get("foo"); resp2.State != fsm.StateInitial {
 		t.Errorf("incorrect, got: %v, want: %v.", resp2, "0")
 	}
 
