@@ -1,17 +1,3 @@
-states:
-  - "initial"
-  - "ask_mood"
-  - "say_good"
-  - "say_bad"
-  - "say_bye"
-
-commands:
-  - "greet"
-  - "good"
-  - "bad"
-  - "yes"
-  - "no"
-
 transitions:
   - from:
       - initial

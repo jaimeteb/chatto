@@ -1,31 +1,22 @@
-states:
-  - "off"
-  - "on"
-
-commands:
-  - "turn_on"
-  - "turn_off"
-  - "hello_universe"
-
 transitions:
   - from:
-      - "off"
+      - "initial"
     into: "on"
     command: "turn_on"
-    message: 
+    answers:
       - text: "Turning on."
 
   - from:
       - "on"
-    into: "off"
+    into: "initial"
     command: "turn_off"
-    message:
+    answers:
       - text: "Turning off."
       - text: "❌"
 
   - from:
       - "any"
-    into: "off"
+    into: "initial"
     command: "hello_universe"
     extension: "any"
 
