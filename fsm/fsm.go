@@ -60,8 +60,8 @@ func NewStateTable(transitions []Transition) StateTable {
 
 	stateTable := make(StateTable, len(transitions)+stateTableDefaultSize)
 
-	stateTable["any"] = -1    // Add state "any" ID
-	stateTable["initial"] = 0 // Add state "initial" ID
+	stateTable["any"] = StateAny         // Add state "any" ID
+	stateTable["initial"] = StateInitial // Add state "initial" ID
 
 	// Starting state ID
 	stateID := 1
