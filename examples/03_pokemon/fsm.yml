@@ -1,12 +1,3 @@
-states:
-  - "initial"
-  - "search_pokemon"
-
-commands:
-  - "greet"
-  - "search_pokemon"
-  - "faq"
-
 transitions:
   - from:
       - initial
@@ -43,4 +34,4 @@ transitions:
 defaults:
   unknown: "Unknown command, try again please."
   unsure: "Not sure I understood, try again please."
-  error: "I'm sorry, an error ocurred."
+  error: "I'm sorry, an error occurred."

@@ -1,14 +1,3 @@
-states:
-  - "initial"
-  - "ask_location"
-
-commands:
-  - "hi"
-  - "weather"
-  - "joke"
-  - "misc"
-  - "quote"
-
 transitions:
   - from:
       - "initial"

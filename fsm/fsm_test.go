@@ -10,14 +10,10 @@ import (
 
 var (
 	// Hello
-	helloCommands  = []string{"hey_friend"}
-	helloStates    = []string{"hello"}
 	helloFunctions = []fsm.Transition{
 		{
-			// Transition: fsm.Transition{
-			From: []string{"any"},
-			Into: "hello",
-			// },
+			From:    []string{"any"},
+			Into:    "hello",
 			Command: "hey_friend",
 			Answers: []fsm.Answer{{
 				Text: "Hey friend!",
@@ -26,34 +22,26 @@ var (
 	}
 
 	// Pokemon test
-	pokemonCommands  = []string{"initial", "search_pokemon"}
-	pokemonStates    = []string{"greet", "search_pokemon"}
 	pokemonFunctions = []fsm.Transition{
 		{
-			// Transition: fsm.Transition{
-			From: []string{"initial"},
-			Into: "search_pokemon",
-			// },
+			From:    []string{"initial"},
+			Into:    "search_pokemon",
 			Command: "search_pokemon",
 			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
 		{
-			// Transition: fsm.Transition{
-			From: []string{"initial"},
-			Into: "search_pokemon",
-			// },
+			From:    []string{"initial"},
+			Into:    "search_pokemon",
 			Command: "greet",
 			Answers: []fsm.Answer{{
 				Text: "What is the Pokémon's name or number?",
 			}},
 		},
 		{
-			// Transition: fsm.Transition{
-			From: []string{"search_pokemon"},
-			Into: "initial",
-			// },
+			From:      []string{"search_pokemon"},
+			Into:      "initial",
 			Command:   "any",
 			Extension: "search_pokemon",
 			Slot: fsm.Slot{
@@ -64,14 +52,10 @@ var (
 	}
 
 	// On off test
-	onOffCommands  = []string{"turn_on", "turn_off"}
-	onOffStates    = []string{"off", "on"}
 	onOffFunctions = []fsm.Transition{
 		{
-			// Transition: fsm.Transition{
-			From: []string{"off"},
-			Into: "on",
-			// },
+			From:    []string{"initial"},
+			Into:    "on",
 			Command: "turn_on",
 			Answers: []fsm.Answer{{
 				Text: "Turning on.",
@@ -82,10 +66,8 @@ var (
 			},
 		},
 		{
-			// Transition: fsm.Transition{
-			From: []string{"on"},
-			Into: "off",
-			// },
+			From:    []string{"on"},
+			Into:    "initial",
 			Command: "turn_off",
 			Answers: []fsm.Answer{
 				{
@@ -138,7 +120,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "ruhrow",
 				txt:       "blah blah blah",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers:   nil,
 			wantExtension: "",
@@ -155,7 +137,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "",
 				txt:       "blah blah blah",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers:   nil,
 			wantExtension: "",
@@ -172,7 +154,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "hey_friend",
 				txt:       "hey there",
-				fsmDomain: fsm.NewDomain(helloCommands, helloStates, helloFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(helloFunctions, defaultResponses),
 			},
 			wantAnswers: []query.Answer{{
 				Text: "Hey friend!",
@@ -191,7 +173,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "any",
 				txt:       "pikachu",
-				fsmDomain: fsm.NewDomain(pokemonCommands, pokemonStates, pokemonFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(pokemonFunctions, defaultResponses),
 			},
 			wantAnswers:   nil,
 			wantExtension: "search_pokemon",
@@ -208,7 +190,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "turn_on",
 				txt:       "turn it on",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers: []query.Answer{{
 				Text: "Turning on.",
@@ -227,7 +209,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			args: args{
 				command:   "turn_off",
 				txt:       "turn it off",
-				fsmDomain: fsm.NewDomain(onOffCommands, onOffStates, onOffFunctions, defaultResponses),
+				fsmDomain: fsm.NewDomain(onOffFunctions, defaultResponses),
 			},
 			wantAnswers: []query.Answer{
 				{

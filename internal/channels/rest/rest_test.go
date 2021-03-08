@@ -52,6 +52,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 		})
 	}
 }
+
 func TestChannel_ValidateCallback(t *testing.T) {
 	setBearerToken := func(r *http.Request, t string) *http.Request {
 		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", t))
