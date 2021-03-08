@@ -132,7 +132,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 		{
 			name: "invalid command should be unknown",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
@@ -142,14 +142,14 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			},
 			wantAnswers:   nil,
 			wantExtension: "",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{},
 			wantErr:       true,
 		},
 		{
 			name: "empty command should be unsure",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
@@ -159,14 +159,14 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			},
 			wantAnswers:   nil,
 			wantExtension: "",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{},
 			wantErr:       true,
 		},
 		{
 			name: "hello command should run hey_friend from any state",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
@@ -195,14 +195,14 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 			},
 			wantAnswers:   nil,
 			wantExtension: "search_pokemon",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{"pokemon": "pikachu"},
 			wantErr:       false,
 		},
 		{
 			name: "turn_on command should turn on",
 			fields: fields{
-				State: 0,
+				State: fsm.StateInitial,
 				Slots: make(map[string]string),
 			},
 			args: args{
@@ -238,7 +238,7 @@ func TestFSM_ExecuteCmd(t *testing.T) {
 				},
 			},
 			wantExtension: "",
-			wantState:     0,
+			wantState:     fsm.StateInitial,
 			wantSlots:     map[string]string{"off": "turn it off"},
 			wantErr:       false,
 		},

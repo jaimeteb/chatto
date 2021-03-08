@@ -7,6 +7,15 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
+const (
+	// StateInitial is the first state the FSM enters upon
+	// initialization of a new conversation and when ending
+	// an existing conversation
+	StateInitial = 0
+	// StateAny allows transitioning from any state
+	StateAny = -1
+)
+
 // Transition lists the transitions available for the FSM
 // Describes the states of the transition
 // (from one state into another) if the functions command
@@ -53,7 +62,7 @@ func NewStateTable(states []string) StateTable {
 		stateTable[state] = id
 	}
 
-	stateTable["any"] = -1 // Add state "any"
+	stateTable["any"] = StateAny
 
 	return stateTable
 }
@@ -174,7 +183,7 @@ type FSM struct {
 
 // NewFSM instantiates a new FSM
 func NewFSM() *FSM {
-	return &FSM{State: 0, Slots: make(map[string]string)}
+	return &FSM{State: StateInitial, Slots: make(map[string]string)}
 }
 
 // ExecuteCmd executes a state transition in the FSM based on
@@ -202,7 +211,7 @@ func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (ans
 // SelectStateTransition based on the command provided
 func (m *FSM) SelectStateTransition(command string, fsmDomain *Domain) (CmdStateTuple, TransitionFunc) {
 	// fromAnyState means we can transition from any state
-	fromAnyState := CmdStateTuple{command, -1}
+	fromAnyState := CmdStateTuple{command, StateAny}
 
 	// cmdAnyState transition between any two states
 	cmdAnyState := CmdStateTuple{"any", m.State}
