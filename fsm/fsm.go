@@ -7,6 +7,15 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
+const (
+	// StateInitial is the first state the FSM enters upon
+	// initialization of a new conversation and when ending
+	// an existing conversation
+	StateInitial = 0
+	// StateAny allows transitioning from any state
+	StateAny = -1
+)
+
 // Transition lists the transitions available for the FSM
 // Describes the states of the transition
 // (from one state into another) if the functions command
@@ -46,14 +55,31 @@ type Answer struct {
 type StateTable map[string]int
 
 // NewStateTable initializes a new StateTable
-func NewStateTable(states []string) StateTable {
-	stateTable := make(StateTable, len(states)+1)
+func NewStateTable(transitions []Transition) StateTable {
+	stateTableDefaultSize := 2
 
-	for id, state := range states {
-		stateTable[state] = id
+	stateTable := make(StateTable, len(transitions)+stateTableDefaultSize)
+
+	stateTable["any"] = StateAny         // Add state "any" ID
+	stateTable["initial"] = StateInitial // Add state "initial" ID
+
+	// Starting state ID
+	stateID := 1
+
+	for n := range transitions {
+		state := strings.TrimSpace(transitions[n].Into)
+
+		// Do not add duplicate states
+		if _, ok := stateTable[state]; ok {
+			continue
+		}
+
+		// Set state name to id mapping
+		stateTable[state] = stateID
+
+		// Increment state ID
+		stateID++
 	}
-
-	stateTable["any"] = -1 // Add state "any"
 
 	return stateTable
 }
@@ -115,7 +141,6 @@ func NewSlotTable(transitions []Transition, stateTable StateTable) SlotTable {
 // BaseDomain contains the data required for a minimally functioning FSM
 type BaseDomain struct {
 	StateTable      StateTable `json:"state_table"`
-	CommandList     []string   `json:"command_list"`
 	DefaultMessages Defaults   `json:"default_messages"`
 }
 
@@ -128,11 +153,10 @@ type Domain struct {
 }
 
 // NewDomain initializes a new Domain
-func NewDomain(commands, states []string, transitions []Transition, defaults Defaults) *Domain {
+func NewDomain(transitions []Transition, defaults Defaults) *Domain {
 	fsmDomain := &Domain{}
-	fsmDomain.CommandList = commands
 	fsmDomain.DefaultMessages = defaults
-	fsmDomain.StateTable = NewStateTable(states)
+	fsmDomain.StateTable = NewStateTable(transitions)
 	fsmDomain.TransitionTable = NewTransitionTable(transitions, fsmDomain.StateTable)
 	fsmDomain.SlotTable = NewSlotTable(transitions, fsmDomain.StateTable)
 
@@ -174,7 +198,7 @@ type FSM struct {
 
 // NewFSM instantiates a new FSM
 func NewFSM() *FSM {
-	return &FSM{State: 0, Slots: make(map[string]string)}
+	return &FSM{State: StateInitial, Slots: make(map[string]string)}
 }
 
 // ExecuteCmd executes a state transition in the FSM based on
@@ -202,7 +226,7 @@ func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (ans
 // SelectStateTransition based on the command provided
 func (m *FSM) SelectStateTransition(command string, fsmDomain *Domain) (CmdStateTuple, TransitionFunc) {
 	// fromAnyState means we can transition from any state
-	fromAnyState := CmdStateTuple{command, -1}
+	fromAnyState := CmdStateTuple{command, StateAny}
 
 	// cmdAnyState transition between any two states
 	cmdAnyState := CmdStateTuple{"any", m.State}

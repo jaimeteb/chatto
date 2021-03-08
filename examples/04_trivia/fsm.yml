@@ -1,13 +1,3 @@
-states:
-  - initial
-  - question_1
-  - question_2
-  - question_3
-
-commands:
-  - start
-  - end
-
 transitions:
   - from:
       - initial
