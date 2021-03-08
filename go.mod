@@ -9,6 +9,7 @@ require (
 	github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20190729070250-5ae5475bae5e
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.10.0
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-redis/redis/v8 v8.5.0
 	github.com/golang/mock v1.5.0
 	github.com/gomodule/redigo v1.8.4 // indirect
