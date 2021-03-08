@@ -2,7 +2,7 @@
 
 The [**Trivia Quiz**](https://github.com/jaimeteb/chatto/tree/master/examples/04_trivia) is a simple three-question quiz. At the end of the quiz you'll receive your score. You can exit the trivia at any time.
 
-This example demonstrates how stored [slots](/finitestatemachine/#slots) can be used in the conversation. Also, this example provides a [Python extension server](/extension/#other-languages).
+This example demonstrates how stored [slots](/finitestatemachine/#slots) can be used in the conversation. Also, this example provides a [Python extension server](/extensions/#other-languages).
 
 The extensions for this bot are used to:
 

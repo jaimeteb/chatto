@@ -1,6 +1,6 @@
 # Pokemon
 
-The [**Pokémon**](https://github.com/jaimeteb/chatto/tree/master/examples/03_pokemon) bot is a simple integration with the [PokéAPI](https://pokeapi.co/). The purpose of this example is to demonstrate the [RPC Extension Server](/extension#go).
+The [**Pokémon**](https://github.com/jaimeteb/chatto/tree/master/examples/03_pokemon) bot is a simple integration with the [PokéAPI](https://pokeapi.co/). The purpose of this example is to demonstrate the [RPC Extension Server](/extensions#go).
 
 ## Diagram
 
