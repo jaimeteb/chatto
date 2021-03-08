@@ -2,7 +2,6 @@ package extension_test
 
 import (
 	"fmt"
-	"net"
 	"strconv"
 	"testing"
 
@@ -21,12 +20,12 @@ func TestExtensionRESTError(t *testing.T) {
 		URL:  fmt.Sprintf("http://localhost:%s", extensionPort),
 	}})
 
-	if err == nil {
-		t.Errorf("extension.New() = %v, want %v.", nil, net.OpError{})
+	if err != nil {
+		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}
 
-	if extensions != nil {
-		t.Errorf("extension.New() = %v, want %v.", spew.Sprint(extensions), nil)
+	if len(extensions) > 0 {
+		t.Errorf("extension.New() = %v, want %v.", spew.Sprint(extensions), "map[]")
 	}
 }
 
@@ -119,11 +118,11 @@ func TestExtensionRPCError(t *testing.T) {
 		Port: extPort,
 	}})
 
-	if err == nil {
-		t.Errorf("extension.New() = %v, want %v.", nil, net.OpError{})
+	if err != nil {
+		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}
 
-	if extensions != nil {
-		t.Errorf("extension.New() = %v, want %v.", spew.Sprint(extensions), nil)
+	if len(extensions) > 0 {
+		t.Errorf("extension.New() = %v, want %v.", spew.Sprint(extensions), "map[]")
 	}
 }
