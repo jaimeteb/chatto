@@ -130,6 +130,10 @@ spec:
           volumeMounts:
             - name: chatto-config-volume
               mountPath: /data
+          resources:
+            limits:
+              memory: "500Mi"
+              cpu: "1"
       volumes:
         - name: chatto-config-volume
           configMap:
