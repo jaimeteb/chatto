@@ -17,16 +17,16 @@ slack:
 ```
 
 !!! note
-    You can leave these fields empty and set the corresponding environment variable names with uppercase and underscores, for example:
+    You can leave these fields empty and set the corresponding environment variable names with the `CHATTO_CHN` prefix, for example:
 
     ```yaml
     telegram:
-      bot_key:    # TELEGRAM_BOT_KEY=this-is-my-telegram-bot-key
+      bot_key:    # CHATTO_CHN_TELEGRAM_BOT_KEY=this-is-my-telegram-bot-key
     ```
 
 ### Telegram
 
-You can connect your Chatto bot to [Telegram](https://core.telegram.org/bots) by providing your Telegram Bot Key, either directly in the **chn.yml** file or by setting the `TELEGRAM_BOT_KEY` environment variable.
+You can connect your Chatto bot to [Telegram](https://core.telegram.org/bots) by providing your Telegram Bot Key, either directly in the **chn.yml** file or by setting the `CHATTO_CHN_TELEGRAM_BOT_KEY` environment variable.
 
 You must [set the bot's webhook](https://core.telegram.org/bots/api#setwebhook) to the `/channels/telegram` endpoint in order to receive messages.
 
@@ -36,7 +36,7 @@ You must [set the bot's webhook](https://core.telegram.org/bots/api#setwebhook) 
 
 ### Twilio
 
-Similarly, connect your bot to [Twilio](https://www.twilio.com/messaging-api) by adding your credentials to the file or by setting the corresponding environment variables (`TWILIO_ACCOUNT_SID`, etc.).
+Similarly, connect your bot to [Twilio](https://www.twilio.com/messaging-api) by adding your credentials to the file or by setting the corresponding environment variables (`CHATTO_CHN_TWILIO_ACCOUNT_SID`, etc.).
 
 You must set the webhooks to the `/channels/twilio` endpoint in order to receive messages.
 
@@ -46,7 +46,7 @@ You must set the webhooks to the `/channels/twilio` endpoint in order to receive
 
 ### Slack
 
-You can connect your bot to your Slack workspace by adding your [Slack App](https://api.slack.com/apps) Tokens to the **chn.yml** file directly or set the `SLACK_TOKEN` and `SLACK_APP_TOKEN` environment variables.
+You can connect your bot to your Slack workspace by adding your [Slack App](https://api.slack.com/apps) Tokens to the **chn.yml** file directly or set the `CHATTO_CHN_SLACK_TOKEN` and `CHATTO_CHN_SLACK_APP_TOKEN` environment variables.
 
 #### Event Subscriptions
 

@@ -40,14 +40,6 @@ classification:
 The **fsm.yml** file defines the transitions between states, the commands that make these transitions, and the messages to be sent in them. Start with this file contents:
 
 ```yaml
-states:
-  - "off"
-  - "on"
-
-commands:
-  - "turn_on"
-  - "turn_off"
-
 transitions:
   - from:
       - "off"

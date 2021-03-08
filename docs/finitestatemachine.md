@@ -3,14 +3,6 @@
 The Finite State Machine (FSM) is based on the one shown in [this article](https://levelup.gitconnected.com/implement-a-finite-state-machine-in-golang-f0438b6bc0a8). The states, commands, default messages and transitions are described in the **fsm.yml** file:
 
 ```yaml
-states:
-  - "off"
-  - "on"
-  
-commands:
-  - "turn_on"
-  - "turn_off"
-
 transitions:
   - from:
       - "off"
@@ -44,7 +36,7 @@ In other words:
       - text: "Turning on."  # the answers that are sent after the transition
 ```
 
-All the states used in the transitions must be declared under `states`. Similarly, all the commands used must be declared under `commands`, and these have to correspond with the ones listed in the [classifier](/classifier).
+The commands used in the transitions must correspond with the ones listed in the [classifier](/classifier).
 
 ## Answers
 
@@ -66,7 +58,7 @@ Answers are formed by a *text* field and/or an *image* URL. For example:
 
 ## *Any*
 
-The special state **any** can help you go from any state into another, if the command is executed. You don't have to declare the **any** state in the states list.
+The special state **any** can help you go from any state into another, if the command is executed.
 
 ```yaml
   # The "end" command will move from any state into the
@@ -79,7 +71,7 @@ The special state **any** can help you go from any state into another, if the co
       - text: "Bye bye!"
 ```
 
-Also, the special command **any** is used to transition between states, regardless of the command predicted. This command doesn't have to be declared either.
+Also, the special command **any** is used to transition between states, regardless of the command predicted.
 
 ```yaml
   # When in the "search_pokemon" state, any command will do the

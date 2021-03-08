@@ -1,6 +1,16 @@
 # Changelog
 
 ---
+## v0.7.1
+
+* Automatically detect commands and states from transitions.
+* Make environment variables more k8s-friendly:
+	* For **bot.yml** variables have the `CHATTO_BOT` prefix.
+	* For **chn.yml** variables have the `CHATTO_CHN` prefix.	
+* Add example Kubernetes deployment.
+* Auto-reload **fsm.yml** and **clf.yml** files on change.
+
+---
 ## v0.7.0
 
 * Support token auth for the `chatto-cli` REST channel client.

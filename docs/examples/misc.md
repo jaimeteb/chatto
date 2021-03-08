@@ -37,10 +37,10 @@ export SCALE_SERP_API_KEY=<your scaleserp.com api key>
 chatto -path examples/02_misc/
 ```
 
-## Test it
+<!-- ## Test it
 
 You can test a live version of this example on Telegram. Click [**here**](https://t.me/chatto_misc_bot) to use the bot.
 
 <p align="center">
 <img src="/img/chatto_misc_telegram.jpg" alt="Misc" width="300"/>
-</p>
+</p> -->

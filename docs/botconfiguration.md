@@ -76,18 +76,18 @@ store:
 ```
 
 ---
-You can leave the values empty and set them with environment variables, for example:
+You can leave the values empty and set them with environment variables (with the `CHATTO_BOT` prefix), for example:
 
 ```yaml
 extensions:
   type: RPC
-  host:         # EXTENSIONS_HOST=localhost
-  port:         # EXTENSIONS_PORT=8770
+  host:         # CHATTO_BOT_EXTENSIONS_HOST=localhost
+  port:         # CHATTO_BOT_EXTENSIONS_PORT=8770
 
 store:
   type: REDIS
-  host:         # STORE_HOST=localhost
-  password:     # STORE_PASSWORD=pass
+  host:         # CHATTO_BOT_STORE_HOST=localhost
+  password:     # CHATTO_BOT_STORE_PASSWORD=pass
 ```
 
 ## Default messages per conversation
@@ -107,3 +107,16 @@ conversation:
     reply_unknown: false     # the bot will not use the `unknown` default even in existing conversations
                              # reply_error is true by default
 ```
+
+!!! tip
+    These values can be determined via environment variables as well, also with the `CHATTO_BOT` prefix:
+
+    ```
+    CHATTO_BOT_CONVERSATION_NEW_REPLY_UNSURE=true
+    CHATTO_BOT_CONVERSATION_NEW_REPLY_UNKNOWN=true
+    CHATTO_BOT_CONVERSATION_NEW_REPLY_ERROR=true
+    CHATTO_BOT_CONVERSATION_EXISTING_REPLY_UNSURE=true
+    CHATTO_BOT_CONVERSATION_EXISTING_REPLY_UNKNOWN=true
+    CHATTO_BOT_CONVERSATION_EXISTING_REPLY_ERROR=true
+    ```
+  

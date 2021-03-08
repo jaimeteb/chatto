@@ -17,8 +17,8 @@ store:
   password: pass
   ttl: 3600
 
-auth:                           # or leave empty and use the
-  token: this-is-a-bot-token    # environment variable AUTH_TOKEN
+auth:                           # or leave empty and use the environment
+  token: this-is-a-bot-token    # variable CHATTO_BOT_AUTH_TOKEN
 ```
 
 If a token is provided, requests to `/bot/predict` and `/bot/senders/<sender_id>` will require the token in the `Authorization` header as Bearer Token.
@@ -36,8 +36,8 @@ twilio:
   auth_token:
   number:
 
-rest:                           # or leave empty and use the
-  token: this-is-a-rest-token   # environment variable REST_TOKEN
+rest:                           # or leave empty and use the environment 
+  token: this-is-a-rest-token   # variable CHATTO_CHN_REST_TOKEN
 ```
 
 If a token is provided, requests to `/channels/rest` will require the token in the `Authorization` header as Bearer Token.
@@ -58,8 +58,8 @@ Then, in the **bot.yml** file, in `extensions`, include the token:
 extensions:
   type: REST
   url: http://localhost:8770
-  token: my-extension-authorization-token   # or leave empty and use the
-                                            # environment variable REST_TOKEN
+  token: my-extension-authorization-token   # or leave empty and use the environment 
+                                            # variable CHATTO_BOT_EXTENSIONS_TOKEN
 ```
 
 ### SSL

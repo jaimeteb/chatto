@@ -160,10 +160,6 @@ An extension REST service must implement these routes:
 				"question_2": 2,
 				"question_3": 3
 			},
-			"command_list": [
-				"start",
-				"end"
-			],
 			"default_messages": {
 				"unknown": "Not sure I understood, try again please.",
 				"unsure": "Not sure I understood, try again please.",
