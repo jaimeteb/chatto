@@ -34,15 +34,6 @@ metadata:
   namespace: default
 data:
   fsm.yml: |
-    states:
-      - "question"
-      - "answer"
-
-    commands:
-      - "favorite_color"
-      - "favorite_food"
-      - "thanks"
-
     transitions:
       - from:
           - "question"
