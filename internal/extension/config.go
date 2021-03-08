@@ -104,7 +104,7 @@ func New(extCfg []Config) (Map, error) {
 	}
 
 	log.Info("Loaded extensions:")
-	for name, _ := range extensionMap {
+	for name := range extensionMap {
 		log.Infof("%s", name)
 	}
 
