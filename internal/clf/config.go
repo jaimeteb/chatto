@@ -1,6 +1,7 @@
 package clf
 
 import (
+	"github.com/fsnotify/fsnotify"
 	"github.com/navossoc/bayesian"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -13,10 +14,30 @@ type Config struct {
 }
 
 // LoadConfig loads classification configuration from yaml
-func LoadConfig(path string) (*Config, error) {
+func LoadConfig(path string, reloadChan chan Config) (*Config, error) {
 	config := viper.New()
 	config.SetConfigName("clf")
 	config.AddConfigPath(path)
+
+	config.WatchConfig()
+	config.OnConfigChange(func(in fsnotify.Event) {
+		if in.Op == fsnotify.Create || in.Op == fsnotify.Write {
+			log.Info("Reloading CLF configuration.")
+
+			if err := config.ReadInConfig(); err != nil {
+				log.Error(err)
+				return
+			}
+
+			var classifConfig Config
+			if err := config.Unmarshal(&classifConfig); err != nil {
+				log.Error(err)
+				return
+			}
+
+			reloadChan <- classifConfig
+		}
+	})
 
 	if err := config.ReadInConfig(); err != nil {
 		return nil, err

@@ -421,14 +421,16 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	b.Channels.Slack = slackChnl
 
 	// Load FSM
-	fsmConfig, err := fsmint.LoadConfig(botConfig.Path)
+	fsmReloadChan := make(chan fsmint.Config)
+	fsmConfig, err := fsmint.LoadConfig(botConfig.Path, fsmReloadChan)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
 	b.Domain = fsmint.NewDomainFromConfig(fsmConfig)
 
 	// Load Classifier
-	classifConfig, err := clf.LoadConfig(botConfig.Path)
+	classifReloadChan := make(chan clf.Config)
+	classifConfig, err := clf.LoadConfig(botConfig.Path, classifReloadChan)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

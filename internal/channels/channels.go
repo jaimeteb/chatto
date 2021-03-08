@@ -51,8 +51,8 @@ func LoadConfig(path string) (*Config, error) {
 	config.SetConfigName("chn")
 	config.AddConfigPath(path)
 	config.AutomaticEnv()
-	replacer := strings.NewReplacer(".", "_")
-	config.SetEnvKeyReplacer(replacer)
+	config.SetEnvPrefix("CHATTO_CHN")
+	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if err := config.ReadInConfig(); err != nil {
 		switch err.(type) {
