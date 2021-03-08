@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/extension"
+	"github.com/jaimeteb/chatto/extensions"
 	"github.com/jaimeteb/chatto/query"
 )
 
-func greetFunc(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
-	return &extension.ExecuteExtensionResponse{
+func greetFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+	return &extensions.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{{
 			Text:  "Hello Universe",
@@ -17,12 +17,12 @@ func greetFunc(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteEx
 	}
 }
 
-var registeredExtensions = extension.RegisteredExtensions{
+var registeredExtensions = extensions.RegisteredExtensions{
 	"any": greetFunc,
 }
 
 func main() {
-	if err := extension.ServeREST(registeredExtensions); err != nil {
+	if err := extensions.ServeREST(registeredExtensions); err != nil {
 		log.Fatalln(err)
 	}
 }

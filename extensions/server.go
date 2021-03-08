@@ -1,4 +1,4 @@
-package extension
+package extensions
 
 import (
 	"encoding/json"
