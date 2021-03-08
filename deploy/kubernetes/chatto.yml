@@ -36,14 +36,14 @@ data:
   fsm.yml: |
     transitions:
       - from:
-          - "question"
+          - "initial"
         into: "answer"
         command: "favorite_color"
         answers:
           - text: "My favorite color is platinum."
 
       - from:
-          - "question"
+          - "initial"
         into: "answer"
         command: "favorite_food"
         answers:
@@ -51,7 +51,7 @@ data:
 
       - from:
           - "answer"
-        into: "question"
+        into: "initial"
         command: "thanks"
         answers:
           - text: ":thumbsup: no problem-o"
