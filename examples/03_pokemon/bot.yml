@@ -1,4 +1,4 @@
 extensions:
-  type: RPC
-  host: localhost
-  port: 8770
+  - type: RPC
+    host: localhost
+    port: 8770

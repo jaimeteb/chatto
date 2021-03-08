@@ -132,7 +132,7 @@ func TestBot_Extensions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bc.Extensions.URL = fmt.Sprintf("http://127.0.0.1:%s", extensionPort)
+	bc.Extensions[0].URL = fmt.Sprintf("http://127.0.0.1:%s", extensionPort)
 
 	testBot, _, _, _, _, err := newTestBot(t)
 	if err != nil {
@@ -378,7 +378,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	*mockchannels.MockChannel, *mockchannels.MockChannel, error) {
 	botConfig := &bot.Config{
 		Name:       "chatto",
-		Extensions: extension.Config{},
+		Extensions: []extension.Config{},
 		Store:      fsmint.StoreConfig{},
 		Port:       0,
 		Path:       "../" + testutils.Examples05SimplePath,
@@ -441,7 +441,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
-	b.Extension = ext
+	b.Extensions = ext
 
 	// Register HTTP handlers
 	b.RegisterRoutes()

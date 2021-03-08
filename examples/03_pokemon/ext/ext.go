@@ -7,12 +7,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jaimeteb/chatto/extensions"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 )
 
-func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+func searchPokemon(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
 	m := req.FSM
 
 	pokemon := m.Slots["pokemon"]
@@ -27,7 +27,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 		message = "Something went wrong..."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extensions.ExecuteExtensionResponse{
+		return &extension.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -40,7 +40,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 		message = "Pokémon not found, try with another input."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extensions.ExecuteExtensionResponse{
+		return &extension.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -56,7 +56,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 		message = "Pokémon not found, try with another input."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extensions.ExecuteExtensionResponse{
+		return &extension.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -70,7 +70,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 		message = "Pokémon not found, try with another input."
 		intoState = req.Domain.StateTable["search_pokemon"]
 
-		return &extensions.ExecuteExtensionResponse{
+		return &extension.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: intoState,
 				Slots: req.FSM.Slots,
@@ -85,7 +85,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 	pokemonWeight := pokemonResp["weight"].(float64)
 	message = fmt.Sprintf("Name: %s \nID: %.2f \nHeight: %.2f \nWeight: %.2f", pokemonName, pokemonID, pokemonHeight, pokemonWeight)
 
-	return &extensions.ExecuteExtensionResponse{
+	return &extension.ExecuteExtensionResponse{
 		FSM: &fsm.FSM{
 			State: intoState,
 			Slots: req.FSM.Slots,
@@ -94,12 +94,12 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 	}
 }
 
-var registeredExtensions = extensions.RegisteredExtensions{
+var registeredExtensions = extension.RegisteredExtensions{
 	"search_pokemon": searchPokemon,
 }
 
 func main() {
-	if err := extensions.ServeRPC(registeredExtensions); err != nil {
+	if err := extension.ServeRPC(registeredExtensions); err != nil {
 		log.Fatalln(err)
 	}
 }

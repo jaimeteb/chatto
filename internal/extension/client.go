@@ -8,19 +8,11 @@ import (
 	"net/rpc"
 
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/jaimeteb/chatto/extensions"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
-
-// Extension is a service (REST or RPC) that executes commands and returns
-// an answer to the Chatto bot. Extensions are written in any language and
-// do whatever you want.
-type Extension interface {
-	GetAllExtensions() ([]string, error)
-	ExecuteExtension(question *query.Question, extension, channel string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
-}
 
 // RPC is an RPC Client for extension command functions
 type RPC struct {
@@ -29,7 +21,7 @@ type RPC struct {
 
 // ExecuteExtension runs the requested command function and returns the response
 func (e *RPC) ExecuteExtension(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := extensions.ExecuteExtensionRequest{
+	req := extension.ExecuteExtensionRequest{
 		FSM:       machine,
 		Extension: ext,
 		Question:  question,
@@ -37,7 +29,7 @@ func (e *RPC) ExecuteExtension(question *query.Question, ext, chn string, fsmDom
 		Channel:   chn,
 	}
 
-	res := extensions.ExecuteExtensionResponse{}
+	res := extension.ExecuteExtensionResponse{}
 
 	err := e.Client.Call("ListenerRPC.ExecuteExtension", &req, &res)
 	if err != nil {
@@ -51,8 +43,8 @@ func (e *RPC) ExecuteExtension(question *query.Question, ext, chn string, fsmDom
 
 // GetAllExtensions returns all command functions in the extension as a list of strings
 func (e *RPC) GetAllExtensions() ([]string, error) {
-	req := new(extensions.ExecuteExtensionRequest)
-	res := new(extensions.GetAllExtensionsResponse)
+	req := new(extension.ExecuteExtensionRequest)
+	res := new(extension.GetAllExtensionsResponse)
 	if err := e.Client.Call("ListenerRPC.GetAllExtensions", &req, &res); err != nil {
 		log.Error(err)
 		return nil, err
@@ -70,7 +62,7 @@ type REST struct {
 
 // ExecuteExtension runs the requested command function and returns the response
 func (e *REST) ExecuteExtension(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
-	req := extensions.ExecuteExtensionRequest{
+	req := extension.ExecuteExtensionRequest{
 		FSM:       machine,
 		Extension: ext,
 		Question:  question,
@@ -106,7 +98,7 @@ func (e *REST) ExecuteExtension(question *query.Question, ext, chn string, fsmDo
 		}
 	}()
 
-	res := extensions.ExecuteExtensionResponse{}
+	res := extension.ExecuteExtensionResponse{}
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}

@@ -187,7 +187,7 @@ docker-compose up -d chatto
 ```
 
 !!! important
-    The [extensions](/extensions) server has to be executed according to its language.
+    The [extensions](/extension) server has to be executed according to its language.
     For this `docker-compose.yml` file, you'd have to build the Go extension first:
 
     ```bash
@@ -195,7 +195,7 @@ docker-compose up -d chatto
     ```
 
 !!! note
-    The [extensions](/extensions) server has to be running before Chatto initializes.
+    The [extensions](/extension) server has to be running before Chatto initializes.
 
 ### Kubernetes
 

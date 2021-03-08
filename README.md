@@ -272,9 +272,9 @@ docker-compose up -d redis ext
 docker-compose up -d chatto
 ```
 
-> The [extensions](/extensions) server has to be executed according to its language.<br><br>For this `docker-compose.yml` file, you'd have to build the Go extension first:<br><br>```go build -o data/ext/ext data/ext/ext.go```
+> The [extensions](/extension) server has to be executed according to its language.<br><br>For this `docker-compose.yml` file, you'd have to build the Go extension first:<br><br>```go build -o data/ext/ext data/ext/ext.go```
 
-> The [extensions](/extensions) server has to be running before Chatto initializes.
+> The [extensions](/extension) server has to be running before Chatto initializes.
 
 <a name="usageimport"></a>
 ### Import

@@ -3,17 +3,17 @@ package main
 import (
 	"log"
 
-	"github.com/jaimeteb/chatto/extensions"
+	"github.com/jaimeteb/chatto/extension"
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/query"
 )
 
-func validateAnswer1(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+func validateAnswer1(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
 	ans := req.FSM.Slots["answer_1"]
 	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extensions.ExecuteExtensionResponse{
+		return &extension.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: fsmDomain.StateTable["question_1"],
 				Slots: req.FSM.Slots,
@@ -22,7 +22,7 @@ func validateAnswer1(req *extensions.ExecuteExtensionRequest) (res *extensions.E
 		}
 	}
 
-	return &extensions.ExecuteExtensionResponse{
+	return &extension.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{{Text: "Question 2:\n" +
 			"What is the capital of the state of Utah?\n" +
@@ -32,12 +32,12 @@ func validateAnswer1(req *extensions.ExecuteExtensionRequest) (res *extensions.E
 	}
 }
 
-func validateAnswer2(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+func validateAnswer2(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
 	ans := req.FSM.Slots["answer_2"]
 	fsmDomain := req.Domain
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extensions.ExecuteExtensionResponse{
+		return &extension.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: fsmDomain.StateTable["question_2"],
 				Slots: req.FSM.Slots,
@@ -46,7 +46,7 @@ func validateAnswer2(req *extensions.ExecuteExtensionRequest) (res *extensions.E
 		}
 	}
 
-	return &extensions.ExecuteExtensionResponse{
+	return &extension.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{{Text: "Question 3:\n" +
 			"Who painted Starry Night?\n" +
@@ -56,13 +56,13 @@ func validateAnswer2(req *extensions.ExecuteExtensionRequest) (res *extensions.E
 	}
 }
 
-func calculateScore(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+func calculateScore(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
 	ans := req.FSM.Slots["answer_1"]
 	fsmDomain := req.Domain
 	slt := req.FSM.Slots
 
 	if !(ans == "1" || ans == "2" || ans == "3") {
-		return &extensions.ExecuteExtensionResponse{
+		return &extension.ExecuteExtensionResponse{
 			FSM: &fsm.FSM{
 				State: fsmDomain.StateTable["question_3"],
 				Slots: req.FSM.Slots,
@@ -98,20 +98,20 @@ func calculateScore(req *extensions.ExecuteExtensionRequest) (res *extensions.Ex
 		message = "You got 3/3 answers right.\nYou are good! Congrats!"
 	}
 
-	return &extensions.ExecuteExtensionResponse{
+	return &extension.ExecuteExtensionResponse{
 		FSM:     req.FSM,
 		Answers: []query.Answer{{Text: message}},
 	}
 }
 
-var registeredExtensions = extensions.RegisteredExtensions{
+var registeredExtensions = extension.RegisteredExtensions{
 	"val_ans_1": validateAnswer1,
 	"val_ans_2": validateAnswer2,
 	"score":     calculateScore,
 }
 
 func main() {
-	if err := extensions.ServeREST(registeredExtensions); err != nil {
+	if err := extension.ServeREST(registeredExtensions); err != nil {
 		log.Fatalln(err)
 	}
 }

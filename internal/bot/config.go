@@ -34,10 +34,10 @@ type Auth struct {
 
 // Config struct models the bot.yml configuration file
 type Config struct {
-	Name         string           `mapstructure:"bot_name"`
-	Extensions   extension.Config `mapstructure:"extensions"`
-	Store        fsm.StoreConfig  `mapstructure:"store"`
-	Port         int              `mapstructure:"port"`
+	Name         string             `mapstructure:"bot_name"`
+	Extensions   []extension.Config `mapstructure:"extensions"`
+	Store        fsm.StoreConfig    `mapstructure:"store"`
+	Port         int                `mapstructure:"port"`
 	Path         string
 	Conversation Conversation `mapstructure:"conversation"`
 	Auth         Auth         `mapstructure:"auth"`
@@ -150,11 +150,11 @@ func New(botConfig *Config) (*Bot, error) {
 	b.Classifier = clf.New(classifConfig)
 
 	// Load Extensions
-	ext, err := extension.New(botConfig.Extensions)
+	extensionMap, err := extension.New(botConfig.Extensions)
 	if err != nil {
 		return nil, err
 	}
-	b.Extension = ext
+	b.Extensions = extensionMap
 
 	// Register HTTP handlers
 	b.RegisterRoutes()
