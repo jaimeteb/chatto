@@ -1,3 +1,4 @@
 extensions:
-  type: REST
-  url: http://localhost:8770
+  misc:
+    type: REST
+    url: http://localhost:8770

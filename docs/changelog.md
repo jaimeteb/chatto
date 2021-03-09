@@ -1,6 +1,46 @@
 # Changelog
 
 ---
+## v0.8.0
+
+* Multiple extension servers.
+	* An alias for each extension server must be specified in **bot.yml**.
+	* A server name and an extension name are required when using extensions in **fsm.yml**.
+
+		```yaml
+      	# bot.yml
+      	extensions:
+		  my_rest_server:                 # this server will be referenced as
+		    type: REST                    # "my_rest_server" in the fsm.yml file
+		    url: http://localhost:8770
+
+		  my_rpc_server:                  # this server will be referenced as
+			type: RPC                     # "my_rpc_server" in the fsm.yml file
+			host: localhost
+			port: 8770
+		```
+
+		```yaml
+		# fsm.yml
+		transitions:
+		  - from:
+			  - initial
+			into: another_state
+			command: foo
+			extension:                    # this transition will execute the
+			  server: my_rest_server      # extension "foo_extension" from the
+			  name: foo_extension         # "my_rest_server" extension server
+
+		  - from:
+			  - initial
+			into: another_state
+			command: bar
+			extension:                    # this transition will execute the
+			  server: my_rpc_server       # extension "bar_extension" from the 
+			  name: bar_extension         # "my_bar_server" extension server
+		```
+
+---
 ## v0.7.1
 
 * Automatically detect commands and states from transitions.

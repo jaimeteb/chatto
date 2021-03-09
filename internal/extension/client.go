@@ -14,14 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Extension is a service (REST or RPC) that executes commands and returns
-// an answer to the Chatto bot. Extensions are written in any language and
-// do whatever you want.
-type Extension interface {
-	GetAllExtensions() ([]string, error)
-	ExecuteExtension(question *query.Question, extension, channel string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
-}
-
 // RPC is an RPC Client for extension command functions
 type RPC struct {
 	Client *rpc.Client

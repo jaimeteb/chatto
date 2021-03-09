@@ -8,8 +8,9 @@ You can add an authorization token to the [`/bot` endpoints](/endpoints) in the 
 
 ```yaml
 extensions:
-  type: REST
-  url: http://localhost:8770
+  my_server:
+    type: REST
+    url: http://localhost:8770
 
 store:
   type: REDIS
@@ -56,10 +57,11 @@ Then, in the **bot.yml** file, in `extensions`, include the token:
 
 ```yaml
 extensions:
-  type: REST
-  url: http://localhost:8770
-  token: my-extension-authorization-token   # or leave empty and use the environment 
-                                            # variable CHATTO_BOT_EXTENSIONS_TOKEN
+  my_server:
+    type: REST
+    url: http://localhost:8770
+    token: my-extension-authorization-token   # or leave empty and use the environment 
+                                              # variable CHATTO_BOT_EXTENSIONS_MY_SERVER_TOKEN
 ```
 
 ### SSL
@@ -74,8 +76,9 @@ Then, in the **bot.yml** file, in `extensions`, use HTTPS:
 
 ```yaml
 extensions:
-  type: REST
-  url: https://localhost:8770
+  my_secure_server:
+    type: REST
+    url: https://localhost:8770
 ```
 
 For local testing you can follow these steps to generate a certificate for *localhost*:

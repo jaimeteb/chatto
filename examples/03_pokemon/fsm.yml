@@ -20,7 +20,9 @@ transitions:
     slot:
       name: pokemon
       mode: whole_text
-    extension: search_pokemon
+    extension:
+      server: pokemon
+      name: search_pokemon
 
   - from:
       - any
