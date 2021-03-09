@@ -16,7 +16,8 @@ const (
 	StateAny = -1
 )
 
-// Extension are options for an extension server
+// Extension is the specific extension server and name
+// to execute by the transition
 type Extension struct {
 	Server string `yam:"server"`
 	Name   string `yam:"name"`
@@ -107,13 +108,9 @@ func NewTransitionTable(transitions []Transition, stateTable StateTable) Transit
 				State: stateTable[from],
 			}
 
-			extension := &Extension{
-				Server: transition.Extension.Server,
-				Name:   transition.Extension.Name,
-			}
+			extension := &transition.Extension
 
-			if strings.TrimSpace(transition.Extension.Server) == "" &&
-				strings.TrimSpace(transition.Extension.Name) == "" {
+			if transition.Extension == (Extension{}) {
 				extension = nil
 			}
 
