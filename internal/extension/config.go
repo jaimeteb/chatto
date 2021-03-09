@@ -55,8 +55,8 @@ func dialRPC(host string, port int) (*rpc.Client, error) {
 }
 
 // New loads the extension configuration and connects to the server
-func New(extCfg ConfigMap) (Map, error) {
-	extensionMap := make(Map)
+func New(extCfg ConfigMap) (ServerMap, error) {
+	extensionMap := make(ServerMap)
 
 	for server, config := range extCfg {
 		switch config.Type {

@@ -20,7 +20,7 @@ type Bot struct {
 	Store      fsmint.Store
 	Domain     *fsm.Domain
 	Classifier *clf.Classifier
-	Extensions extension.Map
+	Extensions extension.ServerMap
 	Channels   *channels.Channels
 	Config     *Config
 	Router     *mux.Router

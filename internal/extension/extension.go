@@ -7,11 +7,11 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-// Map of extension server names to their clients
-type Map map[string]Extension
+// ServerMap of extension server names to their clients
+type ServerMap map[string]Extension
 
 // Add new extension name and client to the extension map
-func (m *Map) Add(server string, client Extension) error {
+func (m *ServerMap) Add(server string, client Extension) error {
 	extensionMap := *m
 
 	if _, ok := extensionMap[server]; ok {
