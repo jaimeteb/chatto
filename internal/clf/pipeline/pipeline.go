@@ -1,4 +1,4 @@
-package clf
+package pipeline
 
 import (
 	"regexp"
@@ -7,24 +7,23 @@ import (
 
 var removeSymbolRe = regexp.MustCompile(`\W+`)
 
-// PipelineConfig defines a Pipeline configuration
-type PipelineConfig struct {
+// Config defines a Pipeline configuration
+type Config struct {
 	RemoveSymbols bool    `mapstructure:"remove_symbols"`
 	Lower         bool    `mapstructure:"lower"`
 	Threshold     float64 `mapstructure:"threshold"`
 }
 
 // Pipeline performs steps to convert a string into a CLF input
-func Pipeline(text *string, pl *PipelineConfig) []string {
-	newText := *text
+func Pipeline(text string, pl *Config) []string {
 	if pl.RemoveSymbols {
-		newText = RemoveSymbols(newText)
+		text = RemoveSymbols(text)
 	}
 	if pl.Lower {
-		newText = Lower(newText)
+		text = Lower(text)
 	}
 
-	tokens := Tokenize(newText)
+	tokens := Tokenize(text)
 	return tokens
 }
 

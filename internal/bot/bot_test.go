@@ -259,7 +259,7 @@ func TestBot_Predict(t *testing.T) {
 			args: args{
 				inputText: []byte(`{"text": "on"}`),
 			},
-			want: `{"original":"on","predicted":"turn_on","probability":0.999999999985}`,
+			want: `{"original":"on","predicted":"turn_on","probability":1}`,
 		},
 		{
 			name: "test off",
@@ -267,7 +267,7 @@ func TestBot_Predict(t *testing.T) {
 			args: args{
 				inputText: []byte(`{"text": "off"}`),
 			},
-			want: `{"original":"off","predicted":"turn_off","probability":0.999999999985}`,
+			want: `{"original":"off","predicted":"turn_off","probability":1}`,
 		},
 	}
 	for _, tt := range tests {
