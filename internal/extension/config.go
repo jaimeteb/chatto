@@ -10,6 +10,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ConfigMap of extension server names to their configs
+type ConfigMap map[string]Config
+
 // Config contains all the require parameters
 // to communicate with an extension
 type Config struct {
@@ -52,7 +55,7 @@ func dialRPC(host string, port int) (*rpc.Client, error) {
 }
 
 // New loads the extension configuration and connects to the server
-func New(extCfg map[string]Config) (Map, error) {
+func New(extCfg ConfigMap) (Map, error) {
 	extensionMap := make(Map)
 
 	for server, config := range extCfg {

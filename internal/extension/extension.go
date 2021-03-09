@@ -7,7 +7,7 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-// Map of extension names to extension clients
+// Map of extension server names to their clients
 type Map map[string]Extension
 
 // Add new extension name and client to the extension map
