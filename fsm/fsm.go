@@ -16,17 +16,23 @@ const (
 	StateAny = -1
 )
 
+// Extension are options for an extension server
+type Extension struct {
+	Server string `yam:"server"`
+	Name   string `yam:"name"`
+}
+
 // Transition lists the transitions available for the FSM
 // Describes the states of the transition
 // (from one state into another) if the functions command
 // is executed
 type Transition struct {
-	From      []string `yaml:"from"`
-	Into      string   `yaml:"into"`
-	Command   string   `yaml:"command"`
-	Slot      Slot     `yaml:"slot"`
-	Extension string   `yaml:"extension"`
-	Answers   []Answer `yaml:"answers"`
+	From      []string  `yaml:"from"`
+	Into      string    `yaml:"into"`
+	Command   string    `yaml:"command"`
+	Slot      Slot      `yaml:"slot"`
+	Extension Extension `yaml:"extension"`
+	Answers   []Answer  `yaml:"answers"`
 }
 
 // Slot is used to save information from the user's input
@@ -101,9 +107,19 @@ func NewTransitionTable(transitions []Transition, stateTable StateTable) Transit
 				State: stateTable[from],
 			}
 
+			extension := &Extension{
+				Server: transition.Extension.Server,
+				Name:   transition.Extension.Name,
+			}
+
+			if strings.TrimSpace(transition.Extension.Server) == "" &&
+				strings.TrimSpace(transition.Extension.Name) == "" {
+				extension = nil
+			}
+
 			transitionTable[cmdStateTuple] = NewTransitionFunc(
 				stateTable[transition.Into],
-				transition.Extension,
+				extension,
 				transition.Answers,
 			)
 		}
@@ -178,13 +194,13 @@ type CmdStateTuple struct {
 
 // TransitionFunc performs a state transition for the FSM.
 // TODO: Document how the TransitionFunc works
-type TransitionFunc func(m *FSM) (extension string, answers []Answer)
+type TransitionFunc func(m *FSM) (extension *Extension, answers []Answer)
 
 // NewTransitionFunc generates a new transition function
 // that will transition the FSM into the specified state
 // and return the extension and the states defined messages
-func NewTransitionFunc(state int, extension string, answers []Answer) TransitionFunc {
-	return func(m *FSM) (string, []Answer) {
+func NewTransitionFunc(state int, extension *Extension, answers []Answer) TransitionFunc {
+	return func(m *FSM) (*Extension, []Answer) {
 		m.State = state
 		return extension, answers
 	}
@@ -204,14 +220,14 @@ func NewFSM() *FSM {
 // ExecuteCmd executes a state transition in the FSM based on
 // the function command provided and if configured will save
 // the classified text to a slot
-func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (answers []query.Answer, extension string, err error) {
+func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (answers []query.Answer, extension *Extension, err error) {
 	// Function command was not found by the classifier
 	if strings.TrimSpace(command) == "" {
 		if fsmDomain.DefaultMessages.Unsure == "" {
-			return nil, "", nil
+			return nil, nil, nil
 		}
 
-		return nil, "", &ErrUnsureCommand{Msg: fsmDomain.DefaultMessages.Unsure}
+		return nil, nil, &ErrUnsureCommand{Msg: fsmDomain.DefaultMessages.Unsure}
 	}
 
 	cmdStateTuple, transitionFunc := m.SelectStateTransition(command, fsmDomain)
@@ -271,21 +287,21 @@ func (m *FSM) SaveToSlot(classifiedText string, slot Slot) {
 }
 
 // TransitionState FSM state and return the query answers or extension to execute.
-func (m *FSM) TransitionState(transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension string, err error) {
+func (m *FSM) TransitionState(transitionFunc TransitionFunc, defaults Defaults) (answers []query.Answer, extension *Extension, err error) {
 	// Function command was found by the classifier but state transition is unknown or not valid
 	if transitionFunc == nil {
 		if defaults.Unknown == "" {
-			return nil, "", nil
+			return nil, nil, nil
 		}
 
-		return nil, "", &ErrUnknownCommand{Msg: defaults.Unknown}
+		return nil, nil, &ErrUnknownCommand{Msg: defaults.Unknown}
 	}
 
 	// Execute transition
 	extension, messages := transitionFunc(m)
 
 	// Tell the bot to execute an extension to get the answer
-	if strings.TrimSpace(extension) != "" {
+	if extension != nil {
 		return nil, extension, nil
 	}
 
@@ -293,7 +309,7 @@ func (m *FSM) TransitionState(transitionFunc TransitionFunc, defaults Defaults) 
 		answers = append(answers, query.Answer{Text: messages[n].Text, Image: messages[n].Image})
 	}
 
-	return answers, "", nil
+	return answers, nil, nil
 }
 
 // ErrUnsureCommand is returned by the FSM when no function

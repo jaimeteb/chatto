@@ -52,54 +52,48 @@ func dialRPC(host string, port int) (*rpc.Client, error) {
 }
 
 // New loads the extension configuration and connects to the server
-func New(extCfg []Config) (Map, error) {
+func New(extCfg map[string]Config) (Map, error) {
 	extensionMap := make(Map)
 
-	for n := range extCfg {
-		ext := extCfg[n]
-
-		switch ext.Type {
+	for server, config := range extCfg {
+		switch config.Type {
 		case "RPC":
-			client, err := dialRPC(ext.Host, ext.Port)
+			client, err := dialRPC(config.Host, config.Port)
 			if err != nil {
-				log.Errorf("unable to get rpc extensions for '%s:%d': %s", ext.Host, ext.Port, err)
+				log.Errorf("unable to get rpc extensions for '%s:%d': %s", config.Host, config.Port, err)
 				continue
 			}
 
 			rpcExtension := &RPC{client}
 
-			extensionNames, err := rpcExtension.GetAllExtensions()
+			_, err = rpcExtension.GetAllExtensions()
 			if err != nil {
-				log.Errorf("unable to get rpc extensions for '%s:%d': %s", ext.Host, ext.Port, err)
+				log.Errorf("unable to get rpc extensions for '%s:%d': %s", config.Host, config.Port, err)
 				continue
 			}
 
-			for n := range extensionNames {
-				addErr := extensionMap.Add(extensionNames[n], rpcExtension)
-				if addErr != nil {
-					return nil, addErr
-				}
+			addErr := extensionMap.Add(server, rpcExtension)
+			if addErr != nil {
+				return nil, addErr
 			}
 		case "REST":
 			retryClient := retryablehttp.NewClient()
 			retryClient.Logger = nil
 
-			restExtension := &REST{URL: ext.URL, http: retryClient, token: ext.Token}
+			restExtension := &REST{URL: config.URL, http: retryClient, token: config.Token}
 
-			extensionNames, err := restExtension.GetAllExtensions()
+			_, err := restExtension.GetAllExtensions()
 			if err != nil {
-				log.Errorf("unable to get rest extensions for '%s:%d': %s", ext.URL, ext.Port, err)
+				log.Errorf("unable to get rest extensions for '%s:%d': %s", config.URL, config.Port, err)
 				continue
 			}
 
-			for n := range extensionNames {
-				addErr := extensionMap.Add(extensionNames[n], restExtension)
-				if addErr != nil {
-					return nil, addErr
-				}
+			addErr := extensionMap.Add(server, restExtension)
+			if addErr != nil {
+				return nil, addErr
 			}
 		default:
-			return nil, fmt.Errorf("invalid extension type: %s", ext.Type)
+			return nil, fmt.Errorf("invalid extension type: %s", config.Type)
 		}
 	}
 

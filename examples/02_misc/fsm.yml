@@ -22,25 +22,33 @@ transitions:
       - "ask_location"
     into: "initial"
     command: "any"
-    extension: weather
+    extension:
+      server: misc
+      name: weather
 
   - from:
       - "initial"
     into: "initial"
     command: "joke"
-    extension: joke
+    extension:
+      server: misc
+      name: joke
 
   - from:
       - "initial"
     into: "initial"
     command: "quote"
-    extension: quote
+    extension:
+     server: misc
+     name: quote
 
   - from:
       - "initial"
     into: "initial"
     command: "misc"
-    extension: misc
+    extension:
+      server: misc
+      name: misc
 
 defaults:
   unknown: "Sorry, I don't know how to do that yet..."

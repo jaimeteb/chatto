@@ -15,11 +15,13 @@ import (
 func TestExtensionRESTError(t *testing.T) {
 	extensionPort := testutils.GetFreePort(t)
 
-	extensions, err := extension.New([]extension.Config{{
+	extCfg := make(map[string]extension.Config)
+	extCfg["test"] = extension.Config{
 		Type: "REST",
 		URL:  fmt.Sprintf("http://localhost:%s", extensionPort),
-	}})
+	}
 
+	extensions, err := extension.New(extCfg)
 	if err != nil {
 		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}
@@ -34,15 +36,18 @@ func TestExtensionREST(t *testing.T) {
 
 	testutils.RunGoExtension(t, "../"+testutils.Examples00TestPath, extensionPort)
 
-	extensions, err := extension.New([]extension.Config{{
+	extCfg := make(map[string]extension.Config)
+	extCfg["test"] = extension.Config{
 		Type: "REST",
 		URL:  fmt.Sprintf("http://localhost:%s", extensionPort),
-	}})
-	if err != nil {
-		t.Fatal(err)
 	}
 
-	resp, err := extensions["any"].ExecuteExtension(&query.Question{Text: "hello"}, "any", "", &fsm.Domain{}, &fsm.FSM{})
+	extensions, err := extension.New(extCfg)
+	if err != nil {
+		t.Errorf("extension.New() = %v, want %v.", err, nil)
+	}
+
+	resp, err := extensions["test"].ExecuteExtension(&query.Question{Text: "hello"}, "any", "", &fsm.Domain{}, &fsm.FSM{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,16 +69,19 @@ func TestExtensionRPCPokemon(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	extensions, err := extension.New([]extension.Config{{
+	extCfg := make(map[string]extension.Config)
+	extCfg["pokemon"] = extension.Config{
 		Type: "RPC",
 		Host: "localhost",
 		Port: extPort,
-	}})
-	if err != nil {
-		t.Fatal(err)
 	}
 
-	switch e := extensions["search_pokemon"].(type) {
+	extensions, err := extension.New(extCfg)
+	if err != nil {
+		t.Errorf("extension.New() = %v, want %v.", err, nil)
+	}
+
+	switch e := extensions["pokemon"].(type) {
 	case *extension.RPC:
 		break
 	default:
@@ -89,7 +97,7 @@ func TestExtensionRPCPokemon(t *testing.T) {
 		},
 	}
 
-	resp, err := extensions["search_pokemon"].ExecuteExtension(&query.Question{Text: "pikachu"}, "search_pokemon", "", fsmDomain, &testFSM)
+	resp, err := extensions["pokemon"].ExecuteExtension(&query.Question{Text: "pikachu"}, "search_pokemon", "", fsmDomain, &testFSM)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,12 +120,14 @@ func TestExtensionRPCError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	extensions, err := extension.New([]extension.Config{{
+	extCfg := make(map[string]extension.Config)
+	extCfg["test"] = extension.Config{
 		Type: "RPC",
 		Host: "localhost",
 		Port: extPort,
-	}})
+	}
 
+	extensions, err := extension.New(extCfg)
 	if err != nil {
 		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}

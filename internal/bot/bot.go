@@ -46,7 +46,7 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 		isExistingConversation = false
 	}
 
-	answers, extName, err := machine.ExecuteCmd(cmd, receiveMsg.Question.Text, b.Domain)
+	answers, ext, err := machine.ExecuteCmd(cmd, receiveMsg.Question.Text, b.Domain)
 	if err != nil {
 		switch e := err.(type) {
 		case *fsm.ErrUnsureCommand:
@@ -68,12 +68,12 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 
 	log.Debugf("FSM | State transitioned from '%d' -> '%d'", previousState, machine.State)
 
-	if extName != "" {
-		if _, ok := b.Extensions[extName]; !ok {
-			return nil, &ErrUnknownExtension{Extension: extName}
+	if ext != nil {
+		if _, ok := b.Extensions[ext.Server]; !ok {
+			return nil, &ErrUnknownExtension{Extension: ext.Server}
 		}
 
-		answers, err = b.Extensions[extName].ExecuteExtension(receiveMsg.Question, extName, receiveMsg.Channel, b.Domain, machine)
+		answers, err = b.Extensions[ext.Server].ExecuteExtension(receiveMsg.Question, ext.Name, receiveMsg.Channel, b.Domain, machine)
 		if err != nil {
 			return nil, err
 		}

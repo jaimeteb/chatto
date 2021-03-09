@@ -11,14 +11,14 @@ import (
 type Map map[string]Extension
 
 // Add new extension name and client to the extension map
-func (m *Map) Add(name string, client Extension) error {
+func (m *Map) Add(server string, client Extension) error {
 	extensionMap := *m
 
-	if _, ok := extensionMap[name]; ok {
-		return fmt.Errorf("duplicate extension name found: %s", name)
+	if _, ok := extensionMap[server]; ok {
+		return fmt.Errorf("duplicate extension server found: %s", server)
 	}
 
-	extensionMap[name] = client
+	extensionMap[server] = client
 
 	return nil
 }
@@ -28,5 +28,5 @@ func (m *Map) Add(name string, client Extension) error {
 // do whatever you want.
 type Extension interface {
 	GetAllExtensions() ([]string, error)
-	ExecuteExtension(question *query.Question, extension, channel string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
+	ExecuteExtension(question *query.Question, extensionName, channel string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
 }
