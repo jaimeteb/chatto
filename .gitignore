@@ -8,3 +8,4 @@ dist/
 chatto/
 .idea/
 site/
+*.vec

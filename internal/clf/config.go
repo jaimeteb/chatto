@@ -3,6 +3,7 @@ package clf
 import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
+	"github.com/jaimeteb/chatto/internal/clf/knn"
 	"github.com/jaimeteb/chatto/internal/clf/naivebayes"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
 	log "github.com/sirupsen/logrus"
@@ -20,11 +21,14 @@ type Config struct {
 type ModelConfig struct {
 	// Classifier is the type of classifier to be used
 	Classifier string `mapstructure:"classifier"`
+
 	// Truncate is a number between 0 and 1, which represents how many
 	// words will be used from the word embeddings
 	Truncate float32 `mapstructure:"truncate"`
+
 	// VectorsFile is the path to the word embeddings or vectors file
 	VectorsFile string `mapstructure:"vectors_file"`
+
 	// ModelFile is the path to the saved model
 	ModelFile string `mapstructure:"model_file"`
 }
@@ -81,6 +85,8 @@ func New(classifConfig *Config) *Classifier {
 
 	var model Model
 	switch classifConfig.Model.Classifier {
+	case "knn":
+		model = knn.NewClassifier(classifConfig.Model.Truncate, classifConfig.Model.VectorsFile, classifConfig.Model.ModelFile)
 	case "naive_bayes":
 		fallthrough
 	default:

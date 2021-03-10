@@ -64,3 +64,8 @@ classification:
       - "I don't think so"
       - "don't like that"
       - "no way"
+
+model:
+  classifier: knn
+  truncate: 0.05
+  vectors_file: ./examples/01_moodbot/model/wiki.en.vec
