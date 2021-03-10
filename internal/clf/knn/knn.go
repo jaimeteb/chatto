@@ -1,6 +1,9 @@
 package knn
 
 import (
+	"encoding/gob"
+	"os"
+
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
 	"github.com/jaimeteb/chatto/internal/clf/embeddings"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
@@ -55,21 +58,11 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) {
 
 	// Initialize KNN
 	knn := &KNN{
-		k:      3,
-		data:   embeddingsX,
-		labels: trainY,
+		K:      3,
+		Data:   embeddingsX,
+		Labels: trainY,
 	}
 	c.KNN = knn
-
-	// check accuracy
-	// predicted, _ := knn.PredictMany(embeddingsX)
-	// correct := 0
-	// for i := range predicted {
-	// 	if predicted[i] == trainY[i] {
-	// 		correct++
-	// 	}
-	// }
-	// log.Debugf("Train accuracy: %f\n", float64(correct)/float64(len(predicted)))
 }
 
 // Predict predict a class for a given text
@@ -87,6 +80,7 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 	return pred, float32(prob)
 }
 
+// Accuracy computes the training accuracy for the model
 func (c *Classifier) Accuracy(texts dataset.DataSet, pipe *pipeline.Config) float32 {
 	correct := 0
 	dataSamples := 0
@@ -102,4 +96,16 @@ func (c *Classifier) Accuracy(texts dataset.DataSet, pipe *pipeline.Config) floa
 		}
 	}
 	return float32(correct) / float32(dataSamples)
+}
+
+// Save persists the model to a file
+func (c *Classifier) Save() error {
+	file, err := os.OpenFile(c.modelFile, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	enc := gob.NewEncoder(file)
+	return enc.Encode(c.KNN)
 }

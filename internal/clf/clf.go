@@ -20,4 +20,6 @@ type Model interface {
 	Accuracy(texts dataset.DataSet, pipe *pipeline.Config) float32
 	// Predict makes a class prediction based on the trained model
 	Predict(text string, pipe *pipeline.Config) (predictedClass string, proba float32)
+	// Save persists the model to a file
+	Save() error
 }

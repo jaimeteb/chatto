@@ -70,5 +70,7 @@ pipeline:
 
 model:
   classifier: knn
-  truncate: 0.05
+  truncate: 0.01
   vectors_file: ./examples/01_moodbot/model/wiki.en.vec
+  model_file: ./examples/01_moodbot/model/knn.clf
+

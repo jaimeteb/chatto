@@ -9,8 +9,16 @@ import (
 
 // Classifier is a Naïve-Bayes classifier
 type Classifier struct {
-	Model   *bayesian.Classifier
-	Classes []bayesian.Class
+	Model     *bayesian.Classifier
+	Classes   []bayesian.Class
+	modelFile string
+}
+
+// NewClassifier creates a KNN classifier with file data
+func NewClassifier(modelFile string) *Classifier {
+	return &Classifier{
+		modelFile: modelFile,
+	}
 }
 
 // Learn takes the training texts and trains the Naive-Bayes classifier
@@ -48,6 +56,7 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 	return class, float32(prob)
 }
 
+// Accuracy computes the training accuracy for the model
 func (c *Classifier) Accuracy(texts dataset.DataSet, pipe *pipeline.Config) float32 {
 	correct := 0
 	dataSamples := 0
@@ -62,4 +71,9 @@ func (c *Classifier) Accuracy(texts dataset.DataSet, pipe *pipeline.Config) floa
 		}
 	}
 	return float32(correct) / float32(dataSamples)
+}
+
+// Save persists the model to a file
+func (c *Classifier) Save() error {
+	return c.Model.WriteToFile(c.modelFile)
 }

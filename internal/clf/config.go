@@ -90,12 +90,18 @@ func New(classifConfig *Config) *Classifier {
 	case "naive_bayes":
 		fallthrough
 	default:
-		model = new(naivebayes.Classifier)
+		model = naivebayes.NewClassifier(classifConfig.Model.ModelFile)
 	}
 
 	log.Info("Training model...")
 	model.Learn(classifConfig.Classification, &pipeline)
 	log.Debugf("Model training accuracy: %0.2f", model.Accuracy(classifConfig.Classification, &pipeline))
+
+	if err := model.Save(); err != nil {
+		log.Error("Failed to save model:", err)
+	} else {
+		log.Info("Model saved successfully.")
+	}
 
 	return &Classifier{
 		Model:    model,

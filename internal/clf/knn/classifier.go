@@ -75,11 +75,12 @@ func Counter(target []string) map[string]int {
 
 // KNN main structure
 type KNN struct {
-	k      int
-	data   [][]float64
-	labels []string
+	K      int
+	Data   [][]float64
+	Labels []string
 }
 
+// PredictMany performs a classification on multiple input vectors
 func (knn *KNN) PredictMany(X [][]float64) (predictedLabels []string, probabilities []float64) {
 	for _, x := range X {
 		pred, prob := knn.PredictOne(x)
@@ -89,23 +90,24 @@ func (knn *KNN) PredictMany(X [][]float64) (predictedLabels []string, probabilit
 	return
 }
 
+// PredictOne performs a classification on one input vector
 func (knn *KNN) PredictOne(X []float64) (predictedLabel string, probability float64) {
 	var (
 		distList   []float64
 		nearLabels []string
 	)
 	//calculate distance between predict target data and surpervised data
-	for _, dest := range knn.data {
+	for _, dest := range knn.Data {
 		distList = append(distList, Dist(X, dest))
 	}
 	//take top k nearest item's index
 	s := NewFloat64Slice(distList)
 	sort.Sort(s)
-	targetIndex := s.idx[:knn.k]
+	targetIndex := s.idx[:knn.K]
 
 	//get the index's label
 	for _, ind := range targetIndex {
-		nearLabels = append(nearLabels, knn.labels[ind])
+		nearLabels = append(nearLabels, knn.Labels[ind])
 	}
 
 	//get label frequency
@@ -120,6 +122,6 @@ func (knn *KNN) PredictOne(X []float64) (predictedLabel string, probability floa
 	sort.Sort(a)
 
 	predictedLabel = a[0].name
-	probability = float64(a[0].value / knn.k)
+	probability = float64(a[0].value / knn.K)
 	return
 }

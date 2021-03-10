@@ -9,3 +9,4 @@ chatto/
 .idea/
 site/
 *.vec
+*.clf
