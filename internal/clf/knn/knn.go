@@ -54,12 +54,15 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) {
 	}
 
 	// Initialize KNN
-	knn := &KNN{k: 3}
-	knn.fit(embeddingsX, trainY)
+	knn := &KNN{
+		k:      3,
+		data:   embeddingsX,
+		labels: trainY,
+	}
 	c.KNN = knn
 
 	// check accuracy
-	predicted := knn.predict(embeddingsX)
+	predicted, _ := knn.PredictMany(embeddingsX)
 	correct := 0
 	for i := range predicted {
 		if predicted[i] == trainY[i] {
@@ -74,7 +77,12 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 	x := pipeline.Pipeline(text, pipe)
 	embeddingsX := embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
 
-	pred := c.KNN.predict([][]float64{embeddingsX})[0]
-	log.Debugf("CLF | Text '%s' classified as command '%s'", text, pred)
-	return pred, 1
+	pred, prob := c.KNN.PredictOne(embeddingsX)
+
+	if prob < pipe.Threshold {
+		return "", -1.0
+	}
+
+	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f", text, pred, prob)
+	return pred, float32(prob)
 }

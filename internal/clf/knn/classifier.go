@@ -80,46 +80,46 @@ type KNN struct {
 	labels []string
 }
 
-func (knn *KNN) fit(X [][]float64, Y []string) {
-	//read data
-	knn.data = X
-	knn.labels = Y
+func (knn *KNN) PredictMany(X [][]float64) (predictedLabels []string, probabilities []float64) {
+	for _, x := range X {
+		pred, prob := knn.PredictOne(x)
+		predictedLabels = append(predictedLabels, pred)
+		probabilities = append(probabilities, prob)
+	}
+	return
 }
 
-func (knn *KNN) predict(X [][]float64) []string {
-
-	predictedLabel := []string{}
-	for _, source := range X {
-		var (
-			distList   []float64
-			nearLabels []string
-		)
-		//calculate distance between predict target data and surpervised data
-		for _, dest := range knn.data {
-			distList = append(distList, Dist(source, dest))
-		}
-		//take top k nearest item's index
-		s := NewFloat64Slice(distList)
-		sort.Sort(s)
-		targetIndex := s.idx[:knn.k]
-
-		//get the index's label
-		for _, ind := range targetIndex {
-			nearLabels = append(nearLabels, knn.labels[ind])
-		}
-
-		//get label frequency
-		labelFreq := Counter(nearLabels)
-
-		//the most frequent label is the predict target label
-		a := List{}
-		for k, v := range labelFreq {
-			e := Entry{k, v}
-			a = append(a, e)
-		}
-		sort.Sort(a)
-		predictedLabel = append(predictedLabel, a[0].name)
+func (knn *KNN) PredictOne(X []float64) (predictedLabel string, probability float64) {
+	var (
+		distList   []float64
+		nearLabels []string
+	)
+	//calculate distance between predict target data and surpervised data
+	for _, dest := range knn.data {
+		distList = append(distList, Dist(X, dest))
 	}
-	return predictedLabel
+	//take top k nearest item's index
+	s := NewFloat64Slice(distList)
+	sort.Sort(s)
+	targetIndex := s.idx[:knn.k]
 
+	//get the index's label
+	for _, ind := range targetIndex {
+		nearLabels = append(nearLabels, knn.labels[ind])
+	}
+
+	//get label frequency
+	labelFreq := Counter(nearLabels)
+
+	//the most frequent label is the predict target label
+	a := List{}
+	for k, v := range labelFreq {
+		e := Entry{k, v}
+		a = append(a, e)
+	}
+	sort.Sort(a)
+
+	predictedLabel = a[0].name
+	probability = float64(a[0].value / knn.k)
+	return
 }

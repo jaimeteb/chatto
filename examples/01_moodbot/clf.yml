@@ -65,6 +65,9 @@ classification:
       - "don't like that"
       - "no way"
 
+pipeline:
+  threshold: 0.6
+
 model:
   classifier: knn
   truncate: 0.05
