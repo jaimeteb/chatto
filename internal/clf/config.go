@@ -94,8 +94,8 @@ func New(classifConfig *Config) *Classifier {
 	}
 
 	log.Info("Training model...")
-	model.Learn(classifConfig.Classification, &pipeline)
-	log.Debugf("Model training accuracy: %0.2f", model.Accuracy(classifConfig.Classification, &pipeline))
+	acc := model.Learn(classifConfig.Classification, &pipeline)
+	log.Debugf("Model training accuracy: %0.2f", acc)
 
 	if err := model.Save(); err != nil {
 		log.Error("Failed to save model:", err)
