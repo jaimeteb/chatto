@@ -47,3 +47,19 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f", text, class, prob)
 	return class, float32(prob)
 }
+
+func (c *Classifier) Accuracy(texts dataset.DataSet, pipe *pipeline.Config) float32 {
+	correct := 0
+	dataSamples := 0
+	for _, class := range texts {
+		for _, text := range class.Texts {
+			dataSamples++
+			_, likely, _ := c.Model.ProbScores(pipeline.Pipeline(text, pipe))
+			pred := string(c.Classes[likely])
+			if pred == class.Command {
+				correct++
+			}
+		}
+	}
+	return float32(correct) / float32(dataSamples)
+}

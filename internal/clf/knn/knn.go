@@ -62,14 +62,14 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) {
 	c.KNN = knn
 
 	// check accuracy
-	predicted, _ := knn.PredictMany(embeddingsX)
-	correct := 0
-	for i := range predicted {
-		if predicted[i] == trainY[i] {
-			correct++
-		}
-	}
-	log.Debugf("Train accuracy: %f\n", float64(correct)/float64(len(predicted)))
+	// predicted, _ := knn.PredictMany(embeddingsX)
+	// correct := 0
+	// for i := range predicted {
+	// 	if predicted[i] == trainY[i] {
+	// 		correct++
+	// 	}
+	// }
+	// log.Debugf("Train accuracy: %f\n", float64(correct)/float64(len(predicted)))
 }
 
 // Predict predict a class for a given text
@@ -85,4 +85,21 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 
 	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f", text, pred, prob)
 	return pred, float32(prob)
+}
+
+func (c *Classifier) Accuracy(texts dataset.DataSet, pipe *pipeline.Config) float32 {
+	correct := 0
+	dataSamples := 0
+	for _, class := range texts {
+		for _, text := range class.Texts {
+			dataSamples++
+			x := pipeline.Pipeline(text, pipe)
+			embeddingsX := embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
+			pred, _ := c.KNN.PredictOne(embeddingsX)
+			if pred == class.Command {
+				correct++
+			}
+		}
+	}
+	return float32(correct) / float32(dataSamples)
 }

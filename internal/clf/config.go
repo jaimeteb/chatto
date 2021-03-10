@@ -93,7 +93,9 @@ func New(classifConfig *Config) *Classifier {
 		model = new(naivebayes.Classifier)
 	}
 
+	log.Info("Training model...")
 	model.Learn(classifConfig.Classification, &pipeline)
+	log.Debugf("Model training accuracy: %0.2f", model.Accuracy(classifConfig.Classification, &pipeline))
 
 	return &Classifier{
 		Model:    model,
