@@ -5,21 +5,21 @@ import (
 	"os"
 
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
-	"github.com/jaimeteb/chatto/internal/clf/embeddings"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
+	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
 	log "github.com/sirupsen/logrus"
 )
 
 // Classifier is a K-Nearest Neighbors classifier
 type Classifier struct {
-	KNN        *KNN
-	Embeddings *embeddings.VectorMap
-	modelFile  string
-	k          int
+	KNN       *KNN
+	VectorMap *wordvectors.VectorMap
+	modelFile string
+	k         int
 }
 
 // NewClassifier creates a KNN classifier with truncate and file data
-func NewClassifier(wordVecConfig embeddings.WordVectorsConfig, modelFile string, params map[string]interface{}) *Classifier {
+func NewClassifier(wordVecConfig wordvectors.Config, modelFile string, params map[string]interface{}) *Classifier {
 	k := 1
 	pk := params["k"]
 	switch pk.(type) {
@@ -30,15 +30,15 @@ func NewClassifier(wordVecConfig embeddings.WordVectorsConfig, modelFile string,
 	}
 
 	// Generate VectorMap
-	emb, err := embeddings.NewVectorMap(&wordVecConfig)
+	emb, err := wordvectors.NewVectorMap(&wordVecConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return &Classifier{
-		Embeddings: emb,
-		modelFile:  modelFile,
-		k:          k,
+		VectorMap: emb,
+		modelFile: modelFile,
+		k:         k,
 	}
 }
 
@@ -60,7 +60,7 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 	// Get embeddings from dataset
 	embeddingsX := make([][]float64, len(trainX))
 	for i, x := range trainX {
-		embeddingsX[i] = c.Embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
+		embeddingsX[i] = c.VectorMap.AverageVectors(c.VectorMap.Vectors(x))
 	}
 
 	// Initialize KNN
@@ -85,7 +85,7 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 // Predict predict a class for a given text
 func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass string, proba float32) {
 	x := pipeline.Pipeline(text, pipe)
-	embeddingsX := c.Embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
+	embeddingsX := c.VectorMap.AverageVectors(c.VectorMap.Vectors(x))
 
 	pred, prob := c.KNN.PredictOne(embeddingsX)
 

@@ -5,8 +5,8 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
-	"github.com/jaimeteb/chatto/internal/clf/embeddings"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
+	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -28,7 +28,7 @@ type ModelConfig struct {
 	Parameters map[string]interface{} `mapstructure:"parameters"`
 
 	// WordVectorsConfig contains configuration for fasttext word vectors
-	WordVectorsConfig embeddings.WordVectorsConfig `mapstructure:"word_vectors"`
+	WordVectorsConfig wordvectors.Config `mapstructure:"word_vectors"`
 
 	// ModelFile is the path to the saved model
 	ModelFile string `mapstructure:"model_file"`
