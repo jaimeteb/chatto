@@ -69,8 +69,15 @@ pipeline:
   threshold: 0.6
 
 model:
-  classifier: knn
-  truncate: 0.01
-  vectors_file: ./examples/01_moodbot/model/wiki.en.vec
-  model_file: ./examples/01_moodbot/model/knn.clf
+  # naive_bayes
+  parameters:
+    tfidf: true
+  model_file: ./examples/01_moodbot/model/nb.clf
+
+  # classifier: knn
+  # parameters:
+  #   k: 5
+  # truncate: 0.01
+  # vectors_file: ./examples/01_moodbot/model/wiki.en.vec
+  # model_file: ./examples/01_moodbot/model/knn.clf
 

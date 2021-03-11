@@ -12,12 +12,23 @@ type Classifier struct {
 	Model     *bayesian.Classifier
 	Classes   []bayesian.Class
 	modelFile string
+	tfidf     bool
 }
 
 // NewClassifier creates a KNN classifier with file data
-func NewClassifier(modelFile string) *Classifier {
+func NewClassifier(modelFile string, params map[string]interface{}) *Classifier {
+	var tfidf bool
+	ptfidf := params["tfidf"]
+	switch ptfidf.(type) {
+	case bool:
+		tfidf = ptfidf.(bool)
+	default:
+		log.Errorf("Invalid value '%v' parameter 'tfidf'", ptfidf)
+	}
+
 	return &Classifier{
 		modelFile: modelFile,
+		tfidf:     tfidf,
 	}
 }
 
@@ -28,7 +39,13 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 	for _, class := range texts {
 		classes = append(classes, bayesian.Class(class.Command))
 	}
-	classifier := bayesian.NewClassifier(classes...)
+
+	var classifier *bayesian.Classifier
+	if c.tfidf {
+		classifier = bayesian.NewClassifierTfIdf(classes...)
+	} else {
+		classifier = bayesian.NewClassifier(classes...)
+	}
 
 	// Train the model with clean text
 	testX := make([][]string, 0)
@@ -41,6 +58,10 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 			classifier.Learn(cleanText, bayesian.Class(texts[n].Command))
 			testY = append(testY, texts[n].Command)
 		}
+	}
+
+	if c.tfidf {
+		classifier.ConvertTermsFreqToTfIdf()
 	}
 
 	c.Model = classifier

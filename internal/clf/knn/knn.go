@@ -17,14 +17,25 @@ type Classifier struct {
 	truncate    float32
 	vectorsFile string
 	modelFile   string
+	k           int
 }
 
 // NewClassifier creates a KNN classifier with truncate and file data
-func NewClassifier(truncate float32, vectorsFile, modelFile string) *Classifier {
+func NewClassifier(truncate float32, vectorsFile, modelFile string, params map[string]interface{}) *Classifier {
+	k := 1
+	pk := params["k"]
+	switch pk.(type) {
+	case int:
+		k = pk.(int)
+	default:
+		log.Errorf("Invalid value '%v' parameter 'k'", pk)
+	}
+
 	return &Classifier{
 		truncate:    truncate,
 		vectorsFile: vectorsFile,
 		modelFile:   modelFile,
+		k:           k,
 	}
 }
 
@@ -58,7 +69,7 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 
 	// Initialize KNN
 	knn := &KNN{
-		K:      3,
+		K:      c.k,
 		Data:   embeddingsX,
 		Labels: trainY,
 	}

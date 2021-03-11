@@ -3,8 +3,6 @@ package clf
 import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
-	"github.com/jaimeteb/chatto/internal/clf/knn"
-	"github.com/jaimeteb/chatto/internal/clf/naivebayes"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -21,6 +19,10 @@ type Config struct {
 type ModelConfig struct {
 	// Classifier is the type of classifier to be used
 	Classifier string `mapstructure:"classifier"`
+
+	// Parameters holds any other model parameters
+	// TODO: improve this field
+	Parameters map[string]interface{} `mapstructure:"parameters"`
 
 	// Truncate is a number between 0 and 1, which represents how many
 	// words will be used from the word embeddings
@@ -67,44 +69,4 @@ func LoadConfig(path string, reloadChan chan Config) (*Config, error) {
 	err := config.Unmarshal(&classifConfig)
 
 	return &classifConfig, err
-}
-
-// New returns a trained Classifier
-func New(classifConfig *Config) *Classifier {
-	pipeline := classifConfig.Pipeline
-
-	log.Info("Pipeline:")
-	log.Infof("* RemoveSymbols: %v", pipeline.RemoveSymbols)
-	log.Infof("* Lower:         %v", pipeline.Lower)
-	log.Infof("* Threshold:     %v", pipeline.Threshold)
-
-	log.Info("Loaded commands for classifier:")
-	for i, c := range classifConfig.Classification {
-		log.Infof("%2d %v", i, c.Command)
-	}
-
-	var model Model
-	switch classifConfig.Model.Classifier {
-	case "knn":
-		model = knn.NewClassifier(classifConfig.Model.Truncate, classifConfig.Model.VectorsFile, classifConfig.Model.ModelFile)
-	case "naive_bayes":
-		fallthrough
-	default:
-		model = naivebayes.NewClassifier(classifConfig.Model.ModelFile)
-	}
-
-	log.Info("Training model...")
-	acc := model.Learn(classifConfig.Classification, &pipeline)
-	log.Debugf("Model training accuracy: %0.2f", acc)
-
-	if err := model.Save(); err != nil {
-		log.Error("Failed to save model:", err)
-	} else {
-		log.Info("Model saved successfully.")
-	}
-
-	return &Classifier{
-		Model:    model,
-		Pipeline: &pipeline,
-	}
 }
