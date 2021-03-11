@@ -1,8 +1,11 @@
 package clf
 
 import (
+	"fmt"
+
 	"github.com/fsnotify/fsnotify"
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
+	"github.com/jaimeteb/chatto/internal/clf/embeddings"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -24,12 +27,8 @@ type ModelConfig struct {
 	// TODO: improve this field
 	Parameters map[string]interface{} `mapstructure:"parameters"`
 
-	// Truncate is a number between 0 and 1, which represents how many
-	// words will be used from the word embeddings
-	Truncate float32 `mapstructure:"truncate"`
-
-	// VectorsFile is the path to the word embeddings or vectors file
-	VectorsFile string `mapstructure:"vectors_file"`
+	// WordVectorsConfig contains configuration for fasttext word vectors
+	WordVectorsConfig embeddings.WordVectorsConfig `mapstructure:"word_vectors"`
 
 	// ModelFile is the path to the saved model
 	ModelFile string `mapstructure:"model_file"`
@@ -69,4 +68,14 @@ func LoadConfig(path string, reloadChan chan Config) (*Config, error) {
 	err := config.Unmarshal(&classifConfig)
 
 	return &classifConfig, err
+}
+
+func parametersToSlice(params map[string]interface{}) []string {
+	s := make([]string, len(params))
+	i := 0
+	for param, value := range params {
+		s[i] = fmt.Sprintf("* %s: %v", param, value)
+		i++
+	}
+	return s
 }

@@ -12,16 +12,14 @@ import (
 
 // Classifier is a K-Nearest Neighbors classifier
 type Classifier struct {
-	KNN         *KNN
-	Embeddings  *embeddings.VectorMap
-	truncate    float32
-	vectorsFile string
-	modelFile   string
-	k           int
+	KNN        *KNN
+	Embeddings *embeddings.VectorMap
+	modelFile  string
+	k          int
 }
 
 // NewClassifier creates a KNN classifier with truncate and file data
-func NewClassifier(truncate float32, vectorsFile, modelFile string, params map[string]interface{}) *Classifier {
+func NewClassifier(wordVecConfig embeddings.WordVectorsConfig, modelFile string, params map[string]interface{}) *Classifier {
 	k := 1
 	pk := params["k"]
 	switch pk.(type) {
@@ -31,11 +29,16 @@ func NewClassifier(truncate float32, vectorsFile, modelFile string, params map[s
 		log.Errorf("Invalid value '%v' parameter 'k'", pk)
 	}
 
+	// Generate VectorMap
+	emb, err := embeddings.NewVectorMap(&wordVecConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return &Classifier{
-		truncate:    truncate,
-		vectorsFile: vectorsFile,
-		modelFile:   modelFile,
-		k:           k,
+		Embeddings: emb,
+		modelFile:  modelFile,
+		k:          k,
 	}
 }
 
@@ -54,17 +57,10 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 		classes = append(classes, training.Command)
 	}
 
-	// Generate VectorMap
-	emb, err := embeddings.NewVectorMapFromFile(c.vectorsFile, c.truncate)
-	if err != nil {
-		log.Fatal(err)
-	}
-	c.Embeddings = emb
-
 	// Get embeddings from dataset
 	embeddingsX := make([][]float64, len(trainX))
 	for i, x := range trainX {
-		embeddingsX[i] = embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
+		embeddingsX[i] = c.Embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
 	}
 
 	// Initialize KNN
@@ -89,15 +85,15 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 // Predict predict a class for a given text
 func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass string, proba float32) {
 	x := pipeline.Pipeline(text, pipe)
-	embeddingsX := embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
+	embeddingsX := c.Embeddings.AverageEmbeddings(c.Embeddings.Embeddings(x))
 
 	pred, prob := c.KNN.PredictOne(embeddingsX)
 
+	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f", text, pred, prob)
 	if prob < pipe.Threshold {
 		return "", -1.0
 	}
 
-	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f", text, pred, prob)
 	return pred, float32(prob)
 }
 

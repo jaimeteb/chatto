@@ -44,11 +44,24 @@ func New(config *Config) *Classifier {
 	var model Model
 	switch config.Model.Classifier {
 	case "knn":
-		model = knn.NewClassifier(config.Model.Truncate, config.Model.VectorsFile, config.Model.ModelFile, config.Model.Parameters)
+		model = knn.NewClassifier(
+			config.Model.WordVectorsConfig,
+			config.Model.ModelFile,
+			config.Model.Parameters,
+		)
 	case "naive_bayes":
 		fallthrough
 	default:
-		model = naivebayes.NewClassifier(config.Model.ModelFile, config.Model.Parameters)
+		config.Model.Classifier = "naive_bayes"
+		model = naivebayes.NewClassifier(
+			config.Model.ModelFile,
+			config.Model.Parameters,
+		)
+	}
+
+	log.Infof("Using %s classifier with parameters:", config.Model.Classifier)
+	for _, param := range parametersToSlice(config.Model.Parameters) {
+		log.Infof(param)
 	}
 
 	log.Info("Training model...")

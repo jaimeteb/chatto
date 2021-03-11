@@ -85,11 +85,11 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 	class := string(c.Classes[likely])
 	prob := probs[likely]
 
+	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f", text, class, prob)
 	if prob < pipe.Threshold {
 		return "", -1.0
 	}
 
-	log.Debugf("CLF | Text '%s' classified as command '%s' with a probability of %.2f", text, class, prob)
 	return class, float32(prob)
 }
 

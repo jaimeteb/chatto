@@ -13,38 +13,57 @@ import (
 
 var mutex = &sync.RWMutex{}
 
+// WordVectorsConfig contains configuration for fasttext word vectors
+type WordVectorsConfig struct {
+	// WordVectorsFile is the path to the word vectors file
+	WordVectorsFile string `mapstructure:"vectors_file"`
+
+	// Truncate is a number between 0 and 1, which represents how many
+	// words will be used from the word embeddings
+	Truncate float32 `mapstructure:"truncate"`
+
+	// SkipOOV makes the out-of-vocabulary words to be omitted
+	SkipOOV bool `mapstructure:"skip_oov"`
+}
+
 // VectorMap contains a map of words and their embeddings, as well as the embedding size
 type VectorMap struct {
 	Map     map[string][]float64
 	embSize int
+	skipOOV bool
 }
 
 // Embedding returns the embedding for a certain word
 // If the word is not found, a vector of zeros is returned
-func (m *VectorMap) Embedding(word string) []float64 {
+func (m *VectorMap) Embedding(word string) (embedding []float64, inVocabulary bool) {
 	mutex.Lock()
-	v, ok := m.Map[word]
+	embedding, inVocabulary = m.Map[word]
 	mutex.Unlock()
 
-	if ok {
-		return v
+	if inVocabulary {
+		return
 	}
-	return make([]float64, m.embSize)
+
+	embedding = make([]float64, m.embSize)
+	return
 }
 
 // Embeddings returns the embeddings for a slice of wordsd
 func (m *VectorMap) Embeddings(words []string) [][]float64 {
-	embSlice := make([][]float64, len(words))
-	for i, word := range words {
-		embSlice[i] = m.Embedding(word)
+	embeds := make([][]float64, 0, m.embSize)
+	for _, word := range words {
+		emb, voc := m.Embedding(word)
+		if m.skipOOV && !voc {
+			continue
+		}
+		embeds = append(embeds, emb)
 	}
-	return embSlice
+	return embeds
 }
 
 // SumEmbeddings sums an array of embeddings
-func SumEmbeddings(embeds [][]float64) []float64 {
-	embedSize := len(embeds[0])
-	sum := make([]float64, embedSize)
+func (m *VectorMap) SumEmbeddings(embeds [][]float64) []float64 {
+	sum := make([]float64, m.embSize)
 	for _, embed := range embeds {
 		for j, val := range embed {
 			sum[j] += val
@@ -54,8 +73,8 @@ func SumEmbeddings(embeds [][]float64) []float64 {
 }
 
 // AverageEmbeddings averages an array of embeddings
-func AverageEmbeddings(embeds [][]float64) []float64 {
-	sum := SumEmbeddings(embeds)
+func (m *VectorMap) AverageEmbeddings(embeds [][]float64) []float64 {
+	sum := m.SumEmbeddings(embeds)
 	for i := range embeds {
 		sum[i] /= float64(len(embeds))
 	}
@@ -63,8 +82,8 @@ func AverageEmbeddings(embeds [][]float64) []float64 {
 }
 
 // PadEmbeddings pads an embedding array to a length with zero vectors
-func PadEmbeddings(embeds [][]float64, length int) [][]float64 {
-	numEmbeds, embedSize := len(embeds), len(embeds[0])
+func (m *VectorMap) PadEmbeddings(embeds [][]float64, length int) [][]float64 {
+	numEmbeds, embedSize := len(embeds), m.embSize
 	switch {
 	case numEmbeds < length:
 		fill := make([][]float64, length-numEmbeds)
@@ -80,7 +99,7 @@ func PadEmbeddings(embeds [][]float64, length int) [][]float64 {
 
 // FlattenEmbeddings converts an array of embeddings into an array
 // of embeddings, one after the other
-func FlattenEmbeddings(embeds [][]float64) []float64 {
+func (m *VectorMap) FlattenEmbeddings(embeds [][]float64) []float64 {
 	flat := make([]float64, 0)
 	for _, embed := range embeds {
 		flat = append(flat, embed...)
@@ -99,10 +118,10 @@ func stringSliceToFloat64Slice(ar []string) []float64 {
 	return newar
 }
 
-// NewVectorMapFromFile loads word embeddings from a file, up to
+// NewVectorMap loads word embeddings from a file, up to
 // trunc percentage of words and returns a new VectorMap
-func NewVectorMapFromFile(fileName string, trunc float32) (*VectorMap, error) {
-	file, err := os.Open(fileName)
+func NewVectorMap(config *WordVectorsConfig) (*VectorMap, error) {
+	file, err := os.Open(config.WordVectorsFile)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +148,7 @@ func NewVectorMapFromFile(fileName string, trunc float32) (*VectorMap, error) {
 			numWords, _ = strconv.Atoi(numWordsStr)
 			embSize, _ = strconv.Atoi(embSizeStr)
 			log.Debugf("Vector file dimensions: %d, %d", numWords, embSize)
-		} else if num <= int(float32(numWords)*trunc) {
+		} else if num <= int(float32(numWords)*config.Truncate) {
 			lineVals := strings.SplitN(line, " ", embSize+1)
 			word, vector := lineVals[0], stringSliceToFloat64Slice(lineVals[1:])
 			vMap[word] = vector
@@ -139,7 +158,7 @@ func NewVectorMapFromFile(fileName string, trunc float32) (*VectorMap, error) {
 		num++
 	}
 
-	vectorMap := &VectorMap{vMap, embSize}
+	vectorMap := &VectorMap{vMap, embSize, config.SkipOOV}
 	log.Debugf("Vector map length: %d", len(vectorMap.Map))
 	return vectorMap, nil
 }
