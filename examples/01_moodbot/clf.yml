@@ -71,14 +71,16 @@ pipeline:
 model:
   # classifier: naive_bayes
   # parameters:
-  #   tfidf: true
-  # model_file: ./examples/01_moodbot/model/nb.clf
+  #   tfidf: false
+  # directory: ./examples/01_moodbot/model/1
+  # load: true
 
-  classifier: knn
-  parameters:
-    k: 5
-  model_file: ./examples/01_moodbot/model/knn.clf
-  word_vectors:
-    vectors_file: ./examples/01_moodbot/model/wiki.en.vec
-    truncate: 0.01
-    skip_oov: true
+  # classifier: knn
+  # parameters:
+  #   k: 5
+  # directory: ./examples/01_moodbot/model
+  # load: true
+  # word_vectors:
+  #   file_name: ./examples/01_moodbot/model/wiki.en.vec
+  #   truncate: 0.01
+  #   skip_oov: true

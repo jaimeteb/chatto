@@ -10,3 +10,4 @@ chatto/
 site/
 *.vec
 *.clf
+*.gob

@@ -27,11 +27,14 @@ type ModelConfig struct {
 	// TODO: improve this field
 	Parameters map[string]interface{} `mapstructure:"parameters"`
 
+	// Directory is the path to the saved model files
+	Directory string `mapstructure:"directory"`
+
+	// Whether to load the saved model or not
+	Load bool `mapstructure:"load"`
+
 	// WordVectorsConfig contains configuration for fasttext word vectors
 	WordVectorsConfig wordvectors.Config `mapstructure:"word_vectors"`
-
-	// ModelFile is the path to the saved model
-	ModelFile string `mapstructure:"model_file"`
 }
 
 // LoadConfig loads classification configuration from yaml

@@ -3,6 +3,7 @@ package knn
 import (
 	"encoding/gob"
 	"os"
+	"path"
 
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
@@ -10,16 +11,44 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	classifierFile = "clf.gob"
+	modelFile      = "knn.gob"
+)
+
 // Classifier is a K-Nearest Neighbors classifier
 type Classifier struct {
 	KNN       *KNN
 	VectorMap *wordvectors.VectorMap
-	modelFile string
-	k         int
+	K         int
+}
+
+func (c *Classifier) SaveToFile(name string) error {
+	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	enc := gob.NewEncoder(file)
+	return enc.Encode(&Classifier{nil, nil, c.K})
+}
+
+func NewClassifierFromFile(name string) (*Classifier, error) {
+	file, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	dec := gob.NewDecoder(file)
+	classifier := new(Classifier)
+	err = dec.Decode(classifier)
+	return classifier, err
 }
 
 // NewClassifier creates a KNN classifier with truncate and file data
-func NewClassifier(wordVecConfig wordvectors.Config, modelFile string, params map[string]interface{}) *Classifier {
+func NewClassifier(wordVecConfig wordvectors.Config, params map[string]interface{}) *Classifier {
 	k := 1
 	pk := params["k"]
 	switch pk.(type) {
@@ -37,8 +66,7 @@ func NewClassifier(wordVecConfig wordvectors.Config, modelFile string, params ma
 
 	return &Classifier{
 		VectorMap: emb,
-		modelFile: modelFile,
-		k:         k,
+		K:         k,
 	}
 }
 
@@ -65,7 +93,7 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 
 	// Initialize KNN
 	knn := &KNN{
-		K:      c.k,
+		K:      c.K,
 		Data:   embeddingsX,
 		Labels: trainY,
 	}
@@ -98,13 +126,42 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 }
 
 // Save persists the model to a file
-func (c *Classifier) Save() error {
-	file, err := os.OpenFile(c.modelFile, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
+func (c *Classifier) Save(directory string) error {
+	// save Classifier
+	if err := c.SaveToFile(path.Join(directory, classifierFile)); err != nil {
 		return err
 	}
-	defer file.Close()
+	// save Classifier.VectorMap
+	if err := c.VectorMap.SaveToFile(path.Join(directory, wordvectors.WordVectorsFile)); err != nil {
+		return err
+	}
+	// save Classifier.KNN
+	if err := c.KNN.SaveToFile(path.Join(directory, modelFile)); err != nil {
+		return err
+	}
+	return nil
+}
 
-	enc := gob.NewEncoder(file)
-	return enc.Encode(c.KNN)
+func Load(directory string) (classifier *Classifier, err error) {
+	// load Classifier
+	classifier, err = NewClassifierFromFile(path.Join(directory, classifierFile))
+	if err != nil {
+		return
+	}
+
+	// load Classifier.VectorMap
+	vectorMap, err := wordvectors.NewVectorMapFromFile(path.Join(directory, wordvectors.WordVectorsFile))
+	if err != nil {
+		return
+	}
+	classifier.VectorMap = vectorMap
+
+	// load Classifier.KNN
+	knn, err := NewKNNClassifierFromFile(path.Join(directory, modelFile))
+	if err != nil {
+		return
+	}
+	classifier.KNN = knn
+
+	return
 }

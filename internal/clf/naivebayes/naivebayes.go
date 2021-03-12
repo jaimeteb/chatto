@@ -1,22 +1,54 @@
 package naivebayes
 
 import (
+	"encoding/gob"
+	"os"
+	"path"
+
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
 	"github.com/navossoc/bayesian"
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	classifierFile = "clf.gob"
+	modelFile      = "nb.gob"
+)
+
 // Classifier is a Naïve-Bayes classifier
 type Classifier struct {
-	Model     *bayesian.Classifier
-	Classes   []bayesian.Class
-	modelFile string
-	tfidf     bool
+	Model   *bayesian.Classifier
+	Classes []bayesian.Class
+	TfIdf   bool
+}
+
+func (c *Classifier) SaveToFile(name string) error {
+	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	enc := gob.NewEncoder(file)
+	return enc.Encode(&Classifier{nil, c.Classes, c.TfIdf})
+}
+
+func NewClassifierFromFile(name string) (*Classifier, error) {
+	file, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	dec := gob.NewDecoder(file)
+	classifier := new(Classifier)
+	err = dec.Decode(classifier)
+	return classifier, err
 }
 
 // NewClassifier creates a KNN classifier with file data
-func NewClassifier(modelFile string, params map[string]interface{}) *Classifier {
+func NewClassifier(params map[string]interface{}) *Classifier {
 	var tfidf bool
 	ptfidf := params["tfidf"]
 	switch ptfidf.(type) {
@@ -27,8 +59,7 @@ func NewClassifier(modelFile string, params map[string]interface{}) *Classifier 
 	}
 
 	return &Classifier{
-		modelFile: modelFile,
-		tfidf:     tfidf,
+		TfIdf: tfidf,
 	}
 }
 
@@ -41,7 +72,7 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 	}
 
 	var classifier *bayesian.Classifier
-	if c.tfidf {
+	if c.TfIdf {
 		classifier = bayesian.NewClassifierTfIdf(classes...)
 	} else {
 		classifier = bayesian.NewClassifier(classes...)
@@ -60,7 +91,7 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 		}
 	}
 
-	if c.tfidf {
+	if c.TfIdf {
 		classifier.ConvertTermsFreqToTfIdf()
 	}
 
@@ -94,6 +125,31 @@ func (c *Classifier) Predict(text string, pipe *pipeline.Config) (predictedClass
 }
 
 // Save persists the model to a file
-func (c *Classifier) Save() error {
-	return c.Model.WriteToFile(c.modelFile)
+func (c *Classifier) Save(directory string) error {
+	// save Classifier
+	if err := c.SaveToFile(path.Join(directory, classifierFile)); err != nil {
+		return err
+	}
+	// save Classifier.Model
+	if err := c.Model.WriteToFile(path.Join(directory, modelFile)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func Load(directory string) (classifier *Classifier, err error) {
+	// load Classifier
+	classifier, err = NewClassifierFromFile(path.Join(directory, classifierFile))
+	if err != nil {
+		return
+	}
+
+	// load Classifier.Model
+	model, err := bayesian.NewClassifierFromFile(path.Join(directory, modelFile))
+	if err != nil {
+		return
+	}
+	classifier.Model = model
+
+	return
 }

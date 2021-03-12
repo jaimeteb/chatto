@@ -1,7 +1,9 @@
 package knn
 
 import (
+	"encoding/gob"
 	"math"
+	"os"
 	"sort"
 )
 
@@ -19,6 +21,30 @@ type KNN struct {
 	K      int
 	Data   [][]float64
 	Labels []string
+}
+
+func (knn *KNN) SaveToFile(name string) error {
+	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	enc := gob.NewEncoder(file)
+	return enc.Encode(knn)
+}
+
+func NewKNNClassifierFromFile(name string) (*KNN, error) {
+	file, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	dec := gob.NewDecoder(file)
+	knn := new(KNN)
+	err = dec.Decode(knn)
+	return knn, err
 }
 
 type neighbor struct {

@@ -2,6 +2,7 @@ package wordvectors
 
 import (
 	"bufio"
+	"encoding/gob"
 	"io"
 	"os"
 	"strconv"
@@ -13,10 +14,12 @@ import (
 
 var mutex = &sync.RWMutex{}
 
+const WordVectorsFile = "wv.gob"
+
 // Config contains configuration for fasttext word vectors
 type Config struct {
 	// WordVectorsFile is the path to the word vectors file
-	WordVectorsFile string `mapstructure:"vectors_file"`
+	WordVectorsFile string `mapstructure:"file_name"`
 
 	// Truncate is a number between 0 and 1, which represents how many
 	// words will be used from the word vector
@@ -31,6 +34,38 @@ type VectorMap struct {
 	Map        map[string][]float64
 	vectorSize int
 	skipOOV    bool
+}
+
+// serializableVectorMap contains a VectorMap that can be serialized by gob
+type serializableVectorMap struct {
+	Map        map[string][]float64
+	VectorSize int
+	SkipOOV    bool
+}
+
+// SaveToFile saves a serializableVectorMap to the wordVectorsFile
+func (m *VectorMap) SaveToFile(name string) error {
+	file, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	enc := gob.NewEncoder(file)
+	return enc.Encode(&serializableVectorMap{m.Map, m.vectorSize, m.skipOOV})
+}
+
+func NewVectorMapFromFile(name string) (*VectorMap, error) {
+	file, err := os.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	dec := gob.NewDecoder(file)
+	vectorMap := new(serializableVectorMap)
+	err = dec.Decode(vectorMap)
+	return &VectorMap{vectorMap.Map, vectorMap.VectorSize, vectorMap.SkipOOV}, err
 }
 
 // Vector returns the vector for a certain word
