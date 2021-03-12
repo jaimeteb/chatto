@@ -69,11 +69,11 @@ pipeline:
   threshold: 0.6
 
 model:
-  # classifier: naive_bayes
-  # parameters:
-  #   tfidf: false
-  # directory: ./examples/01_moodbot/model/1
-  # load: true
+  classifier: naive_bayes
+  parameters:
+    tfidf: false
+  directory: ./examples/01_moodbot/model/2
+  load: false
 
   # classifier: knn
   # parameters:

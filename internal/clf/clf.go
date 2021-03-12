@@ -27,9 +27,6 @@ type Model interface {
 
 	// Save persists the model to a file
 	Save(directory string) error
-
-	// Load loads the model from a file
-	// Load(directory string) (Model, error)
 }
 
 // New returns a trained Classifier
@@ -51,55 +48,58 @@ func New(config *Config) *Classifier {
 		log.Infof(param)
 	}
 
-	var model Model
+	var (
+		model Model
+		err   error
+	)
 	switch config.Model.Classifier {
 	case "knn":
 		model = knn.NewClassifier(
 			config.Model.WordVectorsConfig,
 			config.Model.Parameters,
 		)
+		if config.Model.Load {
+			// Check for directory to load
+			checkDir(config.Model.Directory)
+			// Load model
+			log.Info("Loading model...")
+			if model, err = knn.Load(config.Model.Directory); err != nil {
+				log.Error("Failed to load model:", err)
+				// TODO: exit?
+			} else {
+				log.Info("Model loaded successfully.")
+			}
+		} else {
+			break
+		}
 	default:
 		config.Model.Classifier = "naive_bayes"
 		model = naivebayes.NewClassifier(
 			config.Model.Parameters,
 		)
+		if config.Model.Load {
+			// Check for directory to load
+			checkDir(config.Model.Directory)
+			// Load model
+			log.Info("Loading model...")
+			if model, err = naivebayes.Load(config.Model.Directory); err != nil {
+				log.Error("Failed to load model:", err)
+				// TODO: exit?
+			} else {
+				log.Info("Model loaded successfully.")
+			}
+		} else {
+			break
+		}
 	}
 
-	if config.Model.Load {
-		// Check for directory to load
-		if _, err := os.Stat(config.Model.Directory); os.IsNotExist(err) {
-			log.Error("Failed to load model:", err)
-			// TODO: exit?
-		}
-
-		// Load model
-		log.Info("Loading model...")
-		var err error
-		switch config.Model.Classifier {
-		case "knn":
-			model, err = knn.Load(config.Model.Directory)
-		case "naive_bayes":
-			model, err = naivebayes.Load(config.Model.Directory)
-		}
-		if err != nil {
-			log.Error("Failed to load model:", err)
-			// TODO: exit?
-		} else {
-			log.Info("Model loaded successfully.")
-		}
-	} else {
+	if !config.Model.Load {
 		// Train model
 		log.Info("Training model...")
 		acc := model.Learn(config.Classification, &pipe)
 		log.Debugf("Model training accuracy: %0.2f", acc)
-
 		// Check for directory to save
-		if _, err := os.Stat(config.Model.Directory); os.IsNotExist(err) {
-			if err := os.MkdirAll(config.Model.Directory, 0755); err != nil {
-				log.Error("Couldn't create directory:", err)
-			}
-		}
-
+		makeDir(config.Model.Directory)
 		// Save model
 		if err := model.Save(config.Model.Directory); err != nil {
 			log.Error("Failed to save model:", err)
@@ -111,5 +111,19 @@ func New(config *Config) *Classifier {
 	return &Classifier{
 		Model:    model,
 		Pipeline: &pipe,
+	}
+}
+
+func checkDir(directory string) {
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		log.Error("Failed to load model:", err)
+	}
+}
+
+func makeDir(directory string) {
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		if err := os.MkdirAll(directory, 0755); err != nil {
+			log.Error("Couldn't create directory:", err)
+		}
 	}
 }
