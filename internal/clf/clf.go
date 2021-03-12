@@ -34,12 +34,12 @@ type Model interface {
 
 // New returns a trained Classifier
 func New(config *Config) *Classifier {
-	pipeline := config.Pipeline
+	pipe := config.Pipeline
 
 	log.Info("Pipeline:")
-	log.Infof("* RemoveSymbols: %v", pipeline.RemoveSymbols)
-	log.Infof("* Lower:         %v", pipeline.Lower)
-	log.Infof("* Threshold:     %v", pipeline.Threshold)
+	log.Infof("* RemoveSymbols: %v", pipe.RemoveSymbols)
+	log.Infof("* Lower:         %v", pipe.Lower)
+	log.Infof("* Threshold:     %v", pipe.Threshold)
 
 	log.Info("Loaded commands for classifier:")
 	for i, c := range config.Classification {
@@ -58,8 +58,6 @@ func New(config *Config) *Classifier {
 			config.Model.WordVectorsConfig,
 			config.Model.Parameters,
 		)
-	case "naive_bayes":
-		fallthrough
 	default:
 		config.Model.Classifier = "naive_bayes"
 		model = naivebayes.NewClassifier(
@@ -92,13 +90,13 @@ func New(config *Config) *Classifier {
 	} else {
 		// Train model
 		log.Info("Training model...")
-		acc := model.Learn(config.Classification, &pipeline)
+		acc := model.Learn(config.Classification, &pipe)
 		log.Debugf("Model training accuracy: %0.2f", acc)
 
 		// Check for directory to save
 		if _, err := os.Stat(config.Model.Directory); os.IsNotExist(err) {
 			if err := os.MkdirAll(config.Model.Directory, 0755); err != nil {
-				log.Error("Couldn't create directory: %v", err)
+				log.Error("Couldn't create directory:", err)
 			}
 		}
 
@@ -112,6 +110,6 @@ func New(config *Config) *Classifier {
 
 	return &Classifier{
 		Model:    model,
-		Pipeline: &pipeline,
+		Pipeline: &pipe,
 	}
 }

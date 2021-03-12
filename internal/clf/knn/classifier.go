@@ -58,9 +58,9 @@ type neighborCount struct {
 }
 
 // PredictMany performs a classification on multiple input vectors
-func (knn *KNN) PredictMany(X [][]float64) (predictedLabels []string, probabilities []float64) {
-	for _, x := range X {
-		pred, prob := knn.PredictOne(x)
+func (knn *KNN) PredictMany(x [][]float64) (predictedLabels []string, probabilities []float64) {
+	for _, v := range x {
+		pred, prob := knn.PredictOne(v)
 		predictedLabels = append(predictedLabels, pred)
 		probabilities = append(probabilities, prob)
 	}
@@ -68,12 +68,12 @@ func (knn *KNN) PredictMany(X [][]float64) (predictedLabels []string, probabilit
 }
 
 // PredictOne performs a classification on one input vector
-func (knn *KNN) PredictOne(X []float64) (predictedLabel string, probability float64) {
+func (knn *KNN) PredictOne(x []float64) (predictedLabel string, probability float64) {
 	neighs := make([]neighbor, len(knn.Data))
 
 	for i := 0; i < len(knn.Data); i++ {
 		neighs[i] = neighbor{
-			distance: EuclideanDistance(X, knn.Data[i]),
+			distance: EuclideanDistance(x, knn.Data[i]),
 			label:    knn.Labels[i],
 		}
 	}

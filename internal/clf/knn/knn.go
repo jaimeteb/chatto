@@ -51,9 +51,9 @@ func NewClassifierFromFile(name string) (*Classifier, error) {
 func NewClassifier(wordVecConfig wordvectors.Config, params map[string]interface{}) *Classifier {
 	k := 1
 	pk := params["k"]
-	switch pk.(type) {
+	switch t := pk.(type) {
 	case int:
-		k = pk.(int)
+		k = t
 	default:
 		log.Errorf("Invalid value '%v' parameter 'k'", pk)
 	}
@@ -74,7 +74,6 @@ func NewClassifier(wordVecConfig wordvectors.Config, params map[string]interface
 func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32 {
 	trainX := make([][]string, 0)
 	trainY := make([]string, 0)
-	classes := make([]string, 0)
 
 	// Run Pipeline
 	for _, training := range texts {
@@ -82,7 +81,6 @@ func (c *Classifier) Learn(texts dataset.DataSet, pipe *pipeline.Config) float32
 			trainX = append(trainX, pipeline.Pipeline(trainingText, pipe))
 			trainY = append(trainY, training.Command)
 		}
-		classes = append(classes, training.Command)
 	}
 
 	// Get embeddings from dataset

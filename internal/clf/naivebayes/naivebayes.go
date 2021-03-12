@@ -51,9 +51,9 @@ func NewClassifierFromFile(name string) (*Classifier, error) {
 func NewClassifier(params map[string]interface{}) *Classifier {
 	var tfidf bool
 	ptfidf := params["tfidf"]
-	switch ptfidf.(type) {
+	switch t := ptfidf.(type) {
 	case bool:
-		tfidf = ptfidf.(bool)
+		tfidf = t
 	default:
 		log.Errorf("Invalid value '%v' parameter 'tfidf'", ptfidf)
 	}

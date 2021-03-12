@@ -148,7 +148,7 @@ func stringSliceToFloat64Slice(ar []string) []float64 {
 	var i int
 	for i, v = range ar {
 		f64, _ := strconv.ParseFloat(v, 64)
-		newar[i] = float64(f64)
+		newar[i] = f64
 	}
 	return newar
 }
