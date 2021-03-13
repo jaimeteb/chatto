@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,6 +21,7 @@ var (
 	Examples03PokemonPath = "../examples/03_pokemon/"
 	Examples04TriviaPath  = "../examples/04_trivia/"
 	Examples05SimplePath  = "../examples/05_simple/"
+	TestWordVectors       = "../internal/testutils/testvec"
 )
 
 // GetFreePort returns an available port to use
@@ -51,5 +53,13 @@ func RunGoExtension(t *testing.T, path, port string) {
 		if err := syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL); err != nil {
 			log.Error(err)
 		}
+	})
+}
+
+func GetTestWordVectors(skipOOV bool) (*wordvectors.VectorMap, error) {
+	return wordvectors.NewVectorMap(&wordvectors.Config{
+		WordVectorsFile: TestWordVectors,
+		Truncate:        1,
+		SkipOOV:         skipOOV,
 	})
 }
