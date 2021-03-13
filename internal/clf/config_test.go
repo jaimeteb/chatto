@@ -8,6 +8,7 @@ import (
 	"github.com/jaimeteb/chatto/internal/clf"
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
+	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
 	"github.com/jaimeteb/chatto/internal/testutils"
 )
 
@@ -45,6 +46,12 @@ func TestLoadConfig(t *testing.T) {
 					RemoveSymbols: true,
 					Lower:         true,
 					Threshold:     0.8,
+				},
+				Model: clf.ModelConfig{
+					Directory: "./model",
+					WordVectorsConfig: wordvectors.Config{
+						Truncate: 1.0,
+					},
 				},
 			},
 			wantErr: false,
