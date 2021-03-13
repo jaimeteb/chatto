@@ -29,7 +29,7 @@ func Pipeline(text string, pl *Config) []string {
 
 // RemoveSymbols removes symbols from string
 func RemoveSymbols(text string) string {
-	return removeSymbolRe.ReplaceAllString(text, " ")
+	return strings.TrimSpace(removeSymbolRe.ReplaceAllString(text, " "))
 }
 
 // Lower converts a string to lowercase

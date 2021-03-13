@@ -72,7 +72,7 @@ model:
   classifier: naive_bayes
   parameters:
     tfidf: false
-  directory: ./examples/01_moodbot/model/2
+  directory: ./examples/01_moodbot/model/
   load: false
 
   # classifier: knn

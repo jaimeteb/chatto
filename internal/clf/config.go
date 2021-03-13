@@ -42,6 +42,11 @@ func LoadConfig(path string, reloadChan chan Config) (*Config, error) {
 	config := viper.New()
 	config.SetConfigName("clf")
 	config.AddConfigPath(path)
+	config.SetDefault("pipeline.remove_symbols", true)
+	config.SetDefault("pipeline.lower", true)
+	config.SetDefault("pipeline.threshold", 0.1)
+	config.SetDefault("model.directory", "./model")
+	config.SetDefault("model.word_vectors.truncate", 1.0)
 
 	config.WatchConfig()
 	config.OnConfigChange(func(in fsnotify.Event) {

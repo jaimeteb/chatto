@@ -54,6 +54,8 @@ func NewClassifier(wordVecConfig wordvectors.Config, params map[string]interface
 	switch t := pk.(type) {
 	case int:
 		k = t
+	case nil:
+		break
 	default:
 		log.Errorf("Invalid value '%v' parameter 'k'", pk)
 	}

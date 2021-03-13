@@ -49,11 +49,13 @@ func NewClassifierFromFile(name string) (*Classifier, error) {
 
 // NewClassifier creates a KNN classifier with file data
 func NewClassifier(params map[string]interface{}) *Classifier {
-	var tfidf bool
+	tfidf := false
 	ptfidf := params["tfidf"]
 	switch t := ptfidf.(type) {
 	case bool:
 		tfidf = t
+	case nil:
+		break
 	default:
 		log.Errorf("Invalid value '%v' parameter 'tfidf'", ptfidf)
 	}
