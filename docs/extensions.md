@@ -2,6 +2,18 @@
 
 The extensions in Chatto are pieces of code that can be executed instead of messages, and can also alter the state of the conversation. In the **fsm.yml** file, the extensions are contained in the `extension` field, under `transitions`.
 
+You must specify what extension `server` to use (see [bot configuration](/botconfiguration)), and the `name` of the extension:
+
+```yaml
+  - from:
+      - search_pokemon
+    into: initial
+    command: any
+    extension:					# this transition will execute an extension
+      server: pokemon			# from the "pokemon" extension server
+      name: search_pokemon		# with the name "search_pokemon"
+```
+
 Extensions are executed as services, and can be written in Go, using the [`chatto/extensions`](https://godoc.org/github.com/jaimeteb/chatto/extensions) and [`chatto/query`](https://godoc.org/github.com/jaimeteb/chatto/query) packages, or they can be written in any language, as long as the services are compatible.
 
 ## Go
@@ -93,7 +105,7 @@ def greet_func(data: dict) -> dict:
 	})
 
 registered_extensions = {
-    "<any": greet_func,
+    "any": greet_func,
 }
 
 @app.route("/extensions", methods=["GET"])

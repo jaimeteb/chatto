@@ -31,6 +31,7 @@ The inspiration for this project originally came from [Flottbot](https://github.
 * [Usage](#usage)  
     * [CLI](#usagecli)
     * [Docker Compose](#usagecompose)
+    * [Kubernetes](#usagekubernetes)
     * [Import](#usageimport)
 * [Examples](#examples)  
 
@@ -267,6 +268,27 @@ docker-compose up -d chatto
 > The [extensions](/extensions) server has to be executed according to its language.<br><br>For this `docker-compose.yml` file, you'd have to build the Go extension first:<br><br>```go build -o data/ext/ext data/ext/ext.go```
 
 > The [extensions](/extensions) server has to be running before Chatto initializes.
+
+
+<a name="usagekubernetes"></a>
+### Kubernetes
+
+Under the `deploy/kubernetes` directory you can find an example deployment:
+
+| Kind       | Name                    | Description                                                   |
+|------------|-------------------------|---------------------------------------------------------------|
+| Secret     | `chatto-config-secrets` | Contains the tokens that Chatto will use for authorization    |
+| ConfigMap  | `chatto-config-envs`    | Contains the environment variables for the **bot.yml** file   |
+| ConfigMap  | `chatto-config-files`   | Contains the **clf.yml** and **fsm.yml** file                 |
+| Deployment | `chatto`                | Chatto deployment based on the `jaimeteb/chatto` Docker image |
+| Service    | `chatto-service`        | Service for the `chatto` deployment                           |
+| Ingress    | `chatto-ingress`        | Ingress for the `chatto-service` service                      |
+
+Run the following command to deploy on Kubernetes:
+
+```bash
+kubectl apply -f ./deploy/kubernetes/
+```
 
 <a name="usageimport"></a>
 ### Import

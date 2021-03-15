@@ -18,7 +18,9 @@ transitions:
       - "any"
     into: "initial"
     command: "hello_universe"
-    extension: "any"
+    extension:
+      server: "test"
+      name: "any"
 
 defaults:
   unknown: "Can't do that."

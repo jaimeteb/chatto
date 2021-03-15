@@ -20,7 +20,7 @@ type Bot struct {
 	Store      fsmint.Store
 	Domain     *fsm.Domain
 	Classifier *clf.Classifier
-	Extension  extension.Extension
+	Extensions extension.ServerMap
 	Channels   *channels.Channels
 	Config     *Config
 	Router     *mux.Router
@@ -68,12 +68,12 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 
 	log.Debugf("FSM | State transitioned from '%d' -> '%d'", previousState, machine.State)
 
-	if ext != "" {
-		if b.Extension == nil {
-			return nil, &ErrUnknownExtension{Extension: ext}
+	if ext != nil {
+		if _, ok := b.Extensions[ext.Server]; !ok {
+			return nil, &ErrUnknownExtension{Extension: ext.Server}
 		}
 
-		answers, err = b.Extension.ExecuteExtension(receiveMsg.Question, ext, receiveMsg.Channel, b.Domain, machine)
+		answers, err = b.Extensions[ext.Server].ExecuteExtension(receiveMsg.Question, ext.Name, receiveMsg.Channel, b.Domain, machine)
 		if err != nil {
 			return nil, err
 		}

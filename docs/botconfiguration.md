@@ -3,11 +3,12 @@
 The **bot.yml** file is used to configure the name of the bot, how and where the extensions will be consumed, how will the FSMs be stored, and when to reply with defaults.
 
 ```yaml
-bot_name: "test_bot"
+bot_name: "my_bot"
 
 extensions:
-  type: REST
-  url: http://localhost:8770
+  my_server:
+    type: REST
+    url: http://localhost:8770
 
 store:
   type: REDIS
@@ -17,6 +18,43 @@ store:
 
 ## Extensions
 
+You can have multiple extension servers, each with its own type (`REST` or `RPC`). An alias is used to identify each extension server, and to reference it in the **fsm.yml** file (see [extensions](/extensions)).
+
+For example:
+
+```yaml
+# bot.yml
+extensions:
+  my_rest_server:                 # this server will be referenced as
+    type: REST                    # "my_rest_server" in the fsm.yml file
+    url: http://localhost:8770
+
+  my_rpc_server:                  # this server will be referenced as
+    type: RPC                     # "my_rpc_server" in the fsm.yml file
+    host: localhost
+    port: 8770
+```
+
+```yaml
+# fsm.yml
+transitions:
+  - from:
+      - initial
+    into: another_state
+    command: foo
+    extension:                    # this transition will execute the
+      server: my_rest_server      # extension "foo_extension" from the
+      name: foo_extension         # "my_rest_server" extension server
+
+  - from:
+      - initial
+    into: another_state
+    command: bar
+    extension:                    # this transition will execute the
+      server: my_rpc_server       # extension "bar_extension" from the 
+      name: bar_extension         # "my_bar_server" extension server
+```
+
 To configure the extensions, the following parameters are required for `RPC` and `REST` types respectively:
 
 * For type **`RPC`**:
@@ -24,19 +62,17 @@ To configure the extensions, the following parameters are required for `RPC` and
     * Port
 
     ```yaml
-    extensions:
-      type: RPC
-      host: localhost
-      port: 8770
+    type: RPC
+    host: localhost
+    port: 8770
     ```
   
 * For type **`REST`**:
     * URL
     
     ```yaml
-    extensions:
-      type: REST
-      url: http://localhost:8770
+    type: REST
+    url: http://localhost:8770
     ```
 
 ## Store
@@ -64,8 +100,8 @@ In order to use Redis, provide the following values:
 
 * Host
 * Password
-* Port (will default to 6379)
-* TTL (will default to -1)
+* Port (will default to `6379`)
+* TTL (will default to `-1`)
 
 ```yaml
 store:
@@ -80,14 +116,15 @@ You can leave the values empty and set them with environment variables (with the
 
 ```yaml
 extensions:
-  type: RPC
-  host:         # CHATTO_BOT_EXTENSIONS_HOST=localhost
-  port:         # CHATTO_BOT_EXTENSIONS_PORT=8770
+  my_server:
+    type: RPC
+    host:         # CHATTO_BOT_EXTENSIONS_MY_SERVER_HOST=localhost
+    port:         # CHATTO_BOT_EXTENSIONS_MY_SERVER_PORT=8770
 
 store:
   type: REDIS
-  host:         # CHATTO_BOT_STORE_HOST=localhost
-  password:     # CHATTO_BOT_STORE_PASSWORD=pass
+  host:           # CHATTO_BOT_STORE_HOST=localhost
+  password:       # CHATTO_BOT_STORE_PASSWORD=pass
 ```
 
 ## Default messages per conversation
