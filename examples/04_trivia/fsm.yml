@@ -15,7 +15,9 @@ transitions:
       - question_1
     into: question_2
     command: any
-    extension: val_ans_1
+    extension:
+      server: trivia
+      name: val_ans_1
     slot:
       name: answer_1
       mode: regex
@@ -25,7 +27,9 @@ transitions:
       - question_2
     into: question_3
     command: any
-    extension: val_ans_2
+    extension:
+      server: trivia
+      name: val_ans_2
     slot:
       name: answer_2
       mode: regex
@@ -35,7 +39,9 @@ transitions:
       - question_3
     into: initial
     command: any
-    extension: score
+    extension:
+      server: trivia
+      name: score
     slot:
       name: answer_3
       mode: regex

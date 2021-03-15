@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"testing"
@@ -62,4 +64,16 @@ func GetTestWordVectors(skipOOV bool) (*wordvectors.VectorMap, error) {
 		Truncate:        1,
 		SkipOOV:         skipOOV,
 	})
+}
+
+func RemoveGobFiles() {
+	files, err := filepath.Glob("./**/**.gob")
+	if err != nil {
+		log.Error(err)
+	}
+	for _, f := range files {
+		if err := os.Remove(f); err != nil {
+			log.Error(err)
+		}
+	}
 }

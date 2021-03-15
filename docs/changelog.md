@@ -1,5 +1,69 @@
 # Changelog
 
+## v0.8.1
+
+* Add K-Nearest Neighbors classifier with [fastText](https://fasttext.cc/docs/en/pretrained-vectors.html) sentence-wise average word vectors as features.
+	* Truncate word vectors to a certain percentage.
+	* Optionally skip out-of-vocabulary words.
+* Add Tf-Idf option for Naïve Bayes classifier.
+* Load and/or save models from files.
+
+Example `model` object in **clf.yml** file:
+
+```yaml
+model:
+  classifier: knn
+  parameters:
+    k: 5
+  directory: ./model
+  save: true
+  load: false
+  word_vectors:
+    file_name: ./model/wiki.en.vec
+    truncate: 0.01
+    skip_oov: true
+```
+
+---
+## v0.8.0
+
+* Multiple extension servers.
+	* An alias for each extension server must be specified in **bot.yml**.
+	* A server name and an extension name are required when using extensions in **fsm.yml**.
+
+		```yaml
+      	# bot.yml
+      	extensions:
+		  my_rest_server:                 # this server will be referenced as
+		    type: REST                    # "my_rest_server" in the fsm.yml file
+		    url: http://localhost:8770
+
+		  my_rpc_server:                  # this server will be referenced as
+			type: RPC                     # "my_rpc_server" in the fsm.yml file
+			host: localhost
+			port: 8770
+		```
+
+		```yaml
+		# fsm.yml
+		transitions:
+		  - from:
+			  - initial
+			into: another_state
+			command: foo
+			extension:                    # this transition will execute the
+			  server: my_rest_server      # extension "foo_extension" from the
+			  name: foo_extension         # "my_rest_server" extension server
+
+		  - from:
+			  - initial
+			into: another_state
+			command: bar
+			extension:                    # this transition will execute the
+			  server: my_rpc_server       # extension "bar_extension" from the 
+			  name: bar_extension         # "my_bar_server" extension server
+		```
+
 ---
 ## v0.7.1
 

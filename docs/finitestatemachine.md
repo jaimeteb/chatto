@@ -80,7 +80,9 @@ Also, the special command **any** is used to transition between states, regardle
       - search_pokemon
     into: initial
     command: any
-    extension: search_pokemon
+    extension:
+      server: pokemon
+      name: search_pokemon
 ```
 
 ## Default Messages
@@ -109,7 +111,9 @@ You can save information from the user's input by using `slot` objects. In the *
       - question_1
     into: question_2
     command: any
-    extension: val_ans_1
+    extension:
+      server: trivia
+      name: val_ans_1
     slot:
       name: answer_1
       mode: whole_text

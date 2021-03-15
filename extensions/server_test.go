@@ -90,14 +90,14 @@ func TestExtension_ListenerREST_GetBuildVersion(t *testing.T) {
 				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
-					t.Errorf("Extension.ListenerREST.GetBuildVersion() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
+					t.Errorf("Extensions.ListenerREST.GetBuildVersion() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
 					return
 				}
 				return
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Extension.ListenerREST.GetBuildVersion() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Extensions.ListenerREST.GetBuildVersion() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}
@@ -165,14 +165,14 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
-					t.Errorf("Extension.ListenerREST.GetAllExtensions() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
+					t.Errorf("Extensions.ListenerREST.GetAllExtensions() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
 					return
 				}
 				return
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Extension.ListenerREST.GetAllExtensions() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Extensions.ListenerREST.GetAllExtensions() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}
@@ -265,14 +265,14 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
-					t.Errorf("Extension.ListenerREST.ExecuteExtension() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
+					t.Errorf("Extensions.ListenerREST.ExecuteExtension() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
 					return
 				}
 				return
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Extension.ListenerREST.ExecuteExtension() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Extensions.ListenerREST.ExecuteExtension() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}

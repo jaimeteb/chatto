@@ -1,4 +1,5 @@
 extensions:
-  type: RPC
-  host: localhost
-  port: 8770
+  pokemon:
+    type: RPC
+    host: localhost
+    port: 8770

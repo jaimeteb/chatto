@@ -98,13 +98,15 @@ func New(config *Config) *Classifier {
 		log.Info("Training model...")
 		acc := model.Learn(config.Classification, &pipe)
 		log.Debugf("Model training accuracy: %0.2f", acc)
-		// Check for directory to save
-		makeDir(config.Model.Directory)
-		// Save model
-		if err := model.Save(config.Model.Directory); err != nil {
-			log.Error("Failed to save model:", err)
-		} else {
-			log.Info("Model saved successfully.")
+		if config.Model.Save {
+			// Check for directory to save
+			makeDir(config.Model.Directory)
+			// Save model
+			if err := model.Save(config.Model.Directory); err != nil {
+				log.Error("Failed to save model:", err)
+			} else {
+				log.Info("Model saved successfully.")
+			}
 		}
 	}
 

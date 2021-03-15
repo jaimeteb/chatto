@@ -25,4 +25,5 @@ func TestClfPredictions(t *testing.T) {
 	if pred2 != "" {
 		t.Errorf("pred is incorrect, got: %v, want: %v.", pred2, "")
 	}
+	t.Cleanup(testutils.RemoveGobFiles)
 }

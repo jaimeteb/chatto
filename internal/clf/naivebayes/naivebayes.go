@@ -7,6 +7,7 @@ import (
 
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
+	"github.com/mitchellh/mapstructure"
 	"github.com/navossoc/bayesian"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,6 +22,11 @@ type Classifier struct {
 	Model   *bayesian.Classifier
 	Classes []bayesian.Class
 	TfIdf   bool
+}
+
+// Parameters represents the model hyperparameters
+type Parameters struct {
+	TfIdf bool `mapstructure:"tfidf"`
 }
 
 func (c *Classifier) SaveToFile(name string) error {
@@ -49,19 +55,20 @@ func NewClassifierFromFile(name string) (*Classifier, error) {
 
 // NewClassifier creates a KNN classifier with file data
 func NewClassifier(params map[string]interface{}) *Classifier {
-	tfidf := false
-	ptfidf := params["tfidf"]
-	switch t := ptfidf.(type) {
-	case bool:
-		tfidf = t
-	case nil:
-		break
-	default:
-		log.Errorf("Invalid value '%v' parameter 'tfidf'", ptfidf)
+	decParams := &Parameters{
+		TfIdf: false,
+	}
+
+	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   decParams,
+	})
+	if err != nil || dec.Decode(params) != nil {
+		log.Errorf("Could not parse parameters: %v", err)
 	}
 
 	return &Classifier{
-		TfIdf: tfidf,
+		TfIdf: decParams.TfIdf,
 	}
 }
 

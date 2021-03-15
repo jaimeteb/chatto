@@ -73,12 +73,14 @@ model:
   parameters:
     tfidf: false
   directory: ./examples/01_moodbot/model/
+  save: true
   load: false
 
   # classifier: knn
   # parameters:
   #   k: 5
   # directory: ./examples/01_moodbot/model
+  # save: false
   # load: true
   # word_vectors:
   #   file_name: ./examples/01_moodbot/model/wiki.en.vec

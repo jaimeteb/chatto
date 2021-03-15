@@ -30,6 +30,9 @@ type ModelConfig struct {
 	// Directory is the path to the saved model files
 	Directory string `mapstructure:"directory"`
 
+	// Whether to save the trained model or not
+	Save bool `mapstructure:"save"`
+
 	// Whether to load the saved model or not
 	Load bool `mapstructure:"load"`
 

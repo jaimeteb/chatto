@@ -10,7 +10,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Config options for an extension function
+// ConfigMap of extension server names to their configs
+type ConfigMap map[string]Config
+
+// Config contains all the require parameters
+// to communicate with an extension
 type Config struct {
 	Type  string `mapstructure:"type"`
 	Host  string `mapstructure:"host"`
@@ -19,74 +23,91 @@ type Config struct {
 	Token string `mapstructure:"token"`
 }
 
-// New loads the extension configuration and connects to the server
-func New(extCfg Config) (Extension, error) {
-	var extension Extension
-
-	switch extCfg.Type {
-	case "RPC":
-		maxTries := 3
-		backOff := 1 * time.Second
-		var tries int
-		var client *rpc.Client
-		var err error
-		for {
-			client, err = rpc.Dial("tcp", fmt.Sprintf("%s:%d", extCfg.Host, extCfg.Port))
-			if err != nil {
-				switch err.(type) {
-				case *net.OpError:
-					if tries > maxTries {
-						return nil, err
-					}
-
-					tries++
-
-					time.Sleep(backOff)
-
-					continue
-				default:
+func dialRPC(host string, port int) (*rpc.Client, error) {
+	maxTries := 3
+	backOff := 1 * time.Second
+	var tries int
+	var client *rpc.Client
+	var err error
+	for {
+		client, err = rpc.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
+		if err != nil {
+			switch err.(type) {
+			case *net.OpError:
+				if tries > maxTries {
 					return nil, err
 				}
+
+				tries++
+
+				time.Sleep(backOff)
+
+				continue
+			default:
+				return nil, err
 			}
-
-			break
 		}
 
-		rpcExtension := &RPC{client}
-
-		allFuncs, err := rpcExtension.GetAllExtensions()
-		if err != nil {
-			return nil, err
-		}
-
-		log.Info("Loaded extensions (RPC):")
-		for i, fun := range allFuncs {
-			log.Infof("%2d %v", i, fun)
-		}
-
-		extension = rpcExtension
-	case "REST":
-		retryClient := retryablehttp.NewClient()
-		retryClient.Logger = nil
-
-		restExtention := &REST{URL: extCfg.URL, http: retryClient, token: extCfg.Token}
-
-		allFuncs, err := restExtention.GetAllExtensions()
-		if err != nil {
-			return nil, err
-		}
-
-		log.Info("Loaded extensions (REST):")
-		for i, fun := range allFuncs {
-			log.Infof("%2d %v", i, fun)
-		}
-
-		extension = restExtention
+		break
 	}
 
-	if extension == nil {
+	return client, nil
+}
+
+// New loads the extension configuration and connects to the server
+func New(extCfg ConfigMap) (ServerMap, error) {
+	extensionMap := make(ServerMap)
+
+	for server, config := range extCfg {
+		switch config.Type {
+		case "RPC":
+			client, err := dialRPC(config.Host, config.Port)
+			if err != nil {
+				log.Errorf("unable to get rpc extensions for '%s:%d': %s", config.Host, config.Port, err)
+				continue
+			}
+
+			rpcExtension := &RPC{client}
+
+			_, err = rpcExtension.GetAllExtensions()
+			if err != nil {
+				log.Errorf("unable to get rpc extensions for '%s:%d': %s", config.Host, config.Port, err)
+				continue
+			}
+
+			addErr := extensionMap.Add(server, rpcExtension)
+			if addErr != nil {
+				return nil, addErr
+			}
+		case "REST":
+			retryClient := retryablehttp.NewClient()
+			retryClient.Logger = nil
+
+			restExtension := &REST{URL: config.URL, http: retryClient, token: config.Token}
+
+			_, err := restExtension.GetAllExtensions()
+			if err != nil {
+				log.Errorf("unable to get rest extensions for '%s:%d': %s", config.URL, config.Port, err)
+				continue
+			}
+
+			addErr := extensionMap.Add(server, restExtension)
+			if addErr != nil {
+				return nil, addErr
+			}
+		default:
+			return nil, fmt.Errorf("invalid extension type: %s", config.Type)
+		}
+	}
+
+	log.Info("Loaded extensions:")
+	for name := range extensionMap {
+		log.Infof("%s", name)
+	}
+
+	if len(extensionMap) == 0 {
 		log.Info("Using bot without extensions.")
 	}
 
-	return extension, nil
+	return extensionMap, nil
 }
