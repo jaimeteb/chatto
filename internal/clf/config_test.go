@@ -6,6 +6,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jaimeteb/chatto/internal/clf"
+	"github.com/jaimeteb/chatto/internal/clf/dataset"
+	"github.com/jaimeteb/chatto/internal/clf/pipeline"
+	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
 	"github.com/jaimeteb/chatto/internal/testutils"
 )
 
@@ -23,7 +26,7 @@ func TestLoadConfig(t *testing.T) {
 			name: "test loading config from valid path",
 			args: args{path: "../" + testutils.Examples05SimplePath},
 			want: &clf.Config{
-				Classification: []clf.TrainingTexts{
+				Classification: dataset.DataSet{
 					{
 						Command: "turn_on",
 						Texts: []string{
@@ -39,10 +42,16 @@ func TestLoadConfig(t *testing.T) {
 						},
 					},
 				},
-				Pipeline: clf.PipelineConfig{
+				Pipeline: pipeline.Config{
 					RemoveSymbols: true,
 					Lower:         true,
 					Threshold:     0.8,
+				},
+				Model: clf.ModelConfig{
+					Directory: "./model",
+					WordVectorsConfig: wordvectors.Config{
+						Truncate: 1.0,
+					},
 				},
 			},
 			wantErr: false,

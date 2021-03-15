@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"testing"
 
+	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,6 +23,7 @@ var (
 	Examples03PokemonPath = "../examples/03_pokemon/"
 	Examples04TriviaPath  = "../examples/04_trivia/"
 	Examples05SimplePath  = "../examples/05_simple/"
+	TestWordVectors       = "../internal/testutils/testvec"
 )
 
 // GetFreePort returns an available port to use
@@ -52,4 +56,24 @@ func RunGoExtension(t *testing.T, path, port string) {
 			log.Error(err)
 		}
 	})
+}
+
+func GetTestWordVectors(skipOOV bool) (*wordvectors.VectorMap, error) {
+	return wordvectors.NewVectorMap(&wordvectors.Config{
+		WordVectorsFile: TestWordVectors,
+		Truncate:        1,
+		SkipOOV:         skipOOV,
+	})
+}
+
+func RemoveGobFiles() {
+	files, err := filepath.Glob("./**/**.gob")
+	if err != nil {
+		log.Error(err)
+	}
+	for _, f := range files {
+		if err := os.Remove(f); err != nil {
+			log.Error(err)
+		}
+	}
 }

@@ -23,7 +23,7 @@ var ErrValidationFailed error = errors.New("the callback token is invalid")
 type Prediction struct {
 	Original    string  `json:"original"`
 	Predicted   string  `json:"predicted"`
-	Probability float64 `json:"probability"`
+	Probability float32 `json:"probability"`
 }
 
 func (b *Bot) restChannelHandler(w http.ResponseWriter, r *http.Request) {
@@ -179,7 +179,7 @@ func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inputText := question.Text
-	prediction, prob := b.Classifier.Predict(inputText)
+	prediction, prob := b.Classifier.Model.Predict(inputText, b.Classifier.Pipeline)
 	answer := Prediction{inputText, prediction, prob}
 
 	js, err := json.Marshal(answer)

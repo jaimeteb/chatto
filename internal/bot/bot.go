@@ -34,7 +34,7 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 		b.Store.Set(receiveMsg.Conversation(), fsm.NewFSM())
 	}
 
-	cmd, _ := b.Classifier.Predict(receiveMsg.Question.Text)
+	cmd, _ := b.Classifier.Model.Predict(receiveMsg.Question.Text, b.Classifier.Pipeline)
 
 	machine := b.Store.Get(receiveMsg.Conversation())
 

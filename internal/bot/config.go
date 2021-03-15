@@ -81,6 +81,7 @@ func LoadConfig(path string, port int) (*Config, error) {
 	config.AutomaticEnv()
 	config.SetEnvPrefix("CHATTO_BOT")
 	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	config.SetDefault("bot_name", "chatto")
 	config.SetDefault("conversation.new.reply_unsure", true)
 	config.SetDefault("conversation.new.reply_unknown", true)
 	config.SetDefault("conversation.new.reply_error", true)

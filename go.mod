@@ -20,6 +20,7 @@ require (
 	github.com/kevinburke/rest v0.0.0-20210106114233-22cd0577e450 // indirect
 	github.com/kevinburke/twilio-go v0.0.0-20210106192831-51cae4e2b9d8
 	github.com/kimrgrey/go-telegram v0.0.0-20170122230828-955a999278a2
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/navossoc/bayesian v0.0.0-20171203014413-18fc5ea11e24
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.7.0
