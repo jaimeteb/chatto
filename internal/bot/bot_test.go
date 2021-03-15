@@ -372,10 +372,13 @@ func TestBot_Run(t *testing.T) {
 	}
 
 	go b.Run()
+	t.Cleanup(testutils.RemoveGobFiles)
 }
 
 func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannels.MockChannel,
 	*mockchannels.MockChannel, *mockchannels.MockChannel, error) {
+	t.Cleanup(testutils.RemoveGobFiles)
+
 	botConfig := &bot.Config{
 		Name:       "chatto",
 		Extensions: extension.Config{},
