@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.8.1
+
+* Add K-Nearest Neighbors classifier with [fastText](https://fasttext.cc/docs/en/pretrained-vectors.html) sentence-wise average word vectors as features.
+	* Truncate word vectors to a certain percentage.
+	* Optionally skip out-of-vocabulary words.
+* Add Tf-Idf option for Naïve Bayes classifier.
+* Load and/or save models from files.
+
+Example `model` object in **clf.yml** file:
+
+```yaml
+model:
+  classifier: knn
+  parameters:
+    k: 5
+  directory: ./model
+  save: true
+  load: false
+  word_vectors:
+    file_name: ./model/wiki.en.vec
+    truncate: 0.01
+    skip_oov: true
+```
+
 ---
 ## v0.8.0
 
