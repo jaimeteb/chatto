@@ -63,10 +63,8 @@ func NewClassifier(params map[string]interface{}) *Classifier {
 		Metadata: nil,
 		Result:   decParams,
 	})
-	if err != nil {
+	if err != nil || dec.Decode(params) != nil {
 		log.Errorf("Could not parse parameters: %v", err)
-	} else {
-		dec.Decode(params)
 	}
 
 	return &Classifier{

@@ -76,21 +76,7 @@ var clfFile string = `classification:
       - "no way"
 `
 
-var fsmFile string = `states:
-  - "initial"
-  - "ask_mood"
-  - "say_good"
-  - "say_bad"
-  - "say_bye"
-
-commands:
-  - "greet"
-  - "good"
-  - "bad"
-  - "yes"
-  - "no"
-
-transitions:
+var fsmFile string = `transitions:
   - from:
       - initial
     into: ask_mood

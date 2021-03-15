@@ -63,10 +63,8 @@ func NewClassifier(wordVecConfig wordvectors.Config, params map[string]interface
 		Metadata: nil,
 		Result:   decParams,
 	})
-	if err != nil {
+	if err != nil || dec.Decode(params) != nil {
 		log.Errorf("Could not parse parameters: %v", err)
-	} else {
-		dec.Decode(params)
 	}
 
 	// Generate VectorMap
