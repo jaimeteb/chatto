@@ -8,6 +8,7 @@ import (
 	"github.com/jaimeteb/chatto/internal/clf/dataset"
 	"github.com/jaimeteb/chatto/internal/clf/pipeline"
 	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,6 +22,11 @@ type Classifier struct {
 	KNN       *KNN
 	VectorMap *wordvectors.VectorMap
 	K         int
+}
+
+// Parameters represents the model hyperparameters
+type Parameters struct {
+	K int `mapstructure:"k"`
 }
 
 func (c *Classifier) SaveToFile(name string) error {
@@ -49,15 +55,18 @@ func NewClassifierFromFile(name string) (*Classifier, error) {
 
 // NewClassifier creates a KNN classifier with truncate and file data
 func NewClassifier(wordVecConfig wordvectors.Config, params map[string]interface{}) *Classifier {
-	k := 1
-	pk := params["k"]
-	switch t := pk.(type) {
-	case int:
-		k = t
-	case nil:
-		break
-	default:
-		log.Errorf("Invalid value '%v' parameter 'k'", pk)
+	decParams := &Parameters{
+		K: 1,
+	}
+
+	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   decParams,
+	})
+	if err != nil {
+		log.Errorf("Could not parse parameters: %v", err)
+	} else {
+		dec.Decode(params)
 	}
 
 	// Generate VectorMap
@@ -68,7 +77,7 @@ func NewClassifier(wordVecConfig wordvectors.Config, params map[string]interface
 
 	return &Classifier{
 		VectorMap: emb,
-		K:         k,
+		K:         decParams.K,
 	}
 }
 
