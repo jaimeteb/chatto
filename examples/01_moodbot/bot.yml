@@ -5,3 +5,4 @@ store:
   user: root
   password: root
   database: chatto
+  ttl: 20

@@ -159,7 +159,11 @@ func NewSQLStore(cfg *StoreConfig) (*SQLStore, error) {
 		return nil, errors.New("No RDBMS specified for SQL connection.")
 	}
 	db.AutoMigrate(&FSMORM{})
-	return &SQLStore{db}, nil
+	sqlStore := &SQLStore{db}
+	if cfg.TTL > 0 && cfg.Purge > 0 {
+		go sqlStore.runPurge(cfg.Purge, cfg.TTL)
+	}
+	return sqlStore, nil
 }
 
 // Exists for CacheStoreFSM
@@ -210,6 +214,17 @@ func (s *SQLStore) Set(user string, m *fsm.FSM) {
 	machine.Slots = slotsToJsonString(m.Slots)
 	if res := s.DB.Save(&machine); res.Error != nil {
 		log.Error(res.Error)
+	}
+}
+
+func (s *SQLStore) runPurge(purge, ttl int) {
+	ticker := time.NewTicker(time.Duration(purge) * time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			expired := time.Now().Add(-time.Duration(ttl) * time.Second)
+			s.DB.Where("updated_at < ?", expired).Delete(&FSMORM{})
+		}
 	}
 }
 
