@@ -1,0 +1,7 @@
+store:
+  type: sql
+  rdbms: mysql
+  host: localhost
+  user: root
+  password: root
+  database: chatto

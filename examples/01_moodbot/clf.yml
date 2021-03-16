@@ -65,9 +65,6 @@ classification:
       - "don't like that"
       - "no way"
 
-pipeline:
-  threshold: 0.6
-
 model:
   classifier: naive_bayes
   parameters:
