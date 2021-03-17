@@ -1,7 +1,5 @@
 package redis
 
-//go:generate mockgen -source=redis.go -destination=mockredis/mockredis.go -package=mockredis
-
 import (
 	"context"
 	"fmt"
