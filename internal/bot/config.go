@@ -8,6 +8,8 @@ import (
 	"github.com/jaimeteb/chatto/internal/clf"
 	"github.com/jaimeteb/chatto/internal/extension"
 	"github.com/jaimeteb/chatto/internal/fsm"
+	store "github.com/jaimeteb/chatto/internal/fsm/store"
+	"github.com/jaimeteb/chatto/internal/fsm/store/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -36,7 +38,7 @@ type Auth struct {
 type Config struct {
 	Name         string              `mapstructure:"bot_name"`
 	Extensions   extension.ConfigMap `mapstructure:"extensions"`
-	Store        fsm.StoreConfig     `mapstructure:"store"`
+	Store        config.StoreConfig  `mapstructure:"store"`
 	Port         int                 `mapstructure:"port"`
 	Path         string
 	Conversation Conversation `mapstructure:"conversation"`
@@ -123,7 +125,7 @@ func loadName(name string) string {
 func New(botConfig *Config) (*Bot, error) {
 	b := &Bot{
 		Name:   loadName(botConfig.Name),
-		Store:  fsm.NewStore(&botConfig.Store),
+		Store:  store.New(&botConfig.Store),
 		Config: botConfig,
 	}
 

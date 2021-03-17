@@ -9,7 +9,7 @@ import (
 	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/internal/clf"
 	"github.com/jaimeteb/chatto/internal/extension"
-	fsmint "github.com/jaimeteb/chatto/internal/fsm"
+	store "github.com/jaimeteb/chatto/internal/fsm/store"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,7 +17,7 @@ import (
 // Bot models a bot with a Classifier and an FSM
 type Bot struct {
 	Name       string
-	Store      fsmint.Store
+	Store      store.Store
 	Domain     *fsm.Domain
 	Classifier *clf.Classifier
 	Extensions extension.ServerMap
