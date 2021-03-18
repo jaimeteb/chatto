@@ -1,12 +1,64 @@
-package main
+package cmd
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/spf13/cobra"
 )
+
+var (
+	initPath string
+)
+
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize a Chatto project.",
+	Long: `Create some of the Chatto configuration files.
+You can modify the initial project or play with it.`,
+	Run: chattoInit,
+}
+
+func init() {
+	rootCmd.AddCommand(initCmd)
+
+	initCmd.Flags().StringVarP(&initPath, "path", "p", ".", "Where to write initial files")
+}
+
+func chattoInit(cmd *cobra.Command, args []string) {
+	if chattoPath != "." {
+		if _, err := os.Stat(chattoPath); os.IsNotExist(err) {
+			if err := os.MkdirAll(path.Join(chattoPath), 0755); err != nil {
+				fmt.Printf("Couldn't create directory: %v", err)
+				return
+			}
+		}
+		if _, err := os.Stat(path.Join(chattoPath, "ext")); os.IsNotExist(err) {
+			if err := os.MkdirAll(path.Join(chattoPath, "ext"), 0755); err != nil {
+				fmt.Printf("Couldn't create directory: %v", err)
+				return
+			}
+		}
+	}
+
+	fileMap := map[string]string{
+		"clf.yml":     clfFile,
+		"fsm.yml":     fsmFile,
+		"bot.yml":     botFile,
+		"chn.yml":     chnFile,
+		"ext/main.go": extFile,
+	}
+
+	for fileName, fileContent := range fileMap {
+		if err := ioutil.WriteFile(path.Join(chattoPath, fileName), []byte(fileContent), 0600); err != nil {
+			fmt.Printf("Couldn't write %s file: %v\n", fileName, err)
+			return
+		}
+	}
+	fmt.Println("Initial project files written successfully.")
+}
 
 var clfFile string = `classification:
   - command: "greet"
@@ -173,39 +225,3 @@ slack:
   token:
   app_token:
 `
-
-func main() {
-	filePath := flag.String("path", ".", "Where to write initial files.")
-	flag.Parse()
-
-	if *filePath != "." {
-		if _, err := os.Stat(*filePath); os.IsNotExist(err) {
-			if err := os.MkdirAll(*filePath, 0755); err != nil {
-				fmt.Printf("Couldn't create directory: %v", err)
-				return
-			}
-		}
-		if _, err := os.Stat(path.Join(*filePath, "ext")); os.IsNotExist(err) {
-			if err := os.MkdirAll(path.Join(*filePath, "ext"), 0755); err != nil {
-				fmt.Printf("Couldn't create directory: %v", err)
-				return
-			}
-		}
-	}
-
-	fileMap := map[string]string{
-		"clf.yml":     clfFile,
-		"fsm.yml":     fsmFile,
-		"bot.yml":     botFile,
-		"chn.yml":     chnFile,
-		"ext/main.go": extFile,
-	}
-
-	for fileName, fileContent := range fileMap {
-		if err := ioutil.WriteFile(path.Join(*filePath, fileName), []byte(fileContent), 0600); err != nil {
-			fmt.Printf("Couldn't write %s file: %v\n", fileName, err)
-			return
-		}
-	}
-	fmt.Println("Initial project files written successfully.")
-}
