@@ -9,7 +9,7 @@ import (
 	"github.com/jaimeteb/chatto/internal/extension"
 	"github.com/jaimeteb/chatto/internal/fsm"
 	store "github.com/jaimeteb/chatto/internal/fsm/store"
-	"github.com/jaimeteb/chatto/internal/fsm/store/config"
+	storeconfig "github.com/jaimeteb/chatto/internal/fsm/store/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -36,10 +36,10 @@ type Auth struct {
 
 // Config struct models the bot.yml configuration file
 type Config struct {
-	Name         string              `mapstructure:"bot_name"`
-	Extensions   extension.ConfigMap `mapstructure:"extensions"`
-	Store        config.StoreConfig  `mapstructure:"store"`
-	Port         int                 `mapstructure:"port"`
+	Name         string                  `mapstructure:"bot_name"`
+	Extensions   extension.ConfigMap     `mapstructure:"extensions"`
+	Store        storeconfig.StoreConfig `mapstructure:"store"`
+	Port         int                     `mapstructure:"port"`
 	Path         string
 	Conversation Conversation `mapstructure:"conversation"`
 	Auth         Auth         `mapstructure:"auth"`

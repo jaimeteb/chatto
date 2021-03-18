@@ -40,10 +40,10 @@ func TestRedisStore(t *testing.T) {
 	})
 
 	switch machines.(type) {
-	case *redis.RedisStore:
+	case *redis.Store:
 		break
 	default:
-		t.Error("incorrect, want: *RedisStore")
+		t.Error("incorrect, want: *redis.Store")
 	}
 
 	if resp1 := machines.Exists("foo"); resp1 != false {
@@ -80,9 +80,9 @@ func TestRedisStoreFail(t *testing.T) {
 		Password: "foo",
 	})
 	switch machines.(type) {
-	case *cache.CacheStore:
+	case *cache.Store:
 		break
 	default:
-		t.Error("incorrect, want: *CacheStore")
+		t.Error("incorrect, want: *cache.Store")
 	}
 }

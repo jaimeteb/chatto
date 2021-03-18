@@ -61,7 +61,7 @@ func TestStore_Exists(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &sql.SQLStore{tt.fields.dbClient}
+			s := &sql.Store{tt.fields.dbClient}
 			if got := s.Exists(tt.args.user); got != tt.want {
 				t.Errorf("Store.Exists() = %v, want %v", got, tt.want)
 			}
@@ -113,7 +113,7 @@ func TestStore_Get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &sql.SQLStore{tt.fields.dbClient}
+			s := &sql.Store{tt.fields.dbClient}
 			if got := s.Get(tt.args.user); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Store.Get() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
@@ -168,7 +168,7 @@ func TestStore_Set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &sql.SQLStore{tt.fields.dbClient}
+			s := &sql.Store{tt.fields.dbClient}
 			s.Set(tt.args.user, tt.args.fsm)
 		})
 	}

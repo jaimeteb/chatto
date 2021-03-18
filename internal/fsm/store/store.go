@@ -35,28 +35,28 @@ func New(cfg *config.StoreConfig) Store {
 
 	switch strings.ToLower(cfg.Type) {
 	case "redis":
-		redisStore, err := redis.NewRedisStore(cfg)
+		redisStore, err := redis.NewStore(cfg)
 		if err != nil {
 			log.Errorf("Error: %v", err)
 			log.Warn("Couldn't connect to Redis, using CacheStoreFSM instead")
-			machines = cache.NewCacheStore(cfg)
+			machines = cache.NewStore(cfg)
 		} else {
 			log.Info("Connected to RedisStoreFSM")
 			machines = redisStore
 		}
 	case "sql":
-		sqlStore, err := sql.NewSQLStore(cfg)
+		sqlStore, err := sql.NewStore(cfg)
 		if err != nil {
 			log.Errorf("Error: %v", err)
 			log.Warn("Couldn't connect to SQL database, using CacheStoreFSM instead")
-			machines = cache.NewCacheStore(cfg)
+			machines = cache.NewStore(cfg)
 		} else {
 			log.Info("Connected to SQLStoreFSM")
 			machines = sqlStore
 		}
 	default:
 		log.Info("Connected to CacheStoreFSM")
-		machines = cache.NewCacheStore(cfg)
+		machines = cache.NewStore(cfg)
 	}
 	return machines
 }

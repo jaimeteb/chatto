@@ -25,13 +25,13 @@ type FSMORM struct {
 	Slots string
 }
 
-func slotsToJsonString(slots map[string]string) string {
-	if bytes, err := json.Marshal(slots); err != nil {
+func slotsToJSONString(slots map[string]string) string {
+	bytes, err := json.Marshal(slots)
+	if err != nil {
 		log.Error(err)
 		return "{}"
-	} else {
-		return string(bytes)
 	}
+	return string(bytes)
 }
 
 func jsonStringToSlots(jsonStr string) map[string]string {
@@ -43,8 +43,8 @@ func jsonStringToSlots(jsonStr string) map[string]string {
 	return slots
 }
 
-// SQLStore models a SQL store for FSM
-type SQLStore struct {
+// Store models a SQL store for FSM
+type Store struct {
 	DB DBClient
 }
 
@@ -54,16 +54,16 @@ type DBClient interface {
 	Save(interface{}) *gorm.DB
 }
 
-func NewSQLStore(cfg *config.StoreConfig) (*SQLStore, error) {
+func NewStore(cfg *config.StoreConfig) (*Store, error) {
 	var db *gorm.DB
 	var err error
 
 	if cfg.Port == "" {
 		cfg.Port = "3306"
 	}
-	// if cfg.Database == "" {
-	// 	cfg.Database = "chatto"
-	// }
+	if cfg.Database == "" {
+		cfg.Database = "chatto"
+	}
 
 	switch cfg.RDBMS {
 	case "mysql":
@@ -98,19 +98,21 @@ func NewSQLStore(cfg *config.StoreConfig) (*SQLStore, error) {
 			return nil, err
 		}
 	default:
-		return nil, errors.New("No RDBMS specified for SQL connection.")
+		return nil, errors.New("no RDBMS specified for SQL connection")
 	}
 
-	db.AutoMigrate(&FSMORM{})
+	if err := db.AutoMigrate(&FSMORM{}); err != nil {
+		log.Error(err)
+	}
 
-	sqlStore := &SQLStore{db}
+	sqlStore := &Store{db}
 	sqlStore.runPurge(cfg.TTL, cfg.Purge)
 
 	return sqlStore, nil
 }
 
-// Exists for SQLStoreFSM
-func (s *SQLStore) Exists(user string) (e bool) {
+// Exists for Store
+func (s *Store) Exists(user string) (e bool) {
 	machine := FSMORM{}
 	if res := s.DB.First(&machine, "user = ?", user); errors.Is(res.Error, gorm.ErrRecordNotFound) {
 		return false
@@ -118,38 +120,36 @@ func (s *SQLStore) Exists(user string) (e bool) {
 	return true
 }
 
-// Get method for SQLStoreFSM
-func (s *SQLStore) Get(user string) *fsm.FSM {
+// Get method for Store
+func (s *Store) Get(user string) *fsm.FSM {
 	machine := FSMORM{}
 	if res := s.DB.First(&machine, "user = ?", user); errors.Is(res.Error, gorm.ErrRecordNotFound) {
 		return nil
-	} else {
-		return &fsm.FSM{
-			State: machine.State,
-			Slots: jsonStringToSlots(machine.Slots),
-		}
+	}
+	return &fsm.FSM{
+		State: machine.State,
+		Slots: jsonStringToSlots(machine.Slots),
 	}
 }
 
-// Set method for SQLStoreFSM
-func (s *SQLStore) Set(user string, m *fsm.FSM) {
+// Set method for Store
+func (s *Store) Set(user string, m *fsm.FSM) {
 	machine := FSMORM{}
 	s.DB.First(&machine, "user = ?", user)
 	machine.User = user
 	machine.State = m.State
-	machine.Slots = slotsToJsonString(m.Slots)
+	machine.Slots = slotsToJSONString(m.Slots)
 	if res := s.DB.Save(&machine); res.Error != nil {
 		log.Error(res.Error)
 	}
 }
 
-func (s *SQLStore) runPurge(ttl, purge int) {
+func (s *Store) runPurge(ttl, purge int) {
 	if ttl > 0 && purge > 0 {
 		go func() {
 			ticker := time.NewTicker(time.Duration(purge) * time.Second)
 			for {
-				select {
-				case <-ticker.C:
+				for range ticker.C {
 					expired := time.Now().Add(-time.Duration(ttl) * time.Second)
 					s.DB.Where("updated_at < ?", expired).Delete(&FSMORM{})
 				}

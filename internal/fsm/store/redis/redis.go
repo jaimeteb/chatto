@@ -14,13 +14,13 @@ import (
 
 var ctx = context.Background()
 
-// RedisStore struct models an FSM sotred on Redis
-type RedisStore struct {
-	R   RedisClient
+// Store struct models an FSM sotred on Redis
+type Store struct {
+	R   Client
 	TTL int
 }
 
-type RedisClient interface {
+type Client interface {
 	Get(context.Context, string) *redis.StringCmd
 	HGetAll(context.Context, string) *redis.StringStringMapCmd
 	Set(context.Context, string, interface{}, time.Duration) *redis.StatusCmd
@@ -28,7 +28,7 @@ type RedisClient interface {
 	Expire(context.Context, string, time.Duration) *redis.BoolCmd
 }
 
-func NewRedisStore(cfg *config.StoreConfig) (*RedisStore, error) {
+func NewStore(cfg *config.StoreConfig) (*Store, error) {
 	if cfg.Port == "" {
 		cfg.Port = "6379"
 	}
@@ -42,11 +42,11 @@ func NewRedisStore(cfg *config.StoreConfig) (*RedisStore, error) {
 		return nil, err
 	}
 	log.Infof("* TTL:    %v", cfg.TTL)
-	return &RedisStore{R: RDB, TTL: cfg.TTL}, nil
+	return &Store{R: RDB, TTL: cfg.TTL}, nil
 }
 
-// Exists for RedisStoreFSM
-func (s *RedisStore) Exists(user string) (e bool) {
+// Exists for Store
+func (s *Store) Exists(user string) (e bool) {
 	_, err := s.R.Get(ctx, user+":state").Result()
 	if err == redis.Nil || err != nil {
 		return false
@@ -54,8 +54,8 @@ func (s *RedisStore) Exists(user string) (e bool) {
 	return true
 }
 
-// Get method for RedisStoreFSM
-func (s *RedisStore) Get(user string) *fsm.FSM {
+// Get method for Store
+func (s *Store) Get(user string) *fsm.FSM {
 	m := &fsm.FSM{}
 
 	state, err := s.R.Get(ctx, user+":state").Result()
@@ -77,8 +77,8 @@ func (s *RedisStore) Get(user string) *fsm.FSM {
 	return m
 }
 
-// Set method for RedisStoreFSM
-func (s *RedisStore) Set(user string, m *fsm.FSM) {
+// Set method for Store
+func (s *Store) Set(user string, m *fsm.FSM) {
 	if err := s.R.Set(ctx, user+":state", m.State, time.Duration(s.TTL)*time.Second).Err(); err != nil {
 		log.Error("Error setting state:", err)
 	}
