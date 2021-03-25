@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jaimeteb/chatto/fsm"
@@ -15,7 +16,10 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
+
+var userCol string = "user"
 
 // FSMORM models a Finite State Machine with a gorm.Model
 type FSMORM struct {
@@ -23,6 +27,10 @@ type FSMORM struct {
 	User  string
 	State int
 	Slots string
+}
+
+func (_ *FSMORM) TableName() string {
+	return "fsms"
 }
 
 func slotsToJSONString(slots map[string]string) string {
@@ -58,15 +66,16 @@ func NewStore(cfg *config.StoreConfig) (*Store, error) {
 	var db *gorm.DB
 	var err error
 
-	if cfg.Port == "" {
-		cfg.Port = "3306"
-	}
 	if cfg.Database == "" {
 		cfg.Database = "chatto"
 	}
 
-	switch cfg.RDBMS {
+	switch strings.ToLower(cfg.RDBMS) {
 	case "mysql":
+		if cfg.Port == "" {
+			cfg.Port = "3306"
+		}
+
 		dsn := fmt.Sprintf(
 			"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 			cfg.User,
@@ -75,11 +84,18 @@ func NewStore(cfg *config.StoreConfig) (*Store, error) {
 			cfg.Port,
 			cfg.Database,
 		)
-		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		})
 		if err != nil {
 			return nil, err
 		}
-	case "postgresql":
+	case "postgresql", "postgres":
+		if cfg.Port == "" {
+			cfg.Port = "5432"
+		}
+
+		userCol = fmt.Sprintf("%s.%s", new(FSMORM).TableName(), userCol)
 		dsn := fmt.Sprintf(
 			"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 			cfg.Host,
@@ -88,12 +104,16 @@ func NewStore(cfg *config.StoreConfig) (*Store, error) {
 			cfg.Database,
 			cfg.Port,
 		)
-		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		})
 		if err != nil {
 			return nil, err
 		}
 	case "sqlite":
-		db, err = gorm.Open(sqlite.Open(cfg.Database), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open(cfg.Database), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +134,8 @@ func NewStore(cfg *config.StoreConfig) (*Store, error) {
 // Exists for Store
 func (s *Store) Exists(user string) (e bool) {
 	machine := FSMORM{}
-	if res := s.DB.First(&machine, "user = ?", user); errors.Is(res.Error, gorm.ErrRecordNotFound) {
+	if res := s.DB.First(&machine, fmt.Sprintf("%s = ?", userCol), user); errors.Is(res.Error, gorm.ErrRecordNotFound) {
+		log.Debug(res.Error)
 		return false
 	}
 	return true
@@ -123,7 +144,8 @@ func (s *Store) Exists(user string) (e bool) {
 // Get method for Store
 func (s *Store) Get(user string) *fsm.FSM {
 	machine := FSMORM{}
-	if res := s.DB.First(&machine, "user = ?", user); errors.Is(res.Error, gorm.ErrRecordNotFound) {
+	if res := s.DB.First(&machine, fmt.Sprintf("%s = ?", userCol), user); errors.Is(res.Error, gorm.ErrRecordNotFound) {
+		log.Debug(res.Error)
 		return nil
 	}
 	return &fsm.FSM{
