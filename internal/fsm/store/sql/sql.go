@@ -29,7 +29,7 @@ type FSMORM struct {
 	Slots string
 }
 
-func (_ *FSMORM) TableName() string {
+func (*FSMORM) TableName() string {
 	return "fsms"
 }
 
