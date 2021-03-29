@@ -34,7 +34,7 @@ And in other terminal:
 ```bash
 export WEATHER_API_KEY=<your weatherapi.com api key>
 export SCALE_SERP_API_KEY=<your scaleserp.com api key>
-chatto -path examples/02_misc/
+chatto --path examples/02_misc/
 ```
 
 <!-- ## Test it

@@ -39,7 +39,7 @@ The bot will respond as such:
 
 ## CLI
 
-You can use the Chatto CLI tool by downloading the `chatto-cli` binary, which launches a command line interface where you can send and receive messages from your bot. This is a useful mode when debugging.
+You can use the Chatto CLI tool by running the `chatto cli` tool, which launches a command line interface where you can send and receive messages from your bot. This is a useful mode when debugging.
 
 <p align="center">
 <img src="https://media.giphy.com/media/DFIxYClozxyMg9wnil/giphy.gif" alt="demo" width="480"/>

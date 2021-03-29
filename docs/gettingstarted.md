@@ -11,9 +11,7 @@ If you're using Go, you can install it via `go get`. There are [Docker images](h
 To download the latest version:
 
 ```
-go get -u github.com/jaimeteb/chatto/cmd/chatto
-go get -u github.com/jaimeteb/chatto/cmd/chatto-cli
-go get -u github.com/jaimeteb/chatto/cmd/chatto-init
+go get -u github.com/jaimeteb/chatto
 ```
 
 To install a specific version, initialize a **Go Module** and run:

@@ -65,7 +65,7 @@ defaults:
 To start your bot, run:
 
 ```bash
-chatto -path data/
+chatto --path data/
 ```
 
 If you're using Docker, run:
@@ -75,7 +75,7 @@ docker run \
     -e CHATTO_DATA=./data \
     -v $PWD/data:/data \
     jaimeteb/chatto:latest \
-    chatto -path data
+    chatto --path data
 ```
 
 ## Interact with your first bot
@@ -83,7 +83,7 @@ docker run \
 To interact with your bot, run:
 
 ```
-chatto-cli
+chatto cli
 ```
 
 That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **off**. However, you cannot go from **on** into **on**, or from **off** into **off** either.
