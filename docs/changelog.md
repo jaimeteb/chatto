@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.8.2
+
+* Use Cobra for command-line interface.
+* Unify `chatto`, `chatto-cli` and `chatto-init` into one single `chatto` binary.
+* Add SQL option for FSM store:
+
+	```yaml
+	# bot.yml
+
+	store:
+	  type: sql
+	  rdbms: mysql
+	  host: localhost
+	  user: root
+	  password: root
+	  database: chatto
+	  ttl: 20
+	```
+
+---
+
 ## v0.8.1
 
 * Add K-Nearest Neighbors classifier with [fastText](https://fasttext.cc/docs/en/pretrained-vectors.html) sentence-wise average word vectors as features.
