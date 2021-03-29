@@ -151,7 +151,9 @@ var fsmFile string = `transitions:
       - text: "Oh don't be sad :("
         image: https://i.imgur.com/8MU0IUT.jpeg
       - text: "Did that help?"
-    # extension: dont_feel_bad
+    # extension:
+    #   server: my_extension
+    #   name: dont_feel_bad
 
   - from:
       - say_bad
@@ -209,8 +211,9 @@ func main() {
 `
 
 var botFile string = `extensions:
-  type: REST
-  url: http://localhost:8770
+  my_extension:
+    type: REST
+    url: http://localhost:8770
 `
 
 var chnFile string = `telegram:
