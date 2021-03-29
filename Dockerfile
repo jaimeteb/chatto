@@ -9,4 +9,4 @@ COPY --from=0 /data /data
 VOLUME /data
 EXPOSE 4770/tcp
 ENTRYPOINT ["/chatto"]
-CMD ["-path", "/data"]
+CMD ["--path", "/data"]

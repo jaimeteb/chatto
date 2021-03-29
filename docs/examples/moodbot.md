@@ -16,5 +16,5 @@ This bot's Finite State Machine can be visualized like this:
 To run this example:
 
 ```bash
-chatto -path examples/01_moodbot/
+chatto --path examples/01_moodbot/
 ```

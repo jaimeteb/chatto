@@ -41,5 +41,5 @@ To run this example:
 And in other terminal:
 
 ```bash
-chatto -path examples/04_trivia/
+chatto --path examples/04_trivia/
 ```

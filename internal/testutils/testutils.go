@@ -66,8 +66,8 @@ func GetTestWordVectors(skipOOV bool) (*wordvectors.VectorMap, error) {
 	})
 }
 
-func RemoveGobFiles() {
-	files, err := filepath.Glob("./**/**.gob")
+func RemoveFiles(extension string) {
+	files, err := filepath.Glob(fmt.Sprintf("./**/**.%s", extension))
 	if err != nil {
 		log.Error(err)
 	}

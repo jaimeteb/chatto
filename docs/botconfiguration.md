@@ -111,6 +111,23 @@ store:
   ttl: 3600
 ```
 
+### SQL
+
+The SQL Store allows you to save FSM objects in an SQL database. You must provide the corresponding values depending on the RDBMS that you will use. The supported RDBMS are **mysql**, **postgresql** and **sqlite**.
+
+```yaml
+store:
+  type: SQL
+  ttl: 3600           # "ttl" and "purge" have the same function
+  purge: 7200         # as in the CACHE type store
+  host: localhost
+  port: 3306          # will default to 3306 for mysql and 5432 for postgresql
+  user: user
+  password: password
+  database: chattodb  # for sqlite, this is the database file name
+  rdbms: mysql
+```
+
 ---
 You can leave the values empty and set them with environment variables (with the `CHATTO_BOT` prefix), for example:
 

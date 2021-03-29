@@ -19,6 +19,8 @@ import (
 	"github.com/jaimeteb/chatto/internal/clf"
 	"github.com/jaimeteb/chatto/internal/extension"
 	fsmint "github.com/jaimeteb/chatto/internal/fsm"
+	store "github.com/jaimeteb/chatto/internal/fsm/store"
+	"github.com/jaimeteb/chatto/internal/fsm/store/config"
 	"github.com/jaimeteb/chatto/internal/testutils"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
@@ -375,17 +377,21 @@ func TestBot_Run(t *testing.T) {
 	}
 
 	go b.Run()
-	t.Cleanup(testutils.RemoveGobFiles)
+	t.Cleanup(func() {
+		testutils.RemoveFiles("gob")
+	})
 }
 
 func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannels.MockChannel,
 	*mockchannels.MockChannel, *mockchannels.MockChannel, error) {
-	t.Cleanup(testutils.RemoveGobFiles)
+	t.Cleanup(func() {
+		testutils.RemoveFiles("gob")
+	})
 
 	botConfig := &bot.Config{
 		Name:       "chatto",
 		Extensions: map[string]extension.Config{},
-		Store:      fsmint.StoreConfig{},
+		Store:      config.StoreConfig{},
 		Port:       0,
 		Path:       "../" + testutils.Examples05SimplePath,
 		Conversation: bot.Conversation{
@@ -404,7 +410,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 
 	b := &bot.Bot{
 		Name:   botConfig.Name,
-		Store:  fsmint.NewStore(&botConfig.Store),
+		Store:  store.New(&botConfig.Store),
 		Config: botConfig,
 	}
 

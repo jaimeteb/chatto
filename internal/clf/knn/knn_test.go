@@ -76,5 +76,7 @@ func TestClassifier(t *testing.T) {
 			}
 		})
 	}
-	t.Cleanup(testutils.RemoveGobFiles)
+	t.Cleanup(func() {
+		testutils.RemoveFiles("gob")
+	})
 }

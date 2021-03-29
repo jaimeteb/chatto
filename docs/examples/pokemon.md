@@ -25,5 +25,5 @@ go run examples/03_pokemon/ext/ext.go
 And in other terminal:
 
 ```bash
-chatto -path examples/03_pokemon/
+chatto --path examples/03_pokemon/
 ```

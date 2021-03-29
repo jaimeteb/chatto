@@ -1,9 +1,9 @@
 # Usage
 
-Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `-path` flag:
+Run `chatto` in the directory where your YAML files are located, or specify a path to them with the `--path` flag:
 
 ```bash
-chatto -path ./your/data
+chatto --path ./your/data
 ```
 
 To run on Docker, use:
@@ -21,29 +21,18 @@ docker run \
 
 ## CLI
 
-You can use the Chatto CLI tool by downloading the `chatto-cli` binary. The CLI makes it easy to test your bot interactions.
+You can use the Chatto CLI tool by running `chatto cli`. The CLI makes it easy to test your bot interactions.
 
 ```bash
-chatto-cli -url 'http://localhost' -port 4770
-```
-
-On Docker:
-
-```bash
-docker run \
-    -it \
-    -e CHATTO_DATA=./your/data \
-    -v $PWD./your/data:/chatto/data \
-    jaimeteb/chatto:latest \
-    chatto -cli -path data
+chatto cli --url 'http://localhost' --port 4770
 ```
 
 ## Chatto Init
 
-Download the `chatto-init` binary to generate a sample Chatto project on the directory of your choice. Just run:
+Run the `chatto init` command to generate a sample Chatto project on the directory of your choice. Just run:
 
 ```bash
-chatto-init -path my-chatto/
+chatto init --path my-chatto/
 ```
 
 A Chatto project will be initialized at `my-chatto`.
