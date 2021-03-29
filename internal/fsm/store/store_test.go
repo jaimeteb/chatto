@@ -40,9 +40,18 @@ func TestNew(t *testing.T) {
 		want reflect.Type
 	}{
 		{
-			name: "cache",
+			name: "cache 1",
 			args: args{
 				cfg: &config.StoreConfig{},
+			},
+			want: reflect.TypeOf(&cache.Store{}),
+		},
+		{
+			name: "cache 2",
+			args: args{
+				cfg: &config.StoreConfig{
+					TTL: 10,
+				},
 			},
 			want: reflect.TypeOf(&cache.Store{}),
 		},
@@ -82,11 +91,21 @@ func TestNew(t *testing.T) {
 			want: reflect.TypeOf(&sql.Store{}),
 		},
 		{
-			name: "sql fail",
+			name: "sql fail mysql",
 			args: args{
 				cfg: &config.StoreConfig{
 					Type:  "sql",
 					RDBMS: "mysql",
+				},
+			},
+			want: reflect.TypeOf(&cache.Store{}),
+		},
+		{
+			name: "sql fail postgresql",
+			args: args{
+				cfg: &config.StoreConfig{
+					Type:  "sql",
+					RDBMS: "postgresql",
 				},
 			},
 			want: reflect.TypeOf(&cache.Store{}),
