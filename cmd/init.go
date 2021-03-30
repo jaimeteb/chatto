@@ -28,18 +28,18 @@ func init() {
 }
 
 func chattoInit(cmd *cobra.Command, args []string) {
-	if chattoPath != "." {
-		if _, err := os.Stat(chattoPath); os.IsNotExist(err) {
-			if err := os.MkdirAll(path.Join(chattoPath), 0755); err != nil {
+	if initPath != "." {
+		if _, err := os.Stat(initPath); os.IsNotExist(err) {
+			if err := os.MkdirAll(path.Join(initPath), 0755); err != nil {
 				fmt.Printf("Couldn't create directory: %v", err)
 				return
 			}
 		}
-		if _, err := os.Stat(path.Join(chattoPath, "ext")); os.IsNotExist(err) {
-			if err := os.MkdirAll(path.Join(chattoPath, "ext"), 0755); err != nil {
-				fmt.Printf("Couldn't create directory: %v", err)
-				return
-			}
+	}
+	if _, err := os.Stat(path.Join(initPath, "ext")); os.IsNotExist(err) {
+		if err := os.MkdirAll(path.Join(initPath, "ext"), 0755); err != nil {
+			fmt.Printf("Couldn't create directory: %v", err)
+			return
 		}
 	}
 
@@ -52,7 +52,7 @@ func chattoInit(cmd *cobra.Command, args []string) {
 	}
 
 	for fileName, fileContent := range fileMap {
-		if err := ioutil.WriteFile(path.Join(chattoPath, fileName), []byte(fileContent), 0600); err != nil {
+		if err := ioutil.WriteFile(path.Join(initPath, fileName), []byte(fileContent), 0600); err != nil {
 			fmt.Printf("Couldn't write %s file: %v\n", fileName, err)
 			return
 		}
@@ -151,7 +151,9 @@ var fsmFile string = `transitions:
       - text: "Oh don't be sad :("
         image: https://i.imgur.com/8MU0IUT.jpeg
       - text: "Did that help?"
-    # extension: dont_feel_bad
+    # extension:
+    #   server: my_extension
+    #   name: dont_feel_bad
 
   - from:
       - say_bad
@@ -209,8 +211,9 @@ func main() {
 `
 
 var botFile string = `extensions:
-  type: REST
-  url: http://localhost:8770
+  my_extension:
+    type: REST
+    url: http://localhost:8770
 `
 
 var chnFile string = `telegram:
