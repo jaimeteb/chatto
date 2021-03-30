@@ -1,0 +1,39 @@
+name: Deploy to Firebase Hosting on PR
+
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/**'
+
+jobs:
+  build_and_preview:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up Python runtime
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      -
+        name: Install Python dependencies
+        run: |
+          pip install \
+            mkdocs==1.1.2 \
+            mkdocs-material==6.2.4
+      -
+        name: Build documentation
+        run: |
+          mkdocs build --clean
+      -
+        name: Firebase deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JAIMETEB }}'
+          projectId: jaimeteb
+        env:
+          FIREBASE_CLI_PREVIEWS: hostingchannels
