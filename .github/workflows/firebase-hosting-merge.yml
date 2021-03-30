@@ -1,4 +1,4 @@
-name: Deploy to Firebase Hosting on merge
+name: firebase deploy merge
 
 on:
   push:
@@ -7,6 +7,9 @@ on:
     paths:
       - 'docs/**'
       - '.github/**'
+
+env:
+  PYTHON_VERSION: 3.x
 
 jobs:
   build_and_deploy:
