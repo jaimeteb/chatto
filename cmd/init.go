@@ -184,8 +184,8 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-func dontFeelBad(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
-	return &extension.ExecuteExtensionResponse{
+func dontFeelBad(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+	return &extensions.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{
 			{
@@ -199,12 +199,12 @@ func dontFeelBad(req *extension.ExecuteExtensionRequest) (res *extension.Execute
 	}
 }
 
-var registeredExtensions = extension.RegisteredExtensions{
+var registeredExtensions = extensions.RegisteredExtensions{
 	"dont_feel_bad": dontFeelBad,
 }
 
 func main() {
-	if err := extension.ServeREST(registeredExtensions); err != nil {
+	if err := extensions.ServeREST(registeredExtensions); err != nil {
 		log.Fatalln(err)
 	}
 }
