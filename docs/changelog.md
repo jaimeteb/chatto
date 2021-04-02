@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.3
+
+* Fix `chatto init` files.
+* Use default error message when an extension fails.
+
+---
+
 ## v0.8.2
 
 * Use Cobra for command-line interface.
