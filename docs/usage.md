@@ -142,14 +142,14 @@ CHATTO_VERSION=latest
 CHATTO_DATA=./your/data
 
 # Extension configuration
-EXTENSIONS_URL=http://ext:8770
+CHATTO_BOT_EXTENSIONS_EXTENSION_NAME_URL=http://ext:8770
 
 # Redis
-STORE_HOST=redis
-STORE_PASSWORD=pass
+CHATTO_BOT_STORE_HOST=redis
+CHATTO_BOT_STORE_PASSWORD=pass
 
 # Logs
-DEBUG=true
+CHATTO_BOT_DEBUG=true
 ```
 
 The directory structure with all the files would look like this:
