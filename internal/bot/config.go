@@ -36,10 +36,10 @@ type Auth struct {
 
 // Config struct models the bot.yml configuration file
 type Config struct {
-	Name         string               `mapstructure:"bot_name"`
-	Extensions   extensions.ConfigMap     `mapstructure:"extensions"`
-	Store        storeconfig.StoreConfig      `mapstructure:"store"`
-	Port         int                  `mapstructure:"port"`
+	Name         string                  `mapstructure:"bot_name"`
+	Extensions   extensions.ConfigMap    `mapstructure:"extensions"`
+	Store        storeconfig.StoreConfig `mapstructure:"store"`
+	Port         int                     `mapstructure:"port"`
 	Path         string
 	Conversation Conversation `mapstructure:"conversation"`
 	Auth         Auth         `mapstructure:"auth"`
