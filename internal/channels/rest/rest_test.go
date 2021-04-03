@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/rest"
 	"github.com/jaimeteb/chatto/query"
 )
@@ -21,7 +21,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 		name    string
 		c       *rest.Channel
 		args    args
-		want    *messages.Receive
+		want    *message.Request
 		wantErr bool
 	}{
 		{
@@ -29,7 +29,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 			args: args{
 				body: []byte(`{"sender": "jaimeteb", "text": "Hey."}`),
 			},
-			want: &messages.Receive{
+			want: &message.Request{
 				Question: &query.Question{
 					Sender: "jaimeteb",
 					Text:   "Hey.",
@@ -41,13 +41,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &rest.Channel{}
-			got, err := c.ReceiveMessage(tt.args.body)
+			got, err := c.MessageRequest(tt.args.body)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Channel.ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Channel.MessageRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Channel.ReceiveMessage() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Channel.MessageRequest() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}
@@ -98,7 +98,7 @@ func TestChannel_ValidateCallback(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.args.c.ValidateCallback(tt.args.r)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Channel.ReceiveMessage() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Channel.MessageRequest() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}

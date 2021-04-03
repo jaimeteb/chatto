@@ -1,4 +1,4 @@
-package messages
+package message
 
 import (
 	"strings"
@@ -6,8 +6,8 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-// Receive question from channel with reply options
-type Receive struct {
+// Request from channel with reply options
+type Request struct {
 	Question  *query.Question `json:"question"`
 	ReplyOpts *ReplyOpts
 	Channel   string
@@ -21,7 +21,7 @@ type Receive struct {
 // In the Slack example this allows us to have multiple different
 // conversations with the bot in different Slack channels and
 // threads
-func (r *Receive) Conversation() string {
+func (r *Request) Conversation() string {
 	if r.ReplyOpts == nil {
 		return r.Question.Sender
 	}
@@ -40,10 +40,11 @@ func (r *Receive) Conversation() string {
 	return r.Question.Sender
 }
 
-// Response with answers to channel with reply options
+// Response to channel with reply options
 type Response struct {
 	Answers   []query.Answer
 	ReplyOpts *ReplyOpts
+	Channel   string
 }
 
 // ReplyOpts allow you to configure how the reply is sent

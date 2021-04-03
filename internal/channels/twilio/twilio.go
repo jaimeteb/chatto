@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/ajg/form"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/query"
 	"github.com/kevinburke/twilio-go"
 	log "github.com/sirupsen/logrus"
@@ -62,9 +62,9 @@ func New(config Config) *Channel {
 	return &Channel{Client: client.Messages, Number: config.Number, token: config.AuthToken}
 }
 
-// SendMessage for Twilio
-func (c *Channel) SendMessage(response *messages.Response) error {
-	for _, answer := range response.Answers {
+// MessageResponse for Twilio. See interface for more details
+func (c *Channel) MessageResponse(msgResponse *message.Response) error {
+	for _, answer := range msgResponse.Answers {
 		var imageURL []*url.URL
 
 		if answer.Image != "" {
@@ -72,7 +72,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 			imageURL = append(imageURL, u)
 		}
 
-		_, err := c.Client.SendMessage(c.Number, response.ReplyOpts.Twilio.Recipient, answer.Text, imageURL)
+		_, err := c.Client.SendMessage(c.Number, msgResponse.ReplyOpts.Twilio.Recipient, answer.Text, imageURL)
 		if err != nil {
 			return err
 		}
@@ -81,8 +81,8 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 	return nil
 }
 
-// ReceiveMessage for Twilio
-func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+// MessageRequest for Twilio. See interface for more details
+func (c *Channel) MessageRequest(body []byte) (*message.Request, error) {
 	byteReader := bytes.NewReader(body)
 
 	decoder := form.NewDecoder(byteReader)
@@ -92,33 +92,34 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 		return nil, err
 	}
 
-	receive := &messages.Receive{
+	msgRequest := &message.Request{
 		Question: &query.Question{
 			Sender: messageIn.From,
 			Text:   messageIn.Body,
 		},
-		ReplyOpts: &messages.ReplyOpts{
-			Twilio: messages.TwilioReplyOpts{
+		ReplyOpts: &message.ReplyOpts{
+			Twilio: message.TwilioReplyOpts{
 				Recipient: messageIn.From,
 			},
 		},
 		Channel: c.String(),
 	}
 
-	return receive, nil
+	return msgRequest, nil
 }
 
-// ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
+// MessageRequestQueue for Twilio is not implemented. See interface for more details
+func (c *Channel) MessageRequestQueue(receiveChan chan message.Request) {
 	// Not implemented
 }
 
-// ValidateCallback validates a callback to the channel
+// ValidateCallback for Twilio not implemented. See interface for more details
 func (c *Channel) ValidateCallback(r *http.Request) bool {
-	// Not implemented
+	// TODO: Implement callback validation
 	return true
 }
 
+// String returns Twilio channel name. See interface for more details
 func (c *Channel) String() string {
 	return "twilio"
 }

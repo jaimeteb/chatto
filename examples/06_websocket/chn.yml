@@ -1,0 +1,10 @@
+telegram:
+  bot_key: MY_BOT_KEY
+
+twilio:
+  account_sid: MY_ACCOUNT_SID
+  auth_token: MY_AUTH_TOKEN
+  number: MY_NUMBER
+
+slack:
+  token: MY_SLACK_TOKEN

@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/telegram"
 	"github.com/jaimeteb/chatto/internal/channels/telegram/mocktelegram"
 	"github.com/jaimeteb/chatto/query"
@@ -29,7 +29,7 @@ func TestChannel_SendMessage(t *testing.T) {
 		mockCall *gomock.Call
 	}
 	type args struct {
-		response *messages.Response
+		response *message.Response
 	}
 	tests := []struct {
 		name    string
@@ -41,14 +41,14 @@ func TestChannel_SendMessage(t *testing.T) {
 			name: "send message to telegram",
 			fields: fields{
 				Client:   telegramClient,
-				mockCall: telegramClient.EXPECT().Call("SendMessage", respValues, gomock.Any()),
+				mockCall: telegramClient.EXPECT().Call("MessageResponse", respValues, gomock.Any()),
 			},
-			args: args{response: &messages.Response{
+			args: args{response: &message.Response{
 				Answers: []query.Answer{{
 					Text: "Hey bud *beep* *boop*.",
 				}},
-				ReplyOpts: &messages.ReplyOpts{
-					Telegram: messages.TelegramReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Telegram: message.TelegramReplyOpts{
 						Recipient: "123456789",
 					},
 				},
@@ -61,8 +61,8 @@ func TestChannel_SendMessage(t *testing.T) {
 			c := &telegram.Channel{
 				Client: tt.fields.Client,
 			}
-			if err := c.SendMessage(tt.args.response); (err != nil) != tt.wantErr {
-				t.Errorf("Channel.SendMessage() error = %v, wantErr %v", err, tt.wantErr)
+			if err := c.MessageResponse(tt.args.response); (err != nil) != tt.wantErr {
+				t.Errorf("Channel.MessageResponse() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -75,7 +75,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *messages.Receive
+		want    *message.Request
 		wantErr bool
 	}{
 		{
@@ -83,13 +83,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 			args: args{
 				body: []byte(`{"update_id": 123, "message": {"message_id": 456, "text": "Hey.", "from": {"id": 789, "first_name": "jaime", "username": "jaimeteb"}}}`),
 			},
-			want: &messages.Receive{
+			want: &message.Request{
 				Question: &query.Question{
 					Sender: "789",
 					Text:   "Hey.",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Telegram: messages.TelegramReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Telegram: message.TelegramReplyOpts{
 						Recipient: "789",
 					},
 				},
@@ -100,13 +100,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &telegram.Channel{}
-			got, err := c.ReceiveMessage(tt.args.body)
+			got, err := c.MessageRequest(tt.args.body)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Channel.ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Channel.MessageRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Channel.ReceiveMessage() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Channel.MessageRequest() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}

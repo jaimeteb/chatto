@@ -32,7 +32,7 @@ var (
 			}},
 		}
 	}
-	RegisteredExtensions = extensions.RegisteredExtensions{
+	RegisteredExtensions = extensions.Registered{
 		"any": greetFunc,
 	}
 )
@@ -156,7 +156,7 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			tt.args.l.GetAllExtensions(w, tt.args.r)
+			tt.args.l.GetAll(w, tt.args.r)
 			var got []string
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			_ = json.Unmarshal(body, &got)
@@ -165,14 +165,14 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
-					t.Errorf("Extensions.ListenerREST.GetAllExtensions() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
+					t.Errorf("Extensions.ListenerREST.GetAll() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
 					return
 				}
 				return
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Extensions.ListenerREST.GetAllExtensions() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Extensions.ListenerREST.GetAll() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}
@@ -256,7 +256,7 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			tt.args.l.ExecuteExtension(w, tt.args.r)
+			tt.args.l.Execute(w, tt.args.r)
 			got := &extensions.ExecuteExtensionResponse{}
 			body, _ := ioutil.ReadAll(w.Result().Body)
 			_ = json.Unmarshal(body, got)
@@ -265,14 +265,14 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 				gotErr := &extensions.ErrorResponse{}
 				_ = json.Unmarshal(body, gotErr)
 				if !reflect.DeepEqual(gotErr, tt.wantErr) {
-					t.Errorf("Extensions.ListenerREST.ExecuteExtension() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
+					t.Errorf("Extensions.ListenerREST.Execute() error = %v, wantErr %v", spew.Sprint(gotErr), spew.Sprint(tt.wantErr))
 					return
 				}
 				return
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Extensions.ListenerREST.ExecuteExtension() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Extensions.ListenerREST.Execute() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}
@@ -281,7 +281,7 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 func TestExtensionRPCServer(t *testing.T) {
 	listener := extensions.ListenerRPC{RegisteredExtensions: RegisteredExtensions}
 
-	err := listener.GetAllExtensions(nil, new(extensions.GetAllExtensionsResponse))
+	err := listener.GetAll(nil, new(extensions.GetAllResponse))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -294,7 +294,7 @@ func TestExtensionRPCServer(t *testing.T) {
 		},
 	}
 
-	err = listener.ExecuteExtension(&req, new(extensions.ExecuteExtensionResponse))
+	err = listener.Execute(&req, new(extensions.ExecuteExtensionResponse))
 	if err != nil {
 		t.Fatal(err)
 	}

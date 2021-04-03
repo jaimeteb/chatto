@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/fsm"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/logger"
-	"github.com/jaimeteb/chatto/query"
 	"github.com/jaimeteb/chatto/version"
 	log "github.com/sirupsen/logrus"
 )
@@ -23,32 +23,31 @@ var (
 	invalidAuthToken  = "missing or incorrect authorization token"
 )
 
-// ExecuteExtensionRequest contains the instructions for executing a command function
+// ExecuteExtensionRequest is a request from the bot to execute an extension
 type ExecuteExtensionRequest struct {
 	FSM       *fsm.FSM        `json:"fsm"`
 	Domain    *fsm.BaseDomain `json:"domain"`
 	Extension string          `json:"extension"`
-	Question  *query.Question `json:"question"`
-	Channel   string          `json:"channel"`
+	Request   message.Request `json:"request"`
 }
 
-// ExecuteExtensionResponse contains the result of executing a command function
+// ExecuteExtensionResponse is the result of executing an extension returned to the bot
 type ExecuteExtensionResponse struct {
-	FSM     *fsm.FSM       `json:"fsm"`
-	Answers []query.Answer `json:"answers"`
+	FSM      *fsm.FSM         `json:"fsm"`
+	Response message.Response `json:"response"`
 }
 
-// GetAllExtensionsRequest is empty for now to match RPC interface. Maybe later
+// GetAllRequest is empty for now to match RPC interface. Maybe later
 // we will use it for filtering/searching commands
-type GetAllExtensionsRequest struct {
+type GetAllRequest struct {
 }
 
-// GetAllExtensionsResponse contains a list of all registered command functions
-type GetAllExtensionsResponse struct {
+// GetAllResponse is a list of all registered extensions
+type GetAllResponse struct {
 	Extensions []string
 }
 
-// GetBuildVersionRequest is empty for now to match RPC interface.
+// GetBuildVersionRequest is empty to match RPC interface
 type GetBuildVersionRequest struct {
 }
 
@@ -58,11 +57,12 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-// RegisteredExtensions maps commands to functions which are executed by extension servers
-type RegisteredExtensions map[string]func(*ExecuteExtensionRequest) *ExecuteExtensionResponse
+// Registered maps extension names to functions which are executed by
+// the extension server
+type Registered map[string]func(*ExecuteExtensionRequest) *ExecuteExtensionResponse
 
-// Get returns a list of all registered function command names
-func (r *RegisteredExtensions) Get() []string {
+// Get returns a list of all registered extension names
+func (r *Registered) Get() []string {
 	if r == nil {
 		return []string{}
 	}
@@ -82,13 +82,13 @@ func httpError(w http.ResponseWriter, errorResponse ErrorResponse) {
 	_ = json.NewEncoder(w).Encode(errorResponse)
 }
 
-// ListenerRPC contains the RegisteredExtensions to be served through RPC
+// ListenerRPC contains the Registered to be served through RPC
 type ListenerRPC struct {
-	RegisteredExtensions RegisteredExtensions
+	RegisteredExtensions Registered
 }
 
 // ServeRPC serves the registered extension functions over RPC
-func ServeRPC(registeredExtensions RegisteredExtensions) error {
+func ServeRPC(registeredExtensions Registered) error {
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
@@ -120,8 +120,8 @@ func ServeRPC(registeredExtensions RegisteredExtensions) error {
 	return nil
 }
 
-// ExecuteExtension runs the requested command function and returns the response
-func (l *ListenerRPC) ExecuteExtension(req *ExecuteExtensionRequest, res *ExecuteExtensionResponse) error {
+// Execute runs the requested extension and returns the response
+func (l *ListenerRPC) Execute(req *ExecuteExtensionRequest, res *ExecuteExtensionResponse) error {
 	command, ok := l.RegisteredExtensions[req.Extension]
 	if !ok {
 		return fmt.Errorf(invalidExtension, req.Extension)
@@ -129,16 +129,16 @@ func (l *ListenerRPC) ExecuteExtension(req *ExecuteExtensionRequest, res *Execut
 	commandRes := command(req)
 
 	res.FSM = commandRes.FSM
-	res.Answers = commandRes.Answers
+	res.Response = commandRes.Response
 
 	log.Debugf("ExecuteExtensionRequest:    %v,    %v", req.FSM, req.Extension)
-	log.Debugf("ExecuteExtensionResponse:    %v,    %v", *res.FSM, res.Answers)
+	log.Debugf("ExecuteExtensionResponse:    %v,    %v", *res.FSM, res.Response)
 
 	return nil
 }
 
-// GetAllExtensions returns all functions registered in the RegisteredExtensions map
-func (l *ListenerRPC) GetAllExtensions(_ *GetAllExtensionsRequest, res *GetAllExtensionsResponse) error {
+// GetAll returns all extensions in the Registered map
+func (l *ListenerRPC) GetAll(_ *GetAllRequest, res *GetAllResponse) error {
 	res.Extensions = l.RegisteredExtensions.Get()
 	log.Debug(res)
 	return nil
@@ -154,19 +154,19 @@ func (l *ListenerRPC) GetBuildVersion(_ *GetBuildVersionRequest, res *version.Bu
 	return nil
 }
 
-// ListenerREST contains the RegisteredExtensions to be served through REST
+// ListenerREST contains the Registered to be served through REST
 type ListenerREST struct {
-	RegisteredExtensions RegisteredExtensions
+	RegisteredExtensions Registered
 	token                string
 }
 
-// NewListenerREST creates a ListenerREST with command functions and a token
-func NewListenerREST(registeredExtensions RegisteredExtensions, token string) *ListenerREST {
+// NewListenerREST creates a ListenerREST with extensions and a token
+func NewListenerREST(registeredExtensions Registered, token string) *ListenerREST {
 	return &ListenerREST{RegisteredExtensions: registeredExtensions, token: token}
 }
 
 // ServeREST serves the registered extension functions as a REST API
-func ServeREST(registeredExtensions RegisteredExtensions) error {
+func ServeREST(registeredExtensions Registered) error {
 	port := flag.Int("port", 8770, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 
@@ -182,8 +182,8 @@ func ServeREST(registeredExtensions RegisteredExtensions) error {
 	l := NewListenerREST(registeredExtensions, *token)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/extension", l.ExecuteExtension).Methods("POST")
-	r.HandleFunc("/extensions", l.GetAllExtensions).Methods("GET")
+	r.HandleFunc("/extension", l.Execute).Methods("POST")
+	r.HandleFunc("/extensions", l.GetAll).Methods("GET")
 	r.HandleFunc("/version", l.GetBuildVersion).Methods("GET")
 
 	if *sslKey != "" && *sslCert != "" {
@@ -197,8 +197,8 @@ func ServeREST(registeredExtensions RegisteredExtensions) error {
 	return nil
 }
 
-// ExecuteExtension runs the requested command function and returns the response
-func (l *ListenerREST) ExecuteExtension(w http.ResponseWriter, r *http.Request) {
+// Execute runs the requested extension and returns the response
+func (l *ListenerREST) Execute(w http.ResponseWriter, r *http.Request) {
 	if l.token != "" {
 		reqToken := r.Header.Get("Authorization")
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")
@@ -242,7 +242,7 @@ func (l *ListenerREST) ExecuteExtension(w http.ResponseWriter, r *http.Request) 
 	res := commandFunc(&req)
 
 	log.Debugf("ExecuteExtensionRequest:    %v,    %v", req.FSM, req.Extension)
-	log.Debugf("ExecuteExtensionResponse:    %v,    %v", *res.FSM, res.Answers)
+	log.Debugf("ExecuteExtensionResponse:    %v,    %v", *res.FSM, res.Response)
 
 	js, err := json.Marshal(res)
 	if err != nil {
@@ -264,8 +264,8 @@ func (l *ListenerREST) ExecuteExtension(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// GetAllExtensions returns all command functions in RegisteredExtensions as a list of strings
-func (l *ListenerREST) GetAllExtensions(w http.ResponseWriter, r *http.Request) {
+// GetAll returns all extensions in the Registered map
+func (l *ListenerREST) GetAll(w http.ResponseWriter, r *http.Request) {
 	if l.token != "" {
 		reqToken := r.Header.Get("Authorization")
 		reqToken = strings.TrimPrefix(reqToken, "Bearer ")

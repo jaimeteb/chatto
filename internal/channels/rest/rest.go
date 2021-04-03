@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/query"
 )
 
@@ -30,21 +30,21 @@ func New(config Config) *Channel {
 	return &Channel{config.CallbackToken}
 }
 
-// SendMessage for REST
-func (c *Channel) SendMessage(response *messages.Response) error {
+// MessageResponse for REST. See interface for more details
+func (c *Channel) MessageResponse(_ *message.Response) error {
 	// Not implemented
 	return nil
 }
 
-// ReceiveMessage for REST
-func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+// MessageRequest for REST. See interface for more details
+func (c *Channel) MessageRequest(body []byte) (*message.Request, error) {
 	var messageIn MessageIn
 	err := json.Unmarshal(body, &messageIn)
 	if err != nil {
 		return nil, err
 	}
 
-	receive := &messages.Receive{
+	receive := &message.Request{
 		Question: &query.Question{
 			Text:   messageIn.Text,
 			Sender: messageIn.Sender,
@@ -55,12 +55,12 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 	return receive, nil
 }
 
-// ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
+// MessageRequestQueue for REST is not implemented. See interface for more details
+func (c *Channel) MessageRequestQueue(_ chan message.Request) {
 	// Not implemented
 }
 
-// ValidateCallback validates a callback to the channel
+// ValidateCallback for REST validates a callback to the channel. See interface for more details
 func (c *Channel) ValidateCallback(r *http.Request) bool {
 	if c.token != "" {
 		reqToken := r.Header.Get("Authorization")
@@ -73,6 +73,7 @@ func (c *Channel) ValidateCallback(r *http.Request) bool {
 	return true
 }
 
+// String returns REST channel name. See interface for more details
 func (c *Channel) String() string {
 	return "rest"
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/twilio"
 	"github.com/jaimeteb/chatto/internal/channels/twilio/mocktwilio"
 	"github.com/jaimeteb/chatto/query"
@@ -26,7 +26,7 @@ func TestChannel_SendMessage(t *testing.T) {
 		mockSendMessage *gomock.Call
 	}
 	type args struct {
-		response *messages.Response
+		response *message.Response
 	}
 	tests := []struct {
 		name    string
@@ -41,12 +41,12 @@ func TestChannel_SendMessage(t *testing.T) {
 				Number:          "123456789",
 				mockSendMessage: twilioClient.EXPECT().SendMessage("123456789", "42", "Hey bud *beep* *boop*.", nil).Return(&twlio.Message{}, nil),
 			},
-			args: args{response: &messages.Response{
+			args: args{response: &message.Response{
 				Answers: []query.Answer{{
 					Text: "Hey bud *beep* *boop*.",
 				}},
-				ReplyOpts: &messages.ReplyOpts{
-					Twilio: messages.TwilioReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Twilio: message.TwilioReplyOpts{
 						Recipient: "42",
 					},
 				},
@@ -60,8 +60,8 @@ func TestChannel_SendMessage(t *testing.T) {
 				Client: tt.fields.Client,
 				Number: tt.fields.Number,
 			}
-			if err := c.SendMessage(tt.args.response); (err != nil) != tt.wantErr {
-				t.Errorf("Channel.SendMessage() error = %v, wantErr %v", err, tt.wantErr)
+			if err := c.MessageResponse(tt.args.response); (err != nil) != tt.wantErr {
+				t.Errorf("Channel.MessageResponse() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -74,7 +74,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *messages.Receive
+		want    *message.Request
 		wantErr bool
 	}{
 		{
@@ -82,13 +82,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 			args: args{
 				body: []byte(url.Values{"From": {"42"}, "Body": {"Hey."}}.Encode()),
 			},
-			want: &messages.Receive{
+			want: &message.Request{
 				Question: &query.Question{
 					Sender: "42",
 					Text:   "Hey.",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Twilio: messages.TwilioReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Twilio: message.TwilioReplyOpts{
 						Recipient: "42",
 					},
 				},
@@ -99,13 +99,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &twilio.Channel{}
-			got, err := c.ReceiveMessage(tt.args.body)
+			got, err := c.MessageRequest(tt.args.body)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Channel.ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Channel.MessageRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Channel.ReceiveMessage() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Channel.MessageRequest() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}

@@ -1,4 +1,4 @@
-package extension_test
+package extensions_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jaimeteb/chatto/fsm"
-	"github.com/jaimeteb/chatto/internal/extension"
+	"github.com/jaimeteb/chatto/internal/extensions"
 	"github.com/jaimeteb/chatto/internal/testutils"
 	"github.com/jaimeteb/chatto/query"
 )
@@ -15,13 +15,13 @@ import (
 func TestExtensionRESTError(t *testing.T) {
 	extensionPort := testutils.GetFreePort(t)
 
-	extCfg := make(map[string]extension.Config)
-	extCfg["test"] = extension.Config{
+	extCfg := make(map[string]extensions.Config)
+	extCfg["test"] = extensions.Config{
 		Type: "REST",
 		URL:  fmt.Sprintf("http://localhost:%s", extensionPort),
 	}
 
-	extensions, err := extension.New(extCfg)
+	extensions, err := extensions.New(extCfg)
 	if err != nil {
 		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}
@@ -36,18 +36,18 @@ func TestExtensionREST(t *testing.T) {
 
 	testutils.RunGoExtension(t, "../"+testutils.Examples00TestPath, extensionPort)
 
-	extCfg := make(map[string]extension.Config)
-	extCfg["test"] = extension.Config{
+	extCfg := make(map[string]extensions.Config)
+	extCfg["test"] = extensions.Config{
 		Type: "REST",
 		URL:  fmt.Sprintf("http://localhost:%s", extensionPort),
 	}
 
-	extensions, err := extension.New(extCfg)
+	extensions, err := extensions.New(extCfg)
 	if err != nil {
 		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}
 
-	resp, err := extensions["test"].ExecuteExtension(&query.Question{Text: "hello"}, "any", "", &fsm.Domain{}, &fsm.FSM{})
+	resp, err := extensions["test"].Execute(&query.Question{Text: "hello"}, "any", "", &fsm.Domain{}, &fsm.FSM{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func TestExtensionREST(t *testing.T) {
 	want := "Hello Universe"
 
 	if len(resp) == 1 && resp[0].Text != want {
-		t.Errorf("extension.ExecuteExtension() = %v, want %v.", resp[0].Text, want)
+		t.Errorf("extension.Execute() = %v, want %v.", resp[0].Text, want)
 	}
 }
 
@@ -69,20 +69,20 @@ func TestExtensionRPCPokemon(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	extCfg := make(map[string]extension.Config)
-	extCfg["pokemon"] = extension.Config{
+	extCfg := make(map[string]extensions.Config)
+	extCfg["pokemon"] = extensions.Config{
 		Type: "RPC",
 		Host: "localhost",
 		Port: extPort,
 	}
 
-	extensions, err := extension.New(extCfg)
+	extensions, err := extensions.New(extCfg)
 	if err != nil {
 		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}
 
 	switch e := extensions["pokemon"].(type) {
-	case *extension.RPC:
+	case *extensions.RPC:
 		break
 	default:
 		t.Fatalf("incorrect, got %T, want: *ExtensionRPC", e)
@@ -97,7 +97,7 @@ func TestExtensionRPCPokemon(t *testing.T) {
 		},
 	}
 
-	resp, err := extensions["pokemon"].ExecuteExtension(&query.Question{Text: "pikachu"}, "search_pokemon", "", fsmDomain, &testFSM)
+	resp, err := extensions["pokemon"].Execute(&query.Question{Text: "pikachu"}, "search_pokemon", "", fsmDomain, &testFSM)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ Height: 4.00
 Weight: 60.00`
 
 	if len(resp) == 1 && resp[0].Text != want {
-		t.Errorf("extension.ExecuteExtension() = %v, want %v.", resp[0].Text, want)
+		t.Errorf("extension.Execute() = %v, want %v.", resp[0].Text, want)
 	}
 }
 
@@ -120,14 +120,14 @@ func TestExtensionRPCError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	extCfg := make(map[string]extension.Config)
-	extCfg["test"] = extension.Config{
+	extCfg := make(map[string]extensions.Config)
+	extCfg["test"] = extensions.Config{
 		Type: "RPC",
 		Host: "localhost",
 		Port: extPort,
 	}
 
-	extensions, err := extension.New(extCfg)
+	extensions, err := extensions.New(extCfg)
 	if err != nil {
 		t.Errorf("extension.New() = %v, want %v.", err, nil)
 	}

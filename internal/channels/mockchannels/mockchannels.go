@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	messages "github.com/jaimeteb/chatto/internal/channels/messages"
+	messages "github.com/jaimeteb/chatto/internal/channels/message"
 )
 
 // MockChannel is a mock of Channel interface.
@@ -36,10 +36,10 @@ func (m *MockChannel) EXPECT() *MockChannelMockRecorder {
 }
 
 // ReceiveMessage mocks base method.
-func (m *MockChannel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+func (m *MockChannel) MessageRequest(body []byte) (*messages.Request, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReceiveMessage", body)
-	ret0, _ := ret[0].(*messages.Receive)
+	ret := m.ctrl.Call(m, "MessageRequest", body)
+	ret0, _ := ret[0].(*messages.Request)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -47,25 +47,25 @@ func (m *MockChannel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 // ReceiveMessage indicates an expected call of ReceiveMessage.
 func (mr *MockChannelMockRecorder) ReceiveMessage(body interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveMessage", reflect.TypeOf((*MockChannel)(nil).ReceiveMessage), body)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageRequest", reflect.TypeOf((*MockChannel)(nil).MessageRequest), body)
 }
 
 // ReceiveMessages mocks base method.
-func (m *MockChannel) ReceiveMessages(receiveChan chan messages.Receive) {
+func (m *MockChannel) MessageRequestQueue(receiveChan chan messages.Request) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ReceiveMessages", receiveChan)
+	m.ctrl.Call(m, "MessageRequestQueue", receiveChan)
 }
 
 // ReceiveMessages indicates an expected call of ReceiveMessages.
 func (mr *MockChannelMockRecorder) ReceiveMessages(receiveChan interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveMessages", reflect.TypeOf((*MockChannel)(nil).ReceiveMessages), receiveChan)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageRequestQueue", reflect.TypeOf((*MockChannel)(nil).MessageRequestQueue), receiveChan)
 }
 
 // SendMessage mocks base method.
-func (m *MockChannel) SendMessage(response *messages.Response) error {
+func (m *MockChannel) MessageResponse(response *messages.Response) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMessage", response)
+	ret := m.ctrl.Call(m, "MessageResponse", response)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -73,7 +73,7 @@ func (m *MockChannel) SendMessage(response *messages.Response) error {
 // SendMessage indicates an expected call of SendMessage.
 func (mr *MockChannelMockRecorder) SendMessage(response interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMessage", reflect.TypeOf((*MockChannel)(nil).SendMessage), response)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageResponse", reflect.TypeOf((*MockChannel)(nil).MessageResponse), response)
 }
 
 // String mocks base method.

@@ -17,7 +17,7 @@ func greetFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.Execute
 	}
 }
 
-var registeredExtensions = extensions.RegisteredExtensions{
+var registeredExtensions = extensions.Registered{
 	"any": greetFunc,
 }
 

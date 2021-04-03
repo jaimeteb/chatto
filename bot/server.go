@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/jaimeteb/chatto/internal/bot"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,11 +29,9 @@ func NewServer(path string, port int) *Server {
 	return &Server{bot: b}
 }
 
-// Answer passes a querty.Question into the bot to produce answers
-func (s *Server) Answer(question *query.Question) (answers []query.Answer, err error) {
-	message := messages.Receive{Question: question}
-	answers, err = s.bot.Answer(&message)
-	return
+// SubmitQuestion passes a query.Question to the bot which it attempts to answer
+func (s *Server) SubmitQuestion(question *query.Question) error {
+	return s.bot.SubmitMessageRequest(&message.Request{Question: question})
 }
 
 // RESTHandler passes an incoming http.Request to the REST channel

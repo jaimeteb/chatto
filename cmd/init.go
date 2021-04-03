@@ -187,7 +187,7 @@ import (
 func dontFeelBad(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
 	return &extensions.ExecuteExtensionResponse{
 		FSM: req.FSM,
-		Answers: []query.Answer{
+		Answers: []query.SubmitMessageRequest{
 			{
 				Text: "Oh don't be sad :(",
 			},

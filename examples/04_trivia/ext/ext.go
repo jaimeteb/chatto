@@ -104,7 +104,7 @@ func calculateScore(req *extensions.ExecuteExtensionRequest) (res *extensions.Ex
 	}
 }
 
-var registeredExtensions = extensions.RegisteredExtensions{
+var registeredExtensions = extensions.Registered{
 	"val_ans_1": validateAnswer1,
 	"val_ans_2": validateAnswer2,
 	"score":     calculateScore,
