@@ -59,8 +59,8 @@ func TestChannel_SendMessage(t *testing.T) {
 			c := &slack.Channel{
 				Client: tt.fields.Client,
 			}
-			if err := c.SendMessage(tt.args.response); (err != nil) != tt.wantErr {
-				t.Errorf("Channel.SendMessage() error = %v, wantErr %v", err, tt.wantErr)
+			if err := c.MessageResponse(tt.args.response); (err != nil) != tt.wantErr {
+				t.Errorf("Channel.MessageResponse() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -99,13 +99,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &slack.Channel{}
-			got, err := c.ReceiveMessage(tt.args.body)
+			got, err := c.MessageRequest(tt.args.body)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Channel.ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Channel.MessageRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Channel.ReceiveMessage() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+				t.Errorf("Channel.MessageRequest() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 			}
 		})
 	}
@@ -183,13 +183,13 @@ func TestChannel_ReceiveMessages(t *testing.T) {
 				SocketClientEvents: tt.fields.SocketClientEvents,
 			}
 
-			go c.ReceiveMessages(tt.args.receiveChan)
+			go c.MessageRequestQueue(tt.args.receiveChan)
 
 			tt.fields.SocketClientEvents <- tt.args.slackEvent
 
 			for got := range tt.args.receiveChan {
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Channel.ReceiveMessages() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
+					t.Errorf("Channel.MessageRequestQueue() = %v, want %v", spew.Sprint(got), spew.Sprint(tt.want))
 				}
 
 				break

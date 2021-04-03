@@ -21,12 +21,12 @@ type RPC struct {
 }
 
 // Execute runs the requested extension and returns the response
-func (e *RPC) Execute(extension string, messageRequest message.Request, fsmDomain *fsm.Domain, machine *fsm.FSM) error {
+func (e *RPC) Execute(extension string, msgRequest message.Request, fsmDomain *fsm.Domain, machine *fsm.FSM) error {
 	req := extensions.ExecuteExtensionRequest{
 		FSM:       machine,
 		Extension: extension,
 		Domain:    fsmDomain.NoFuncs(),
-		Request:   messageRequest,
+		Request:   msgRequest,
 	}
 
 	err := e.Client.Call("ListenerRPC.Execute", &req, nil)
@@ -46,12 +46,12 @@ type REST struct {
 }
 
 // Execute runs the requested extension and returns the response
-func (e *REST) Execute(extension string, messageRequest message.Request, fsmDomain *fsm.Domain, machine *fsm.FSM) error {
+func (e *REST) Execute(extension string, msgRequest message.Request, fsmDomain *fsm.Domain, machine *fsm.FSM) error {
 	req := extensions.ExecuteExtensionRequest{
 		FSM:       machine,
 		Domain:    fsmDomain.NoFuncs(),
 		Extension: extension,
-		Request:   messageRequest,
+		Request:   msgRequest,
 	}
 
 	jsonReq, err := json.Marshal(req)

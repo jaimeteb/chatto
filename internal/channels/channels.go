@@ -49,12 +49,12 @@ func (c *Channels) Get(chnl string) Channel {
 
 // Channel interface implements a channel to send and receive messages on
 type Channel interface {
-	// ReceiveMessage from the channel
-	ReceiveMessage(body []byte) (*message.Request, error)
-	// ReceiveMessages from the channel. Starts a long running process, receives questions and sends them to the receiveChan
-	ReceiveMessages(receiveChan chan message.Request)
-	// SendMessage to the channel
-	SendMessage(response *message.Response) error
+	// MessageRequest takes a HTTP body, processes it and returns a message request
+	MessageRequest(body []byte) (*message.Request, error)
+	// MessageRequestQueue starts a long running process, receives events from the channel, processes them and publish them as a message request event
+	MessageRequestQueue(msgRequestQueue chan message.Request)
+	// MessageResponse takes a message response from the bot and sends it to the channel
+	MessageResponse(msgResponse *message.Response) error
 	// ValidateCallback validates a callback to the channel
 	ValidateCallback(r *http.Request) bool
 	// String returns the channel's name

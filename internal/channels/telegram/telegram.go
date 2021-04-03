@@ -59,11 +59,11 @@ func New(config Config) *Channel {
 	return &Channel{Client: client}
 }
 
-// SendMessage for Telegram
-func (c *Channel) SendMessage(response *message.Response) error {
-	for _, answer := range response.Answers {
+// MessageResponse for Telegram. See interface for more details
+func (c *Channel) MessageResponse(msgResponse *message.Response) error {
+	for _, answer := range msgResponse.Answers {
 		respValues := url.Values{}
-		respValues.Add("chat_id", response.ReplyOpts.Telegram.Recipient)
+		respValues.Add("chat_id", msgResponse.ReplyOpts.Telegram.Recipient)
 		respValues.Add("parse_mode", "Markdown")
 
 		var method string
@@ -74,7 +74,7 @@ func (c *Channel) SendMessage(response *message.Response) error {
 			method = "SendPhoto"
 		} else {
 			respValues.Add("text", answer.Text)
-			method = "SendMessage"
+			method = "MessageResponse"
 		}
 
 		apiResp := new(interface{})
@@ -86,8 +86,8 @@ func (c *Channel) SendMessage(response *message.Response) error {
 	return nil
 }
 
-// ReceiveMessage for Telegram
-func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
+// MessageRequest for Telegram. See interface for more details
+func (c *Channel) MessageRequest(body []byte) (*message.Request, error) {
 	var messageIn MessageIn
 	err := json.Unmarshal(body, &messageIn)
 	if err != nil {
@@ -96,7 +96,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
 
 	sender := strconv.Itoa(messageIn.Message.From.ID)
 
-	receive := &message.Request{
+	msgRequest := &message.Request{
 		Question: &query.Question{
 			Sender: sender,
 			Text:   messageIn.Message.Text,
@@ -109,20 +109,21 @@ func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
 		Channel: c.String(),
 	}
 
-	return receive, nil
+	return msgRequest, nil
 }
 
-// ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(receiveChan chan message.Request) {
+// MessageRequestQueue for Telegram is not implemented. See interface for more details
+func (c *Channel) MessageRequestQueue(_ chan message.Request) {
 	// Not implemented
 }
 
-// ValidateCallback validates a callback to the channel
-func (c *Channel) ValidateCallback(r *http.Request) bool {
-	// Not implemented
+// ValidateCallback for Telegram is not implemented. See interface for more details
+func (c *Channel) ValidateCallback(_ *http.Request) bool {
+	// TODO: Implement callback validation
 	return true
 }
 
+// String returns Telegram channel name. See interface for more details
 func (c *Channel) String() string {
 	return "telegram"
 }

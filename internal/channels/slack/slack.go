@@ -69,9 +69,9 @@ func New(config Config) *Channel {
 	return client
 }
 
-// SendMessage to Slack with the bots response
-func (c *Channel) SendMessage(response *message.Response) error {
-	for _, answer := range response.Answers {
+// MessageResponse for Slack. See interface for more details
+func (c *Channel) MessageResponse(msgResponse *message.Response) error {
+	for _, answer := range msgResponse.Answers {
 		slackMsgOptions := []slack.MsgOption{}
 
 		if answer.Image != "" {
@@ -88,11 +88,11 @@ func (c *Channel) SendMessage(response *message.Response) error {
 			slackMsgOptions = append(slackMsgOptions, text)
 		}
 
-		if response.ReplyOpts.Slack.TS != "" {
-			slackMsgOptions = append(slackMsgOptions, slack.MsgOptionTS(response.ReplyOpts.Slack.TS))
+		if msgResponse.ReplyOpts.Slack.TS != "" {
+			slackMsgOptions = append(slackMsgOptions, slack.MsgOptionTS(msgResponse.ReplyOpts.Slack.TS))
 		}
 
-		ret, _, err := c.Client.PostMessage(response.ReplyOpts.Slack.Channel, slackMsgOptions...)
+		ret, _, err := c.Client.PostMessage(msgResponse.ReplyOpts.Slack.Channel, slackMsgOptions...)
 		if err != nil {
 			log.Errorf("%s: %+v", err, ret)
 			return err
@@ -102,8 +102,8 @@ func (c *Channel) SendMessage(response *message.Response) error {
 	return nil
 }
 
-// ReceiveMessage for Slack
-func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
+// MessageRequest for Slack. See interface for more details
+func (c *Channel) MessageRequest(body []byte) (*message.Request, error) {
 	var slackMsg MessageIn
 	err := json.Unmarshal(body, &slackMsg)
 	if err != nil {
@@ -131,7 +131,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
 		ts = slackMsg.Event.ThreadTimestamp
 	}
 
-	receive := &message.Request{
+	msgRequest := &message.Request{
 		Question: &query.Question{
 			Text:   slackMsg.Event.Text,
 			Sender: slackMsg.Event.User,
@@ -145,11 +145,11 @@ func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
 		Channel: c.String(),
 	}
 
-	return receive, nil
+	return msgRequest, nil
 }
 
-// ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(receiveChan chan message.Request) {
+// MessageRequestQueue for Slack. See interface for more details
+func (c *Channel) MessageRequestQueue(receiveChan chan message.Request) {
 	defer close(receiveChan)
 
 	if c.SocketClient == nil {
@@ -251,9 +251,15 @@ func (c *Channel) ReceiveMessages(receiveChan chan message.Request) {
 	}
 }
 
-// ValidateCallback validates a callback to the channel
+// ValidateCallback for Slack not implemented. See interface for more details
 func (c *Channel) ValidateCallback(r *http.Request) bool {
+	// TODO: Implement callback validation
 	return true
+}
+
+// String returns Slack channel name. See interface for more details
+func (c *Channel) String() string {
+	return "slack"
 }
 
 // ErrURLVerification raised when an auth challenge is supposed to be performed
@@ -261,10 +267,7 @@ type ErrURLVerification struct {
 	Challenge []byte
 }
 
+// Error message raised when an auth challenge is supposed to be performed
 func (e ErrURLVerification) Error() string {
 	return "must perform challenge auth verification"
-}
-
-func (c *Channel) String() string {
-	return "slack"
 }

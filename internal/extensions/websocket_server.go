@@ -55,12 +55,12 @@ func (e *WebSocketServer) ExtensionWebsocketHandler(w http.ResponseWriter, r *ht
 }
 
 // Execute runs the requested extension and returns the response
-func (e *WebSocketServer) Execute(extension string, messageRequest message.Request, fsmDomain *fsm.Domain, machine *fsm.FSM) error {
+func (e *WebSocketServer) Execute(extension string, msgRequest message.Request, fsmDomain *fsm.Domain, machine *fsm.FSM) error {
 	req := extensions.ExecuteExtensionRequest{
 		FSM:       machine,
 		Domain:    fsmDomain.NoFuncs(),
 		Extension: extension,
-		Request:   messageRequest,
+		Request:   msgRequest,
 	}
 
 	e.ExecuteRequestQueue <- req

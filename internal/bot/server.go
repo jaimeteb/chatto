@@ -60,7 +60,7 @@ func (b *Bot) ChannelHandler(w http.ResponseWriter, r *http.Request, chnl channe
 		return
 	}
 
-	receiveMsg, err := chnl.ReceiveMessage(body)
+	msgRequest, err := chnl.MessageRequest(body)
 	if err != nil {
 		switch e := err.(type) {
 		case slack.ErrURLVerification:
@@ -77,11 +77,11 @@ func (b *Bot) ChannelHandler(w http.ResponseWriter, r *http.Request, chnl channe
 		return
 	}
 
-	if receiveMsg.Question == nil || (*receiveMsg.Question == query.Question{}) {
+	if msgRequest.Question == nil || (*msgRequest.Question == query.Question{}) {
 		return
 	}
 
-	err = b.SubmitMessageRequest(receiveMsg)
+	err = b.SubmitMessageRequest(msgRequest)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -106,7 +106,7 @@ func (b *Bot) ChannelEventHandler(chnl channels.Channel, msgRequest chan message
 		return
 	}
 
-	go chnl.ReceiveMessages(msgRequest)
+	go chnl.MessageRequestQueue(msgRequest)
 
 	go func() {
 		for receiveMsg := range msgRequest {
@@ -125,8 +125,8 @@ func (b *Bot) messageResponseEventHandler() {
 	b.MessageResponseQueue = make(chan message.Response)
 
 	go func() {
-		for messageResponse := range b.MessageResponseQueue {
-			res := messageResponse
+		for msgResponse := range b.MessageResponseQueue {
+			res := msgResponse
 
 			chnl := b.Channels.Get(res.Channel)
 			if chnl == nil {
@@ -134,7 +134,7 @@ func (b *Bot) messageResponseEventHandler() {
 				continue
 			}
 
-			err := chnl.SendMessage(&res)
+			err := chnl.MessageResponse(&res)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -168,7 +168,7 @@ func (b *Bot) messageResponseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = chnl.SendMessage(&res)
+	err = chnl.MessageResponse(&res)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

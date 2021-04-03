@@ -32,21 +32,21 @@ type Bot struct {
 // command that should be executed. Then the predicted command gets passed through the
 // fsm.FSM which transitions the conversation state and returns the answer or extension
 // to be executed
-func (b *Bot) SubmitMessageRequest(messageRequest *message.Request) error {
-	messageResponse := message.Response{
-		ReplyOpts: messageRequest.ReplyOpts,
-		Channel:   messageRequest.Channel,
+func (b *Bot) SubmitMessageRequest(msgRequest *message.Request) error {
+	msgResponse := message.Response{
+		ReplyOpts: msgRequest.ReplyOpts,
+		Channel:   msgRequest.Channel,
 	}
 
-	isExistingConversation := b.Store.Exists(messageRequest.Conversation())
+	isExistingConversation := b.Store.Exists(msgRequest.Conversation())
 
 	if !isExistingConversation {
-		b.Store.Set(messageRequest.Conversation(), fsm.NewFSM())
+		b.Store.Set(msgRequest.Conversation(), fsm.NewFSM())
 	}
 
-	cmd, _ := b.Classifier.Model.Predict(messageRequest.Question.Text, b.Classifier.Pipeline)
+	cmd, _ := b.Classifier.Model.Predict(msgRequest.Question.Text, b.Classifier.Pipeline)
 
-	machine := b.Store.Get(messageRequest.Conversation())
+	machine := b.Store.Get(msgRequest.Conversation())
 
 	previousState := machine.State
 
@@ -56,21 +56,21 @@ func (b *Bot) SubmitMessageRequest(messageRequest *message.Request) error {
 		isExistingConversation = false
 	}
 
-	answers, extension, err := machine.ExecuteCmd(cmd, messageRequest.Question.Text, b.Domain)
+	answers, extension, err := machine.ExecuteCmd(cmd, msgRequest.Question.Text, b.Domain)
 	if err != nil {
 		switch e := err.(type) {
 		case *fsm.ErrUnsureCommand:
 			if b.Config.ShouldReplyUnsure(isExistingConversation) {
-				messageResponse.Answers = []query.Answer{{Text: e.Error()}}
-				b.MessageResponseQueue <- messageResponse
+				msgResponse.Answers = []query.Answer{{Text: e.Error()}}
+				b.MessageResponseQueue <- msgResponse
 				return nil
 			}
 
 			return nil
 		case *fsm.ErrUnknownCommand:
 			if b.Config.ShouldReplyUnknown(isExistingConversation) {
-				messageResponse.Answers = []query.Answer{{Text: e.Error()}}
-				b.MessageResponseQueue <- messageResponse
+				msgResponse.Answers = []query.Answer{{Text: e.Error()}}
+				b.MessageResponseQueue <- msgResponse
 				return nil
 			}
 
@@ -80,25 +80,25 @@ func (b *Bot) SubmitMessageRequest(messageRequest *message.Request) error {
 		}
 	}
 
-	b.Store.Set(messageRequest.Conversation(), machine)
+	b.Store.Set(msgRequest.Conversation(), machine)
 
 	log.Debugf("FSM | State transitioned from '%d' -> '%d'", previousState, machine.State)
 
 	switch {
 	case len(answers) > 0:
-		messageResponse.Answers = answers
-		b.MessageResponseQueue <- messageResponse
+		msgResponse.Answers = answers
+		b.MessageResponseQueue <- msgResponse
 	case extension != nil:
 		if _, ok := b.Extensions[extension.Server]; !ok {
 			return &ErrUnknownExtension{Extension: extension.Server}
 		}
 
-		err = b.Extensions[extension.Server].Execute(extension.Name, *messageRequest, b.Domain, machine)
+		err = b.Extensions[extension.Server].Execute(extension.Name, *msgRequest, b.Domain, machine)
 		if err != nil {
 			return err
 		}
 	default:
-		log.Info("no action for message request: %+v", messageRequest)
+		log.Info("no action for message request: %+v", msgRequest)
 	}
 
 	return nil
