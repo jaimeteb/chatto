@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/internal/channels"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/slack"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
@@ -81,50 +81,139 @@ func (b *Bot) ChannelHandler(w http.ResponseWriter, r *http.Request, chnl channe
 		return
 	}
 
-	answers, err := b.Answer(receiveMsg)
+	err = b.SubmitMessageRequest(receiveMsg)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = chnl.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write([]byte("message request submitted"))
 	if err != nil {
 		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
-
-	writeAnswer(w, answers)
 }
 
-func (b *Bot) slackChannelEvents() {
-	if b.Channels.Slack != nil {
-		receiveChan := make(chan messages.Receive)
+func (b *Bot) slackEventHandler() {
+	receiveChan := make(chan message.Request)
+	b.ChannelEventHandler(b.Channels.Slack, receiveChan)
+}
 
-		go b.Channels.Slack.ReceiveMessages(receiveChan)
+// ChannelEventHandler takes a message.Request event and passes it to the bot
+func (b *Bot) ChannelEventHandler(chnl channels.Channel, msgRequest chan message.Request) {
+	if chnl == nil {
+		return
+	}
 
-		go func() {
-			for receiveMsg := range receiveChan {
-				r := receiveMsg
+	go chnl.ReceiveMessages(msgRequest)
 
-				answers, err := b.Answer(&r)
-				if err != nil {
-					log.Error(err)
-					continue
-				}
+	go func() {
+		for receiveMsg := range msgRequest {
+			r := receiveMsg
 
-				err = b.Channels.Slack.SendMessage(&messages.Response{Answers: answers, ReplyOpts: receiveMsg.ReplyOpts})
-				if err != nil {
-					log.Error(err)
-					continue
-				}
+			err := b.SubmitMessageRequest(&r)
+			if err != nil {
+				log.Error(err)
+				continue
 			}
-		}()
+		}
+	}()
+}
+
+func (b *Bot) messageResponseEventHandler() {
+	b.MessageResponseQueue = make(chan message.Response)
+
+	go func() {
+		for messageResponse := range b.MessageResponseQueue {
+			res := messageResponse
+
+			chnl := b.Channels.Get(res.Channel)
+			if chnl == nil {
+				log.Errorf("channel name is invalid: %s", res.Channel)
+				continue
+			}
+
+			err := chnl.SendMessage(&res)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+		}
+	}()
+}
+
+func (b *Bot) messageResponseHandler(w http.ResponseWriter, r *http.Request) {
+	if err := b.authorize(r); err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+
+	var res message.Response
+
+	err := decoder.Decode(&res)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	chnl := b.Channels.Get(res.Channel)
+	if chnl == nil {
+		errMsg := fmt.Sprintf("channel name is invalid: %s", res.Channel)
+		log.Error(errMsg)
+		http.Error(w, errMsg, http.StatusBadRequest)
+		return
+	}
+
+	err = chnl.SendMessage(&res)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
-func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
+func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
+	if err := b.authorize(r); err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+
+	var question query.Question
+
+	err := decoder.Decode(&question)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	inputText := question.Text
+	prediction, prob := b.Classifier.Model.Predict(inputText, b.Classifier.Pipeline)
+	answer := Prediction{inputText, prediction, prob}
+
+	js, err := json.Marshal(answer)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(js)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (b *Bot) sendersHandler(w http.ResponseWriter, r *http.Request) {
 	if err := b.authorize(r); err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -161,43 +250,6 @@ func (b *Bot) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *Bot) predictHandler(w http.ResponseWriter, r *http.Request) {
-	if err := b.authorize(r); err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
-	}
-
-	decoder := json.NewDecoder(r.Body)
-
-	var question query.Question
-
-	err := decoder.Decode(&question)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	inputText := question.Text
-	prediction, prob := b.Classifier.Model.Predict(inputText, b.Classifier.Pipeline)
-	answer := Prediction{inputText, prediction, prob}
-
-	js, err := json.Marshal(answer)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(js)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
 func (b *Bot) authorize(r *http.Request) error {
 	if b.Config.Auth.Token != "" {
 		reqToken := r.Header.Get("Authorization")
@@ -215,8 +267,9 @@ func (b *Bot) Run() {
 	log.Info(smileyFace)
 	log.Info("Bot started...")
 
-	// Start event listeners
-	b.slackChannelEvents()
+	// Start event handlers
+	b.slackEventHandler()
+	b.messageResponseEventHandler()
 
 	// Start web server
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", b.Config.Port), b.Router))
@@ -224,11 +277,6 @@ func (b *Bot) Run() {
 
 // RegisterRoutes with the bot router
 func (b *Bot) RegisterRoutes() {
-	if b.Channels == nil {
-		log.Warn("no channels configured, not registering routes")
-		return
-	}
-
 	r := mux.NewRouter()
 
 	// Channel channels
@@ -248,40 +296,12 @@ func (b *Bot) RegisterRoutes() {
 		r.HandleFunc("/channels/slack", b.slackChannelHandler).Methods("POST")
 	}
 
-	// Other bot endpoints
+	// Bot endpoints
 	r.HandleFunc("/bot/healthz", b.healthzHandler).Methods("GET")
+	r.HandleFunc("/bot/message/response", b.messageResponseHandler).Methods("POST")
 	r.HandleFunc("/bot/predict", b.predictHandler).Methods("POST")
-	r.HandleFunc("/bot/senders/{sender}", b.detailsHandler).Methods("GET")
+	r.HandleFunc("/bot/senders/{sender}", b.sendersHandler).Methods("GET")
+	r.HandleFunc("/bot/ws", b.WebSocket.ExtensionWebsocketHandler)
 
 	b.Router = r
-}
-
-func writeAnswer(w http.ResponseWriter, answers []query.Answer) {
-	js, err := json.Marshal(cleanAnswers(answers))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(js)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func cleanAnswers(answers []query.Answer) []map[string]string {
-	finalAnswers := make([]map[string]string, len(answers))
-	for i, answer := range answers {
-		finalAnswers[i] = make(map[string]string)
-		if answer.Text != "" {
-			finalAnswers[i]["text"] = answer.Text
-		}
-		if answer.Image != "" {
-			finalAnswers[i]["image"] = answer.Image
-		}
-	}
-	return finalAnswers
 }

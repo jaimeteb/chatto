@@ -1,10 +1,11 @@
-package extension
+package extensions
 
 import (
 	"fmt"
 
+	"github.com/jaimeteb/chatto/internal/channels/message"
+
 	"github.com/jaimeteb/chatto/fsm"
-	"github.com/jaimeteb/chatto/query"
 )
 
 // ServerMap of extension server names to their clients
@@ -23,10 +24,9 @@ func (m *ServerMap) Add(server string, client Extension) error {
 	return nil
 }
 
-// Extension is a service (REST or RPC) that executes commands and returns
+// Extension is a service (REST or RPC or WebSocketServer) that executes commands and returns
 // an answer to the Chatto bot. Extensions are written in any language and
 // do whatever you want.
 type Extension interface {
-	GetAllExtensions() ([]string, error)
-	ExecuteExtension(question *query.Question, extensionName, channel string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
+	Execute(extension string, messageRequest message.Request, fsmDomain *fsm.Domain, machine *fsm.FSM) error
 }

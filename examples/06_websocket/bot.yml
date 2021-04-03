@@ -1,0 +1,10 @@
+bot_name: "test_bot"
+
+extensions:
+  test_websocket:
+    type: WEBSOCKET
+
+store:
+  type: REDIS
+  host: localhost
+  password: pass

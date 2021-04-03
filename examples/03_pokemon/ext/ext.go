@@ -94,7 +94,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 	}
 }
 
-var registeredExtensions = extensions.RegisteredExtensions{
+var registeredExtensions = extensions.Registered{
 	"search_pokemon": searchPokemon,
 }
 

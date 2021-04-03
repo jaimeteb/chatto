@@ -14,10 +14,10 @@ import (
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/bot"
 	"github.com/jaimeteb/chatto/internal/channels"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/mockchannels"
 	"github.com/jaimeteb/chatto/internal/clf"
-	"github.com/jaimeteb/chatto/internal/extension"
+	"github.com/jaimeteb/chatto/internal/extensions"
 	fsmint "github.com/jaimeteb/chatto/internal/fsm"
 	store "github.com/jaimeteb/chatto/internal/fsm/store"
 	"github.com/jaimeteb/chatto/internal/fsm/store/config"
@@ -55,7 +55,7 @@ func TestBot_channelHandler(t *testing.T) {
 			args: args{
 				endpoint:     fmt.Sprintf("%s/channels/rest", ts.URL),
 				message:      []byte(`{"sender": "42", "text": "on"}`),
-				mockReceive:  restChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
+				mockReceive:  restChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&message.Request{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
 				mockSend:     restChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: restChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
@@ -67,7 +67,7 @@ func TestBot_channelHandler(t *testing.T) {
 			args: args{
 				endpoint:     fmt.Sprintf("%s/channels/twilio", ts.URL),
 				message:      []byte(`{"sender": "42", "text": "off"}`),
-				mockReceive:  twilioChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "off"}}, nil),
+				mockReceive:  twilioChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&message.Request{Question: &query.Question{Sender: "42", Text: "off"}}, nil),
 				mockSend:     twilioChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: twilioChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
@@ -79,7 +79,7 @@ func TestBot_channelHandler(t *testing.T) {
 			args: args{
 				endpoint:     fmt.Sprintf("%s/channels/telegram", ts.URL),
 				message:      []byte(`{"sender": "42", "text": "on"}`),
-				mockReceive:  telegramChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
+				mockReceive:  telegramChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&message.Request{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
 				mockSend:     telegramChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: telegramChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
@@ -91,7 +91,7 @@ func TestBot_channelHandler(t *testing.T) {
 			args: args{
 				endpoint:     fmt.Sprintf("%s/channels/slack", ts.URL),
 				message:      []byte(`{"sender": "42", "text": "on"}`),
-				mockReceive:  slackChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&messages.Receive{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
+				mockReceive:  slackChnl.EXPECT().ReceiveMessage(gomock.Any()).Return(&message.Request{Question: &query.Question{Sender: "42", Text: "on"}}, nil),
 				mockSend:     slackChnl.EXPECT().SendMessage(gomock.Any()).Return(nil),
 				mockValidate: slackChnl.EXPECT().ValidateCallback(gomock.Any()).Return(true),
 			},
@@ -144,13 +144,13 @@ func TestBot_Extensions(t *testing.T) {
 		t.Fatalf("failed to load bot: %s", err)
 	}
 
-	_, err = testBot.Answer(&messages.Receive{
+	_, err = testBot.SubmitMessageRequest(&message.Request{
 		Question: &query.Question{
 			Sender: "tester",
 			Text:   "hello",
 		},
-		ReplyOpts: &messages.ReplyOpts{
-			Slack: messages.SlackReplyOpts{
+		ReplyOpts: &message.ReplyOpts{
+			Slack: message.SlackReplyOpts{
 				Channel: "C01L96YPUH4",
 				TS:      "1612126789.000200",
 			},
@@ -168,7 +168,7 @@ func TestBot_Answer(t *testing.T) {
 	}
 
 	type args struct {
-		receive *messages.Receive
+		receive *message.Request
 	}
 	tests := []struct {
 		name    string
@@ -181,13 +181,13 @@ func TestBot_Answer(t *testing.T) {
 			name: "turn on the thing",
 			bot:  testBot,
 			args: args{
-				receive: &messages.Receive{
+				receive: &message.Request{
 					Question: &query.Question{
 						Sender: "42",
 						Text:   "on",
 					},
-					ReplyOpts: &messages.ReplyOpts{
-						Twilio: messages.TwilioReplyOpts{
+					ReplyOpts: &message.ReplyOpts{
+						Twilio: message.TwilioReplyOpts{
 							Recipient: "42",
 						},
 					},
@@ -201,13 +201,13 @@ func TestBot_Answer(t *testing.T) {
 			name: "turn off the thing",
 			bot:  testBot,
 			args: args{
-				receive: &messages.Receive{
+				receive: &message.Request{
 					Question: &query.Question{
 						Sender: "42",
 						Text:   "off",
 					},
-					ReplyOpts: &messages.ReplyOpts{
-						Twilio: messages.TwilioReplyOpts{
+					ReplyOpts: &message.ReplyOpts{
+						Twilio: message.TwilioReplyOpts{
 							Recipient: "42",
 						},
 					},
@@ -225,13 +225,13 @@ func TestBot_Answer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.bot.Answer(tt.args.receive)
+			got, err := tt.bot.SubmitMessageRequest(tt.args.receive)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bot.Answer() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Bot.SubmitMessageRequest() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Bot.Answer() = %v, want %v", got, tt.want)
+				t.Errorf("Bot.SubmitMessageRequest() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -342,19 +342,19 @@ func TestBot_Details(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			res, err := http.Get(fmt.Sprintf("%s/%s", detailsEndpoint, tt.args.sender))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bot.detailsHandler() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Bot.sendersHandler() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			got, err := ioutil.ReadAll(res.Body)
 			res.Body.Close()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Bot.detailsHandler() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Bot.sendersHandler() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if !reflect.DeepEqual(string(got), tt.want) {
-				t.Errorf("Bot.detailsHandler() = %v, want %v", string(got), tt.want)
+				t.Errorf("Bot.sendersHandler() = %v, want %v", string(got), tt.want)
 			}
 		})
 	}
@@ -390,7 +390,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 
 	botConfig := &bot.Config{
 		Name:       "chatto",
-		Extensions: map[string]extension.Config{},
+		Extensions: map[string]extensions.Config{},
 		Store:      config.StoreConfig{},
 		Port:       0,
 		Path:       "../" + testutils.Examples05SimplePath,
@@ -449,7 +449,7 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	b.Classifier = clf.New(classifConfig)
 
 	// Load Extensions
-	ext, err := extension.New(botConfig.Extensions)
+	ext, err := extensions.New(botConfig.Extensions)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/slack"
 	"github.com/jaimeteb/chatto/internal/channels/slack/mockslack"
 	"github.com/jaimeteb/chatto/query"
@@ -26,7 +26,7 @@ func TestChannel_SendMessage(t *testing.T) {
 		mockPostMessage *gomock.Call
 	}
 	type args struct {
-		response *messages.Response
+		response *message.Response
 	}
 	tests := []struct {
 		name    string
@@ -40,12 +40,12 @@ func TestChannel_SendMessage(t *testing.T) {
 				Client:          slackClient,
 				mockPostMessage: slackClient.EXPECT().PostMessage("test_channel", gomock.Any()).Return("", "", nil),
 			},
-			args: args{response: &messages.Response{
+			args: args{response: &message.Response{
 				Answers: []query.Answer{{
 					Text: "Hey bud *beep* *boop*.",
 				}},
-				ReplyOpts: &messages.ReplyOpts{
-					Slack: messages.SlackReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Slack: message.SlackReplyOpts{
 						Channel: "test_channel",
 						TS:      "2021010202045",
 					},
@@ -73,7 +73,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *messages.Receive
+		want    *message.Request
 		wantErr bool
 	}{
 		{
@@ -81,13 +81,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 			args: args{
 				body: []byte(`{"type": "message", "event": {"thread_ts": "2021010202045", "text": "hey", "user": "jaimeteb", "channel": "test_channel"}}`),
 			},
-			want: &messages.Receive{
+			want: &message.Request{
 				Question: &query.Question{
 					Sender: "jaimeteb",
 					Text:   "hey",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Slack: messages.SlackReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Slack: message.SlackReplyOpts{
 						Channel: "test_channel",
 						TS:      "2021010202045",
 					},
@@ -124,14 +124,14 @@ func TestChannel_ReceiveMessages(t *testing.T) {
 		mockRun            *gomock.Call
 	}
 	type args struct {
-		receiveChan chan messages.Receive
+		receiveChan chan message.Request
 		slackEvent  socketmode.Event
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   messages.Receive
+		want   message.Request
 	}{
 		{
 			name: "test slack socketmode",
@@ -144,7 +144,7 @@ func TestChannel_ReceiveMessages(t *testing.T) {
 				}),
 			},
 			args: args{
-				receiveChan: make(chan messages.Receive),
+				receiveChan: make(chan message.Request),
 				slackEvent: socketmode.Event{
 					Type: socketmode.EventTypeEventsAPI,
 					Data: slackevents.EventsAPIEvent{
@@ -161,13 +161,13 @@ func TestChannel_ReceiveMessages(t *testing.T) {
 					Request: &socketmode.Request{},
 				},
 			},
-			want: messages.Receive{
+			want: message.Request{
 				Question: &query.Question{
 					Sender: "jaimeteb",
 					Text:   "Hey.",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Slack: messages.SlackReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Slack: message.SlackReplyOpts{
 						Channel: "test_channel",
 						TS:      "2021010202045",
 					},

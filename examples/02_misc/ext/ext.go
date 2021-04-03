@@ -215,7 +215,7 @@ func miscFunc(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteE
 	}
 }
 
-var registeredExtensions = extensions.RegisteredExtensions{
+var registeredExtensions = extensions.Registered{
 	"weather": weatherFunc,
 	"joke":    jokeFunc,
 	"quote":   quoteFunc,

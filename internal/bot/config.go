@@ -6,7 +6,7 @@ import (
 
 	"github.com/jaimeteb/chatto/internal/channels"
 	"github.com/jaimeteb/chatto/internal/clf"
-	"github.com/jaimeteb/chatto/internal/extension"
+	"github.com/jaimeteb/chatto/internal/extensions"
 	"github.com/jaimeteb/chatto/internal/fsm"
 	store "github.com/jaimeteb/chatto/internal/fsm/store"
 	storeconfig "github.com/jaimeteb/chatto/internal/fsm/store/config"
@@ -36,10 +36,10 @@ type Auth struct {
 
 // Config struct models the bot.yml configuration file
 type Config struct {
-	Name         string                  `mapstructure:"bot_name"`
-	Extensions   extension.ConfigMap     `mapstructure:"extensions"`
-	Store        storeconfig.StoreConfig `mapstructure:"store"`
-	Port         int                     `mapstructure:"port"`
+	Name         string               `mapstructure:"bot_name"`
+	Extensions   extensions.ConfigMap     `mapstructure:"extensions"`
+	Store        storeconfig.StoreConfig      `mapstructure:"store"`
+	Port         int                  `mapstructure:"port"`
 	Path         string
 	Conversation Conversation `mapstructure:"conversation"`
 	Auth         Auth         `mapstructure:"auth"`
@@ -153,11 +153,16 @@ func New(botConfig *Config) (*Bot, error) {
 	b.Classifier = clf.New(classifConfig)
 
 	// Load Extensions
-	extensionMap, err := extension.New(botConfig.Extensions)
+	webSocket, extensionMap, err := extensions.New(botConfig.Extensions)
 	if err != nil {
 		return nil, err
 	}
+
+	// Add extension map
 	b.Extensions = extensionMap
+
+	// Load extension websocket
+	b.WebSocket = webSocket
 
 	// Register HTTP handlers
 	b.RegisterRoutes()

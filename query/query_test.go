@@ -65,7 +65,7 @@ func TestQuery_Answers(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "answers from Answer",
+			name: "answers from SubmitMessageRequest",
 			args: query.Answer{Text: "text", Image: "image"},
 			want: []query.Answer{{Text: "text", Image: "image"}},
 		},

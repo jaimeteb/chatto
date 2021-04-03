@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/rest"
 	"github.com/jaimeteb/chatto/query"
 )
@@ -21,7 +21,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 		name    string
 		c       *rest.Channel
 		args    args
-		want    *messages.Receive
+		want    *message.Request
 		wantErr bool
 	}{
 		{
@@ -29,7 +29,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 			args: args{
 				body: []byte(`{"sender": "jaimeteb", "text": "Hey."}`),
 			},
-			want: &messages.Receive{
+			want: &message.Request{
 				Question: &query.Question{
 					Sender: "jaimeteb",
 					Text:   "Hey.",

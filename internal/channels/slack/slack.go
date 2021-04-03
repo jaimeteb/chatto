@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/query"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -70,7 +70,7 @@ func New(config Config) *Channel {
 }
 
 // SendMessage to Slack with the bots response
-func (c *Channel) SendMessage(response *messages.Response) error {
+func (c *Channel) SendMessage(response *message.Response) error {
 	for _, answer := range response.Answers {
 		slackMsgOptions := []slack.MsgOption{}
 
@@ -103,7 +103,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 }
 
 // ReceiveMessage for Slack
-func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
 	var slackMsg MessageIn
 	err := json.Unmarshal(body, &slackMsg)
 	if err != nil {
@@ -120,7 +120,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 	}
 
 	if slackMsg.Event.BotID != "" {
-		return &messages.Receive{}, nil
+		return &message.Request{}, nil
 	}
 
 	log.Debug(slackMsg.Type)
@@ -131,13 +131,13 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 		ts = slackMsg.Event.ThreadTimestamp
 	}
 
-	receive := &messages.Receive{
+	receive := &message.Request{
 		Question: &query.Question{
 			Text:   slackMsg.Event.Text,
 			Sender: slackMsg.Event.User,
 		},
-		ReplyOpts: &messages.ReplyOpts{
-			Slack: messages.SlackReplyOpts{
+		ReplyOpts: &message.ReplyOpts{
+			Slack: message.SlackReplyOpts{
 				Channel: slackMsg.Event.Channel,
 				TS:      ts,
 			},
@@ -149,7 +149,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 }
 
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
+func (c *Channel) ReceiveMessages(receiveChan chan message.Request) {
 	defer close(receiveChan)
 
 	if c.SocketClient == nil {
@@ -199,13 +199,13 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 							ts = ev.ThreadTimeStamp
 						}
 
-						receiveChan <- messages.Receive{
+						receiveChan <- message.Request{
 							Question: &query.Question{
 								Text:   ev.Text,
 								Sender: ev.User,
 							},
-							ReplyOpts: &messages.ReplyOpts{
-								Slack: messages.SlackReplyOpts{
+							ReplyOpts: &message.ReplyOpts{
+								Slack: message.SlackReplyOpts{
 									Channel: ev.Channel,
 									TS:      ts,
 								},
@@ -222,13 +222,13 @@ func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
 							ts = ev.ThreadTimeStamp
 						}
 
-						receiveChan <- messages.Receive{
+						receiveChan <- message.Request{
 							Question: &query.Question{
 								Text:   ev.Text,
 								Sender: ev.User,
 							},
-							ReplyOpts: &messages.ReplyOpts{
-								Slack: messages.SlackReplyOpts{
+							ReplyOpts: &message.ReplyOpts{
+								Slack: message.SlackReplyOpts{
 									Channel: ev.Channel,
 									TS:      ts,
 								},

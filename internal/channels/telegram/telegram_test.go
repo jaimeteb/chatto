@@ -7,7 +7,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/mock/gomock"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/telegram"
 	"github.com/jaimeteb/chatto/internal/channels/telegram/mocktelegram"
 	"github.com/jaimeteb/chatto/query"
@@ -29,7 +29,7 @@ func TestChannel_SendMessage(t *testing.T) {
 		mockCall *gomock.Call
 	}
 	type args struct {
-		response *messages.Response
+		response *message.Response
 	}
 	tests := []struct {
 		name    string
@@ -43,12 +43,12 @@ func TestChannel_SendMessage(t *testing.T) {
 				Client:   telegramClient,
 				mockCall: telegramClient.EXPECT().Call("SendMessage", respValues, gomock.Any()),
 			},
-			args: args{response: &messages.Response{
+			args: args{response: &message.Response{
 				Answers: []query.Answer{{
 					Text: "Hey bud *beep* *boop*.",
 				}},
-				ReplyOpts: &messages.ReplyOpts{
-					Telegram: messages.TelegramReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Telegram: message.TelegramReplyOpts{
 						Recipient: "123456789",
 					},
 				},
@@ -75,7 +75,7 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *messages.Receive
+		want    *message.Request
 		wantErr bool
 	}{
 		{
@@ -83,13 +83,13 @@ func TestChannel_ReceiveMessage(t *testing.T) {
 			args: args{
 				body: []byte(`{"update_id": 123, "message": {"message_id": 456, "text": "Hey.", "from": {"id": 789, "first_name": "jaime", "username": "jaimeteb"}}}`),
 			},
-			want: &messages.Receive{
+			want: &message.Request{
 				Question: &query.Question{
 					Sender: "789",
 					Text:   "Hey.",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Telegram: messages.TelegramReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Telegram: message.TelegramReplyOpts{
 						Recipient: "789",
 					},
 				},

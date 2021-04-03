@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/ajg/form"
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/query"
 	"github.com/kevinburke/twilio-go"
 	log "github.com/sirupsen/logrus"
@@ -63,7 +63,7 @@ func New(config Config) *Channel {
 }
 
 // SendMessage for Twilio
-func (c *Channel) SendMessage(response *messages.Response) error {
+func (c *Channel) SendMessage(response *message.Response) error {
 	for _, answer := range response.Answers {
 		var imageURL []*url.URL
 
@@ -82,7 +82,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 }
 
 // ReceiveMessage for Twilio
-func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+func (c *Channel) ReceiveMessage(body []byte) (*message.Request, error) {
 	byteReader := bytes.NewReader(body)
 
 	decoder := form.NewDecoder(byteReader)
@@ -92,13 +92,13 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 		return nil, err
 	}
 
-	receive := &messages.Receive{
+	receive := &message.Request{
 		Question: &query.Question{
 			Sender: messageIn.From,
 			Text:   messageIn.Body,
 		},
-		ReplyOpts: &messages.ReplyOpts{
-			Twilio: messages.TwilioReplyOpts{
+		ReplyOpts: &message.ReplyOpts{
+			Twilio: message.TwilioReplyOpts{
 				Recipient: messageIn.From,
 			},
 		},
@@ -109,7 +109,7 @@ func (c *Channel) ReceiveMessage(body []byte) (*messages.Receive, error) {
 }
 
 // ReceiveMessages uses event queues to receive messages. Starts a long running process
-func (c *Channel) ReceiveMessages(receiveChan chan messages.Receive) {
+func (c *Channel) ReceiveMessages(receiveChan chan message.Request) {
 	// Not implemented
 }
 

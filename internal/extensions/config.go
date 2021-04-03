@@ -1,4 +1,4 @@
-package extension
+package extensions
 
 import (
 	"fmt"
@@ -55,8 +55,10 @@ func dialRPC(host string, port int) (*rpc.Client, error) {
 }
 
 // New loads the extension configuration and connects to the server
-func New(extCfg ConfigMap) (ServerMap, error) {
+func New(extCfg ConfigMap) (*WebSocketServer, ServerMap, error) {
 	extensionMap := make(ServerMap)
+
+	webSocket := NewWebSocket()
 
 	for server, config := range extCfg {
 		switch config.Type {
@@ -69,15 +71,9 @@ func New(extCfg ConfigMap) (ServerMap, error) {
 
 			rpcExtension := &RPC{client}
 
-			_, err = rpcExtension.GetAllExtensions()
-			if err != nil {
-				log.Errorf("unable to get rpc extensions for '%s:%d': %s", config.Host, config.Port, err)
-				continue
-			}
-
 			addErr := extensionMap.Add(server, rpcExtension)
 			if addErr != nil {
-				return nil, addErr
+				return nil, nil, addErr
 			}
 		case "REST":
 			retryClient := retryablehttp.NewClient()
@@ -85,18 +81,17 @@ func New(extCfg ConfigMap) (ServerMap, error) {
 
 			restExtension := &REST{URL: config.URL, http: retryClient, token: config.Token}
 
-			_, err := restExtension.GetAllExtensions()
-			if err != nil {
-				log.Errorf("unable to get rest extensions for '%s:%d': %s", config.URL, config.Port, err)
-				continue
-			}
-
 			addErr := extensionMap.Add(server, restExtension)
 			if addErr != nil {
-				return nil, addErr
+				return nil, nil, addErr
+			}
+		case "WEBSOCKET":
+			addErr := extensionMap.Add(server, webSocket)
+			if addErr != nil {
+				return nil, nil, addErr
 			}
 		default:
-			return nil, fmt.Errorf("invalid extension type: %s", config.Type)
+			return nil, nil, fmt.Errorf("invalid extension type: %s", config.Type)
 		}
 	}
 
@@ -109,5 +104,5 @@ func New(extCfg ConfigMap) (ServerMap, error) {
 		log.Info("Using bot without extensions.")
 	}
 
-	return extensionMap, nil
+	return webSocket, extensionMap, nil
 }

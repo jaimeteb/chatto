@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	messages "github.com/jaimeteb/chatto/internal/channels/messages"
+	messages "github.com/jaimeteb/chatto/internal/channels/message"
 )
 
 // MockChannel is a mock of Channel interface.
@@ -36,10 +36,10 @@ func (m *MockChannel) EXPECT() *MockChannelMockRecorder {
 }
 
 // ReceiveMessage mocks base method.
-func (m *MockChannel) ReceiveMessage(body []byte) (*messages.Receive, error) {
+func (m *MockChannel) ReceiveMessage(body []byte) (*messages.Request, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReceiveMessage", body)
-	ret0, _ := ret[0].(*messages.Receive)
+	ret0, _ := ret[0].(*messages.Request)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -51,7 +51,7 @@ func (mr *MockChannelMockRecorder) ReceiveMessage(body interface{}) *gomock.Call
 }
 
 // ReceiveMessages mocks base method.
-func (m *MockChannel) ReceiveMessages(receiveChan chan messages.Receive) {
+func (m *MockChannel) ReceiveMessages(receiveChan chan messages.Request) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "ReceiveMessages", receiveChan)
 }

@@ -1,16 +1,16 @@
-package messages_test
+package message_test
 
 import (
 	"testing"
 
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/query"
 )
 
 func TestReceive_Conversation(t *testing.T) {
 	type fields struct {
 		Question  *query.Question
-		ReplyOpts *messages.ReplyOpts
+		ReplyOpts *message.ReplyOpts
 	}
 	tests := []struct {
 		name   string
@@ -35,7 +35,7 @@ func TestReceive_Conversation(t *testing.T) {
 					Sender: "42",
 					Text:   "Testing 123...",
 				},
-				ReplyOpts: &messages.ReplyOpts{},
+				ReplyOpts: &message.ReplyOpts{},
 			},
 			want: "42",
 		},
@@ -46,8 +46,8 @@ func TestReceive_Conversation(t *testing.T) {
 					Sender: "42",
 					Text:   "Testing 123...",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Twilio: messages.TwilioReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Twilio: message.TwilioReplyOpts{
 						Recipient: "42",
 					},
 				},
@@ -61,8 +61,8 @@ func TestReceive_Conversation(t *testing.T) {
 					Sender: "42",
 					Text:   "Testing 123...",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Telegram: messages.TelegramReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Telegram: message.TelegramReplyOpts{
 						Recipient: "42",
 					},
 				},
@@ -76,8 +76,8 @@ func TestReceive_Conversation(t *testing.T) {
 					Sender: "42",
 					Text:   "Testing 123...",
 				},
-				ReplyOpts: &messages.ReplyOpts{
-					Slack: messages.SlackReplyOpts{
+				ReplyOpts: &message.ReplyOpts{
+					Slack: message.SlackReplyOpts{
 						Channel: "C01L96YPUH4",
 						TS:      "1612126789.000200",
 					},
@@ -88,7 +88,7 @@ func TestReceive_Conversation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &messages.Receive{
+			r := &message.Request{
 				Question:  tt.fields.Question,
 				ReplyOpts: tt.fields.ReplyOpts,
 			}

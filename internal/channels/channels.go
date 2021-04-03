@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jaimeteb/chatto/internal/channels/messages"
+	"github.com/jaimeteb/chatto/internal/channels/message"
 	"github.com/jaimeteb/chatto/internal/channels/rest"
 	"github.com/jaimeteb/chatto/internal/channels/slack"
 	"github.com/jaimeteb/chatto/internal/channels/telegram"
@@ -31,14 +31,30 @@ type Channels struct {
 	Slack    Channel
 }
 
+// Get channel by name
+func (c *Channels) Get(chnl string) Channel {
+	switch chnl {
+	case c.Slack.String():
+		return c.Slack
+	case c.Telegram.String():
+		return c.Telegram
+	case c.Twilio.String():
+		return c.Twilio
+	case c.REST.String():
+		return c.REST
+	default:
+		return nil
+	}
+}
+
 // Channel interface implements a channel to send and receive messages on
 type Channel interface {
 	// ReceiveMessage from the channel
-	ReceiveMessage(body []byte) (*messages.Receive, error)
+	ReceiveMessage(body []byte) (*message.Request, error)
 	// ReceiveMessages from the channel. Starts a long running process, receives questions and sends them to the receiveChan
-	ReceiveMessages(receiveChan chan messages.Receive)
+	ReceiveMessages(receiveChan chan message.Request)
 	// SendMessage to the channel
-	SendMessage(response *messages.Response) error
+	SendMessage(response *message.Response) error
 	// ValidateCallback validates a callback to the channel
 	ValidateCallback(r *http.Request) bool
 	// String returns the channel's name
