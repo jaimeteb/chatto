@@ -30,6 +30,7 @@ type ExecuteExtensionRequest struct {
 	Extension string          `json:"extension"`
 	Question  *query.Question `json:"question"`
 	Channel   string          `json:"channel"`
+	Command   string          `json:"command"`
 }
 
 // ExecuteExtensionResponse contains the result of executing a command function

@@ -20,13 +20,14 @@ type RPC struct {
 }
 
 // ExecuteExtension runs the requested command function and returns the response
-func (e *RPC) ExecuteExtension(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+func (e *RPC) ExecuteExtension(question *query.Question, ext, chn, cmd string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := extensions.ExecuteExtensionRequest{
 		FSM:       machine,
 		Extension: ext,
 		Question:  question,
 		Domain:    fsmDomain.NoFuncs(),
 		Channel:   chn,
+		Command:   cmd,
 	}
 
 	res := extensions.ExecuteExtensionResponse{}
@@ -61,13 +62,14 @@ type REST struct {
 }
 
 // ExecuteExtension runs the requested command function and returns the response
-func (e *REST) ExecuteExtension(question *query.Question, ext, chn string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
+func (e *REST) ExecuteExtension(question *query.Question, ext, chn, cmd string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error) {
 	req := extensions.ExecuteExtensionRequest{
 		FSM:       machine,
 		Extension: ext,
 		Question:  question,
 		Domain:    fsmDomain.NoFuncs(),
 		Channel:   chn,
+		Command:   cmd,
 	}
 
 	jsonReq, err := json.Marshal(req)
