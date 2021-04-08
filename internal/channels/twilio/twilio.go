@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/ajg/form"
 	"github.com/jaimeteb/chatto/internal/channels/messages"
@@ -39,6 +40,7 @@ type Config struct {
 	AccountSid string `mapstructure:"account_sid"`
 	AuthToken  string `mapstructure:"auth_token"`
 	Number     string `mapstructure:"number"`
+	Delay      int    `mapstructure:"delay"`
 }
 
 // Client is the twilio client interface
@@ -51,6 +53,7 @@ type Channel struct {
 	Client Client
 	Number string
 	token  string
+	delay  int
 }
 
 // New returns an initialized telegram client
@@ -72,10 +75,14 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 			imageURL = append(imageURL, u)
 		}
 
-		_, err := c.Client.SendMessage(c.Number, response.ReplyOpts.Twilio.Recipient, answer.Text, imageURL)
+		log.Debugf("Sending Twilio message: %+v", answer)
+		apiResp, err := c.Client.SendMessage(c.Number, response.ReplyOpts.Twilio.Recipient, answer.Text, imageURL)
 		if err != nil {
 			return err
 		}
+		log.Debugf("Twilio response: %+v", apiResp)
+
+		time.Sleep(time.Duration(c.delay) * time.Second)
 	}
 
 	return nil
