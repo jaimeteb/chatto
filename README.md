@@ -104,7 +104,7 @@ The **fsm.yml** file defines the transitions between states, the commands that m
 ```yaml
 transitions:
   - from:
-      - "off"
+      - "initial"
     into: "on"
     command: "turn_on"
     answers:
@@ -112,7 +112,7 @@ transitions:
 
   - from:
       - "on"
-    into: "off"
+    into: "initial"
     command: "turn_off"
     answers:
       - text: "Turning off."
