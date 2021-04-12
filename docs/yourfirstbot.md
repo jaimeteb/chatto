@@ -86,7 +86,7 @@ To interact with your bot, run:
 chatto cli
 ```
 
-That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **off**. However, you cannot go from **on** into **on**, or from **off** into **off** either.
+That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **initial**. However, you cannot go from **on** into **on**, or from **initial** into **initial** either.
 
 Here is a diagram for this simple Finite State Machine:
 
