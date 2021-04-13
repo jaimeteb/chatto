@@ -88,8 +88,8 @@ Also, a `purge` time can be set, which is the time interval to delete the expire
 ```yaml
 store:
   type: CACHE
-  ttl: 3600
-  purge: 7200
+  ttl: 30m
+  purge: 1h
 ```
 
 ### Redis
@@ -101,14 +101,14 @@ In order to use Redis, provide the following values:
 * Host
 * Password
 * Port (will default to `6379`)
-* TTL (will default to `-1`)
+* TTL (will default to `-1s`)
 
 ```yaml
 store:
   type: REDIS
   host: localhost
   password: pass
-  ttl: 3600
+  ttl: 30m
 ```
 
 ### SQL
@@ -118,8 +118,8 @@ The SQL Store allows you to save FSM objects in an SQL database. You must provid
 ```yaml
 store:
   type: SQL
-  ttl: 3600           # "ttl" and "purge" have the same function
-  purge: 7200         # as in the CACHE type store
+  ttl: 30m            # "ttl" and "purge" have the same function
+  purge: 1h           # as in the CACHE type store
   host: localhost
   port: 3306          # will default to 3306 for mysql and 5432 for postgresql
   user: user
