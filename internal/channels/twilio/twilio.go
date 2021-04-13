@@ -37,10 +37,10 @@ type MessageIn struct {
 
 // Config models Twilio configuration
 type Config struct {
-	AccountSid string `mapstructure:"account_sid"`
-	AuthToken  string `mapstructure:"auth_token"`
-	Number     string `mapstructure:"number"`
-	Delay      int    `mapstructure:"delay"`
+	AccountSid string        `mapstructure:"account_sid"`
+	AuthToken  string        `mapstructure:"auth_token"`
+	Number     string        `mapstructure:"number"`
+	Delay      time.Duration `mapstructure:"delay"`
 }
 
 // Client is the twilio client interface
@@ -53,7 +53,7 @@ type Channel struct {
 	Client Client
 	Number string
 	token  string
-	delay  int
+	delay  time.Duration
 }
 
 // New returns an initialized telegram client
@@ -62,7 +62,7 @@ func New(config Config) *Channel {
 
 	log.Infof("Added Twilio client: %v", client.AccountSid)
 
-	return &Channel{Client: client.Messages, Number: config.Number, token: config.AuthToken}
+	return &Channel{Client: client.Messages, Number: config.Number, token: config.AuthToken, delay: config.Delay}
 }
 
 // SendMessage for Twilio
@@ -82,7 +82,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 		}
 		log.Debugf("Twilio response: %+v", apiResp)
 
-		time.Sleep(time.Duration(c.delay) * time.Second)
+		time.Sleep(c.delay)
 	}
 
 	return nil
