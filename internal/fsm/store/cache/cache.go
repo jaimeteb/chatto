@@ -1,8 +1,6 @@
 package cache
 
 import (
-	"time"
-
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/fsm/store/config"
 	"github.com/patrickmn/go-cache"
@@ -19,8 +17,8 @@ func NewStore(cfg *config.StoreConfig) *Store {
 	log.Infof("* Purge:  %v", cfg.Purge)
 	return &Store{
 		C: cache.New(
-			time.Duration(cfg.TTL)*time.Second,
-			time.Duration(cfg.Purge)*time.Second,
+			cfg.TTL,
+			cfg.Purge,
 		),
 	}
 }

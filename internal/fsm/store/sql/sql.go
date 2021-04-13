@@ -166,13 +166,13 @@ func (s *Store) Set(user string, m *fsm.FSM) {
 	}
 }
 
-func (s *Store) runPurge(ttl, purge int) {
+func (s *Store) runPurge(ttl, purge time.Duration) {
 	if ttl > 0 && purge > 0 {
 		go func() {
-			ticker := time.NewTicker(time.Duration(purge) * time.Second)
+			ticker := time.NewTicker(purge)
 			for {
 				for range ticker.C {
-					expired := time.Now().Add(-time.Duration(ttl) * time.Second)
+					expired := time.Now().Add(-ttl)
 					s.DB.Where("updated_at < ?", expired).Delete(&FSMORM{})
 				}
 			}
