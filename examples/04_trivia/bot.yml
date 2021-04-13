@@ -11,7 +11,7 @@ store:
   type: REDIS
   host: localhost
   password: pass
-  ttl: 3600
+  ttl: 1h
   # type: CACHE
-  # ttl: 30
-  # purge: 60
+  # ttl: 30s
+  # purge: 60s

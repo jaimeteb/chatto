@@ -90,6 +90,8 @@ func LoadConfig(path string, port int) (*Config, error) {
 	config.SetDefault("conversation.existing.reply_unsure", true)
 	config.SetDefault("conversation.existing.reply_unknown", true)
 	config.SetDefault("conversation.existing.reply_error", true)
+	config.SetDefault("store.ttl", "-1s")
+	config.SetDefault("store.purge", "-1s")
 
 	if err := config.ReadInConfig(); err != nil {
 		switch err.(type) {

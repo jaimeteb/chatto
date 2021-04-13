@@ -25,9 +25,9 @@ type MessageIn struct {
 
 // Config contains the Slack token
 type Config struct {
-	Token    string `mapstructure:"token"`
-	AppToken string `mapstructure:"app_token"`
-	Delay    int    `mapstructure:"delay"`
+	Token    string        `mapstructure:"token"`
+	AppToken string        `mapstructure:"app_token"`
+	Delay    time.Duration `mapstructure:"delay"`
 }
 
 // Client is the Slack client interface
@@ -46,7 +46,7 @@ type Channel struct {
 	Client             Client
 	SocketClient       SocketClient
 	SocketClientEvents chan socketmode.Event
-	delay              int
+	delay              time.Duration
 }
 
 // New returns an initialized slack client
@@ -59,7 +59,7 @@ func New(config Config) *Channel {
 
 	slackClient := slack.New(config.Token, slackOpts...)
 
-	client := &Channel{Client: slackClient}
+	client := &Channel{Client: slackClient, delay: config.Delay}
 
 	if config.AppToken != "" {
 		socketclient := socketmode.New(slackClient)
@@ -103,7 +103,7 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 		}
 		log.Debugf("Slack response: %s", ret)
 
-		time.Sleep(time.Duration(c.delay) * time.Second)
+		time.Sleep(c.delay)
 	}
 
 	return nil

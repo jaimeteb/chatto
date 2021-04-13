@@ -73,19 +73,26 @@ func NewStateTable(transitions []Transition) StateTable {
 	// Starting state ID
 	stateID := 1
 
-	for n := range transitions {
-		state := strings.TrimSpace(transitions[n].Into)
-
+	addState := func(state string) {
 		// Do not add duplicate states
 		if _, ok := stateTable[state]; ok {
-			continue
+			return
 		}
-
 		// Set state name to id mapping
 		stateTable[state] = stateID
-
 		// Increment state ID
 		stateID++
+	}
+
+	for n := range transitions {
+		// Register "from" states
+		for _, fr := range transitions[n].From {
+			state := strings.TrimSpace(fr)
+			addState(state)
+		}
+		// Register "into" state
+		state := strings.TrimSpace(transitions[n].Into)
+		addState(state)
 	}
 
 	return stateTable
