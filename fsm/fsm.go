@@ -225,8 +225,31 @@ func NewFSM() *FSM {
 // the function command provided and if configured will save
 // the classified text to a slot
 func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (answers []query.Answer, extension *Extension, err error) {
+	// fromAnyState means we can transition from any state
+	fromAnyState := CmdStateTuple{command, StateAny}
+	// cmdAnyState transition between any two states
+	cmdAnyState := CmdStateTuple{"any", m.State}
+	// normalState transition from one existing state to another
+	normalState := CmdStateTuple{command, m.State}
+
+	var cmdStateTuple CmdStateTuple
+
+	if fsmDomain.TransitionTable[fromAnyState] != nil {
+		// Special state any can go from any state into another
+		cmdStateTuple = fromAnyState
+	} else if fsmDomain.TransitionTable[cmdAnyState] != nil {
+		// Special command any is used to transition between two states,
+		// regardless of the command predicted. Useful for taking in any
+		// user input for searches
+		cmdStateTuple = cmdAnyState
+	} else {
+		cmdStateTuple = normalState
+	}
+
 	// Function command was not found by the classifier
-	if strings.TrimSpace(command) == "" {
+	isBelowThreshold := strings.TrimSpace(command) == ""
+
+	if isBelowThreshold && cmdStateTuple != cmdAnyState {
 		if fsmDomain.DefaultMessages.Unsure == "" {
 			return nil, nil, nil
 		}
@@ -234,39 +257,13 @@ func (m *FSM) ExecuteCmd(command, classifiedText string, fsmDomain *Domain) (ans
 		return nil, nil, &ErrUnsureCommand{Msg: fsmDomain.DefaultMessages.Unsure}
 	}
 
-	cmdStateTuple, transitionFunc := m.SelectStateTransition(command, fsmDomain)
+	transitionFunc := fsmDomain.TransitionTable[cmdStateTuple]
 
 	// Save information from the user's input into the slot
 	m.SaveToSlot(classifiedText, fsmDomain.SlotTable[cmdStateTuple])
 
 	// Transition FSM state and get answers or extension to execute
 	return m.TransitionState(transitionFunc, fsmDomain.DefaultMessages)
-}
-
-// SelectStateTransition based on the command provided
-func (m *FSM) SelectStateTransition(command string, fsmDomain *Domain) (CmdStateTuple, TransitionFunc) {
-	// fromAnyState means we can transition from any state
-	fromAnyState := CmdStateTuple{command, StateAny}
-
-	// cmdAnyState transition between any two states
-	cmdAnyState := CmdStateTuple{"any", m.State}
-
-	// normalState transition from one existing state to another
-	normalState := CmdStateTuple{command, m.State}
-
-	// Special state any can go from any state into another
-	if fsmDomain.TransitionTable[fromAnyState] != nil {
-		return fromAnyState, fsmDomain.TransitionTable[fromAnyState]
-	}
-
-	// Special command any is used to transition between two states,
-	// regardless of the command predicted. Useful for taking in any
-	// user input for searches
-	if fsmDomain.TransitionTable[cmdAnyState] != nil {
-		return cmdAnyState, fsmDomain.TransitionTable[cmdAnyState]
-	}
-
-	return normalState, fsmDomain.TransitionTable[normalState]
 }
 
 // SaveToSlot saves information from the user's input/question
