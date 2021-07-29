@@ -56,9 +56,10 @@ func (e *RPC) GetAllExtensions() ([]string, error) {
 
 // REST is a REST Client for extension command functions
 type REST struct {
-	URL   string
-	http  *retryablehttp.Client
-	token string
+	URL     string
+	http    *retryablehttp.Client
+	token   string
+	onError string
 }
 
 // ExecuteExtension runs the requested command function and returns the response
@@ -77,7 +78,11 @@ func (e *REST) ExecuteExtension(question *query.Question, ext, chn, cmd string, 
 		return nil, errors.New(fsmDomain.DefaultMessages.Error)
 	}
 
-	// TODO: if fail -> don't change states
+	switch e.onError {
+	case "continue":
+	case "stay":
+	case "restart":
+	}
 
 	request, err := retryablehttp.NewRequest("POST", fmt.Sprintf("%s/extension", e.URL), bytes.NewBuffer(jsonReq))
 	if err != nil {
