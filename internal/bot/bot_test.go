@@ -3,7 +3,7 @@ package bot_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -106,7 +106,7 @@ func TestBot_channelHandler(t *testing.T) {
 				return
 			}
 
-			got, err := ioutil.ReadAll(res.Body)
+			got, err := io.ReadAll(res.Body)
 			res.Body.Close()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bot.channelHandler() error = %v, wantErr %v", err, tt.wantErr)
@@ -283,7 +283,7 @@ func TestBot_Predict(t *testing.T) {
 				return
 			}
 
-			got, err := ioutil.ReadAll(res.Body)
+			got, err := io.ReadAll(res.Body)
 			res.Body.Close()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bot.predictHandler() error = %v, wantErr %v", err, tt.wantErr)
@@ -346,7 +346,7 @@ func TestBot_Details(t *testing.T) {
 				return
 			}
 
-			got, err := ioutil.ReadAll(res.Body)
+			got, err := io.ReadAll(res.Body)
 			res.Body.Close()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bot.detailsHandler() error = %v, wantErr %v", err, tt.wantErr)

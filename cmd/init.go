@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -52,7 +51,7 @@ func chattoInit(cmd *cobra.Command, args []string) {
 	}
 
 	for fileName, fileContent := range fileMap {
-		if err := ioutil.WriteFile(path.Join(initPath, fileName), []byte(fileContent), 0600); err != nil {
+		if err := os.WriteFile(path.Join(initPath, fileName), []byte(fileContent), 0600); err != nil {
 			fmt.Printf("Couldn't write %s file: %v\n", fileName, err)
 			return
 		}
