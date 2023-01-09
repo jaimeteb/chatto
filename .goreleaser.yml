@@ -45,7 +45,7 @@ dockers:
       - chatto
     image_templates:
       - "jaimeteb/chatto:{{ .Tag }}-amd64"
-    # use_buildx: true
+    use: buildx
     goos: linux
     goarch: amd64
     dockerfile: Dockerfile
@@ -61,7 +61,7 @@ dockers:
       - chatto
     image_templates:
       - "jaimeteb/chatto:{{ .Tag }}-arm64"
-    # use_buildx: true
+    use: buildx
     goos: linux
     goarch: arm64
     dockerfile: Dockerfile
