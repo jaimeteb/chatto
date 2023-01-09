@@ -11,3 +11,5 @@ site/
 *.vec
 *.clf
 *.gob
+
+dist/

@@ -14,11 +14,11 @@ builds:
       - linux
       - windows
       - darwin
-    goarch:
-      - 386
-      - amd64
-      - arm
-      - arm64
+    # goarch:
+    #   - 386
+    #   - amd64
+    #   - arm
+    #   - arm64
     mod_timestamp: '{{ .CommitTimestamp }}'
     flags:
       - -trimpath
@@ -34,8 +34,8 @@ archives:
       darwin: Darwin
       linux: Linux
       windows: Windows
-      386: i386
-      amd64: x86_64
+      # 386: i386
+      # amd64: x86_64
     format_overrides:
       - goos: windows
         format: zip
