@@ -24,6 +24,9 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -X github.com/jaimeteb/chatto/internal/version.version={{.Version}} -X github.com/jaimeteb/chatto/internal/version.commit={{.Commit}} -X github.com/jaimeteb/chatto/internal/version.date={{ .CommitDate }} -X github.com/jaimeteb/chatto/internal/version.builtBy=goreleaser
+    ignore:
+      - goos: windows
+        goarch: arm64
 
 archives:
   - id: chatto
@@ -45,7 +48,7 @@ dockers:
       - chatto
     image_templates:
       - "jaimeteb/chatto:{{ .Tag }}-amd64"
-    use_buildx: true
+    use: buildx
     goos: linux
     goarch: amd64
     dockerfile: Dockerfile
@@ -61,7 +64,7 @@ dockers:
       - chatto
     image_templates:
       - "jaimeteb/chatto:{{ .Tag }}-arm64"
-    use_buildx: true
+    use: buildx
     goos: linux
     goarch: arm64
     dockerfile: Dockerfile

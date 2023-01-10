@@ -25,7 +25,7 @@ func init() {
 	rootCmd.AddCommand(cliCmd)
 
 	cliCmd.Flags().StringVar(&chattoCliURL, "url", "http://localhost", "Specify REST channel url to connect")
-	cliCmd.Flags().IntVar(&chattoPort, "port", 4770, "Specify REST channel port to connect")
+	cliCmd.Flags().IntVar(&chattoPort, "port", chattoDefaultPort, "Specify REST channel port to connect")
 	cliCmd.Flags().StringVar(&chattoCliToken, "token", "", "Specify REST channel auth token to use")
 }
 

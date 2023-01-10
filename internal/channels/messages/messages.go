@@ -1,8 +1,6 @@
 package messages
 
 import (
-	"strings"
-
 	"github.com/jaimeteb/chatto/query"
 )
 
@@ -27,10 +25,7 @@ func (r *Receive) Conversation() string {
 	}
 
 	if r.ReplyOpts.Slack != (SlackReplyOpts{}) {
-		return strings.Join([]string{
-			r.ReplyOpts.Slack.Channel,
-			r.ReplyOpts.Slack.TS,
-		}, "/")
+		return r.ReplyOpts.Slack.Channel + "/" + r.ReplyOpts.Slack.TS
 	} else if r.ReplyOpts.Telegram != (TelegramReplyOpts{}) {
 		return r.Question.Sender
 	} else if r.ReplyOpts.Twilio != (TwilioReplyOpts{}) {
