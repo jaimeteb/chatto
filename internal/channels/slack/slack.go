@@ -5,6 +5,7 @@ package slack
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/query"
@@ -24,8 +25,9 @@ type MessageIn struct {
 
 // Config contains the Slack token
 type Config struct {
-	Token    string `mapstructure:"token"`
-	AppToken string `mapstructure:"app_token"`
+	Token    string        `mapstructure:"token"`
+	AppToken string        `mapstructure:"app_token"`
+	Delay    time.Duration `mapstructure:"delay"`
 }
 
 // Client is the Slack client interface
@@ -44,6 +46,7 @@ type Channel struct {
 	Client             Client
 	SocketClient       SocketClient
 	SocketClientEvents chan socketmode.Event
+	delay              time.Duration
 }
 
 // New returns an initialized slack client
@@ -56,7 +59,7 @@ func New(config Config) *Channel {
 
 	slackClient := slack.New(config.Token, slackOpts...)
 
-	client := &Channel{Client: slackClient}
+	client := &Channel{Client: slackClient, delay: config.Delay}
 
 	if config.AppToken != "" {
 		socketclient := socketmode.New(slackClient)
@@ -92,11 +95,15 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 			slackMsgOptions = append(slackMsgOptions, slack.MsgOptionTS(response.ReplyOpts.Slack.TS))
 		}
 
+		log.Debugf("Sending Slack message: %+v", answer)
 		ret, _, err := c.Client.PostMessage(response.ReplyOpts.Slack.Channel, slackMsgOptions...)
 		if err != nil {
 			log.Errorf("%s: %+v", err, ret)
 			return err
 		}
+		log.Debugf("Slack response: %s", ret)
+
+		time.Sleep(c.delay)
 	}
 
 	return nil

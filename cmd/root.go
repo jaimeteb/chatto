@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const chattoDefaultPort int = 4770
+
 var (
 	debug         bool
 	chattoVersion bool
@@ -34,7 +36,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Enable debug logging")
 	rootCmd.PersistentFlags().BoolVarP(&chattoVersion, "version", "v", false, "Display version")
 
-	rootCmd.Flags().IntVar(&chattoPort, "port", 4770, "Specify port to use")
+	rootCmd.Flags().IntVar(&chattoPort, "port", chattoDefaultPort, "Specify port to use")
 	rootCmd.Flags().StringVarP(&chattoPath, "path", "p", ".", "Path to YAML files")
 }
 

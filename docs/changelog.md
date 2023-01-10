@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.8.5
+
+* Use `time.Duration` for channel delay.
+* Use `time.Duration` for TTL and Purge in FSM Stores.
+* Consider "from" and "into" states in StateTable.
+
+---
+
+## v0.8.4
+
+* Add `command` in extension request.
+* Add optional delay in channel messages.
+
+---
+
+## v0.8.3
+
+* Fix `chatto init` files.
+* Use default error message when an extension fails.
+
+---
+
 ## v0.8.2
 
 * Use Cobra for command-line interface.

@@ -28,5 +28,5 @@ func (m *ServerMap) Add(server string, client Extension) error {
 // do whatever you want.
 type Extension interface {
 	GetAllExtensions() ([]string, error)
-	ExecuteExtension(question *query.Question, extensionName, channel string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
+	ExecuteExtension(question *query.Question, extensionName, channel, command string, fsmDomain *fsm.Domain, machine *fsm.FSM) ([]query.Answer, error)
 }

@@ -1,4 +1,4 @@
-name: Deploy to Firebase Hosting on merge
+name: firebase deploy merge
 
 on:
   push:
@@ -7,6 +7,9 @@ on:
     paths:
       - 'docs/**'
       - '.github/**'
+
+env:
+  PYTHON_VERSION: 3.9
 
 jobs:
   build_and_deploy:
@@ -24,8 +27,8 @@ jobs:
         name: Install Python dependencies
         run: |
           pip install \
-            mkdocs==1.1.2 \
-            mkdocs-material==6.2.4
+            mkdocs==1.4.2 \
+            mkdocs-material==9.0.3
       -
         name: Build documentation
         run: |

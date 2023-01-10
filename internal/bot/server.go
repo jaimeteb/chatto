@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/internal/channels"
@@ -17,7 +18,7 @@ import (
 )
 
 // ErrValidationFailed happens when a channel cannot validate an incoming callback
-var ErrValidationFailed error = errors.New("the callback token is invalid")
+var ErrValidationFailed = errors.New("the callback token is invalid")
 
 // Prediction models a classifier prediction and its original string
 type Prediction struct {
@@ -53,7 +54,7 @@ func (b *Bot) ChannelHandler(w http.ResponseWriter, r *http.Request, chnl channe
 		return
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -219,7 +220,12 @@ func (b *Bot) Run() {
 	b.slackChannelEvents()
 
 	// Start web server
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", b.Config.Port), b.Router))
+	server := &http.Server{
+		Addr:              fmt.Sprintf(":%d", b.Config.Port),
+		Handler:           b.Router,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 // RegisterRoutes with the bot router

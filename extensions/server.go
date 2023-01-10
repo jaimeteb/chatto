@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/rpc"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/jaimeteb/chatto/fsm"
@@ -23,6 +24,8 @@ var (
 	invalidAuthToken  = "missing or incorrect authorization token"
 )
 
+const chattoExtensionsPort int = 8770
+
 // ExecuteExtensionRequest contains the instructions for executing a command function
 type ExecuteExtensionRequest struct {
 	FSM       *fsm.FSM        `json:"fsm"`
@@ -30,6 +33,7 @@ type ExecuteExtensionRequest struct {
 	Extension string          `json:"extension"`
 	Question  *query.Question `json:"question"`
 	Channel   string          `json:"channel"`
+	Command   string          `json:"command"`
 }
 
 // ExecuteExtensionResponse contains the result of executing a command function
@@ -90,7 +94,7 @@ type ListenerRPC struct {
 // ServeRPC serves the registered extension functions over RPC
 func ServeRPC(registeredExtensions RegisteredExtensions) error {
 	host := flag.String("host", "0.0.0.0", "Host to run extension server on")
-	port := flag.Int("port", 8770, "Port to run extension server on")
+	port := flag.Int("port", chattoExtensionsPort, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 	flag.Parse()
 
@@ -167,7 +171,7 @@ func NewListenerREST(registeredExtensions RegisteredExtensions, token string) *L
 
 // ServeREST serves the registered extension functions as a REST API
 func ServeREST(registeredExtensions RegisteredExtensions) error {
-	port := flag.Int("port", 8770, "Port to run extension server on")
+	port := flag.Int("port", chattoExtensionsPort, "Port to run extension server on")
 	debug := flag.Bool("debug", false, "Enable debug logging.")
 
 	sslKey := flag.String("ssl-key", "", "SSL key file for TLS secured server.")
@@ -186,12 +190,18 @@ func ServeREST(registeredExtensions RegisteredExtensions) error {
 	r.HandleFunc("/extensions", l.GetAllExtensions).Methods("GET")
 	r.HandleFunc("/version", l.GetBuildVersion).Methods("GET")
 
+	server := &http.Server{
+		Addr:              fmt.Sprintf(":%d", *port),
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
 	if *sslKey != "" && *sslCert != "" {
 		log.Infof("REST extension server started with TLS. Using port %d", *port)
-		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", *port), *sslCert, *sslKey, r))
+		log.Fatal(server.ListenAndServeTLS(*sslCert, *sslKey))
 	} else {
 		log.Infof("REST extension server started. Using port %d", *port)
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), r))
+		log.Fatal(server.ListenAndServe())
 	}
 
 	return nil

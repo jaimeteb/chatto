@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 
@@ -51,7 +51,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 
 	var pokemonResp map[string]interface{}
 
-	body, readAllErr := ioutil.ReadAll(response.Body)
+	body, readAllErr := io.ReadAll(response.Body)
 	if readAllErr != nil {
 		message = "Pokémon not found, try with another input."
 		intoState = req.Domain.StateTable["search_pokemon"]

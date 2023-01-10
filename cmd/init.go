@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -52,7 +51,7 @@ func chattoInit(cmd *cobra.Command, args []string) {
 	}
 
 	for fileName, fileContent := range fileMap {
-		if err := ioutil.WriteFile(path.Join(initPath, fileName), []byte(fileContent), 0600); err != nil {
+		if err := os.WriteFile(path.Join(initPath, fileName), []byte(fileContent), 0600); err != nil {
 			fmt.Printf("Couldn't write %s file: %v\n", fileName, err)
 			return
 		}
@@ -60,7 +59,7 @@ func chattoInit(cmd *cobra.Command, args []string) {
 	fmt.Println("Initial project files written successfully.")
 }
 
-var clfFile string = `classification:
+var clfFile = `classification:
   - command: "greet"
     texts:
       - "hey"
@@ -128,7 +127,7 @@ var clfFile string = `classification:
       - "no way"
 `
 
-var fsmFile string = `transitions:
+var fsmFile = `transitions:
   - from:
       - initial
     into: ask_mood
@@ -175,7 +174,7 @@ defaults:
   error: "An error occurred."
 `
 
-var extFile string = `package main
+var extFile = `package main
 
 import (
 	"log"
@@ -184,8 +183,8 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
-func dontFeelBad(req *extension.ExecuteExtensionRequest) (res *extension.ExecuteExtensionResponse) {
-	return &extension.ExecuteExtensionResponse{
+func dontFeelBad(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
+	return &extensions.ExecuteExtensionResponse{
 		FSM: req.FSM,
 		Answers: []query.Answer{
 			{
@@ -199,24 +198,24 @@ func dontFeelBad(req *extension.ExecuteExtensionRequest) (res *extension.Execute
 	}
 }
 
-var registeredExtensions = extension.RegisteredExtensions{
+var registeredExtensions = extensions.RegisteredExtensions{
 	"dont_feel_bad": dontFeelBad,
 }
 
 func main() {
-	if err := extension.ServeREST(registeredExtensions); err != nil {
+	if err := extensions.ServeREST(registeredExtensions); err != nil {
 		log.Fatalln(err)
 	}
 }
 `
 
-var botFile string = `extensions:
+var botFile = `extensions:
   my_extension:
     type: REST
     url: http://localhost:8770
 `
 
-var chnFile string = `telegram:
+var chnFile = `telegram:
   bot_key:
 
 twilio:

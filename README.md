@@ -104,7 +104,7 @@ The **fsm.yml** file defines the transitions between states, the commands that m
 ```yaml
 transitions:
   - from:
-      - "off"
+      - "initial"
     into: "on"
     command: "turn_on"
     answers:
@@ -112,7 +112,7 @@ transitions:
 
   - from:
       - "on"
-    into: "off"
+    into: "initial"
     command: "turn_off"
     answers:
       - text: "Turning off."
@@ -151,7 +151,7 @@ To interact with your bot, run:
 chatto cli
 ```
 
-That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **off**. However, you cannot go from **on** into **on**, or from **off** into **off** either.
+That's it! Now you can say *turn on* or *on* to go into the **on** state, and *turn off* or *off* to go back into **initial**. However, you cannot go from **on** into **on**, or from **initial** into **initial** either.
 
 Here is a diagram for this simple Finite State Machine:
 
@@ -232,14 +232,14 @@ CHATTO_VERSION=latest
 CHATTO_DATA=./your/data
 
 # Extension configuration
-EXTENSIONS_URL=http://ext:8770
+CHATTO_BOT_EXTENSIONS_EXTENSION_NAME_URL=http://ext:8770
 
 # Redis
-STORE_HOST=redis
-STORE_PASSWORD=pass
+CHATTO_BOT_STORE_HOST=redis
+CHATTO_BOT_STORE_PASSWORD=pass
 
 # Logs
-DEBUG=true
+CHATTO_BOT_DEBUG=true
 ```
 
 The directory structure with all the files would look like this:

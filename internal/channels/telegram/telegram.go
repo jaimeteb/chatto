@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/jaimeteb/chatto/internal/channels/messages"
 	"github.com/jaimeteb/chatto/query"
@@ -37,7 +38,8 @@ type MessageInInnerFrom struct {
 
 // Config models Telegram configuration
 type Config struct {
-	BotKey string `mapstructure:"bot_key"`
+	BotKey string        `mapstructure:"bot_key"`
+	Delay  time.Duration `mapstructure:"delay"`
 }
 
 // Client is the Telegram client interface
@@ -48,6 +50,7 @@ type Client interface {
 // Channel contains a Telegram client
 type Channel struct {
 	Client Client
+	delay  time.Duration
 }
 
 // New returns an initialized Telegram client
@@ -56,7 +59,7 @@ func New(config Config) *Channel {
 
 	log.Infof("Added Telegram client: %v", client.GetMe().ID)
 
-	return &Channel{Client: client}
+	return &Channel{Client: client, delay: config.Delay}
 }
 
 // SendMessage for Telegram
@@ -78,9 +81,11 @@ func (c *Channel) SendMessage(response *messages.Response) error {
 		}
 
 		apiResp := new(interface{})
+		log.Debugf("Sending Telegram message: %+v", answer)
 		c.Client.Call(method, respValues, apiResp)
+		log.Debugf("Telegram response: %+v", apiResp)
 
-		log.Debug(*apiResp)
+		time.Sleep(c.delay)
 	}
 
 	return nil

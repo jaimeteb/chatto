@@ -73,9 +73,9 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 			return nil, &ErrUnknownExtension{Extension: ext.Server}
 		}
 
-		answers, err = b.Extensions[ext.Server].ExecuteExtension(receiveMsg.Question, ext.Name, receiveMsg.Channel, b.Domain, machine)
+		answers, err = b.Extensions[ext.Server].ExecuteExtension(receiveMsg.Question, ext.Name, receiveMsg.Channel, cmd, b.Domain, machine)
 		if err != nil {
-			return nil, err
+			return []query.Answer{{Text: b.Domain.DefaultMessages.Error}}, nil
 		}
 	}
 

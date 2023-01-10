@@ -1,11 +1,11 @@
-// nolint:bodyclose
+//nolint:bodyclose
 package extensions_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -82,7 +82,7 @@ func TestExtension_ListenerREST_GetBuildVersion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			tt.args.l.GetBuildVersion(w, tt.args.r)
-			body, _ := ioutil.ReadAll(w.Result().Body)
+			body, _ := io.ReadAll(w.Result().Body)
 			got := &version.BuildResponse{}
 			_ = json.Unmarshal(body, &got)
 
@@ -158,7 +158,7 @@ func TestExtension_ListenerREST_GetAllExtensions(t *testing.T) {
 			w := httptest.NewRecorder()
 			tt.args.l.GetAllExtensions(w, tt.args.r)
 			var got []string
-			body, _ := ioutil.ReadAll(w.Result().Body)
+			body, _ := io.ReadAll(w.Result().Body)
 			_ = json.Unmarshal(body, &got)
 
 			if w.Code != http.StatusOK {
@@ -258,7 +258,7 @@ func TestExtension_ListenerREST_ExecuteExtension(t *testing.T) {
 			w := httptest.NewRecorder()
 			tt.args.l.ExecuteExtension(w, tt.args.r)
 			got := &extensions.ExecuteExtensionResponse{}
-			body, _ := ioutil.ReadAll(w.Result().Body)
+			body, _ := io.ReadAll(w.Result().Body)
 			_ = json.Unmarshal(body, got)
 
 			if w.Code != http.StatusOK {

@@ -12,7 +12,7 @@
 
     .tx-container {
         padding-top: .0rem;
-        background: linear-gradient(to bottom, var(--md-primary-fg-color), #f2735c 99%,#fff 99%)
+        background: linear-gradient(to bottom, var(--md-primary-fg-color), #f2735c 99%, #fff 99%)
     }
 
     .tx-hero {
@@ -32,10 +32,10 @@
         margin: 0 auto;
     }
 
-    .tx-hero__image{
-        max-width: 17rem; 
-        max-height:17rem;
-        order:1;
+    .tx-hero__image {
+        max-width: 17rem;
+        max-height: 17rem;
+        order: 1;
         padding-right: 1rem;
     }
 
@@ -214,47 +214,48 @@
 </style>
 <section class="tx-container">
     <div class="md-grid md-typeset">
-      <div class="tx-hero">
-        <div class="tx-hero__image">
-          <img src="assets/images/Picture1.png" draggable="false">
+        <div class="tx-hero">
+            <div class="tx-hero__image">
+                <img src="assets/images/Picture1.png" draggable="false">
+            </div>
+            <div class="tx-hero__content">
+                <h1> Chatto </h1>
+                <p>{{ config.site_description }}</p>
+                <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | striptags }}"
+                    class="md-button md-button--primary">
+                    Get started
+                </a>
+                <a href="{{ config.repo_url }}" title="{{ lang.t('source.link.title') }}" class="md-button">
+                    Go to GitHub
+                </a>
+            </div>
         </div>
-        <div class="tx-hero__content">
-          <h1> Chatto </h1>
-          <p>{{ config.site_description }}</p>
-          <a href="{{ page.next_page.url | url }}" title="{{ page.next_page.title | striptags }}" class="md-button md-button--primary">
-            Get started
-          </a>
-          <a href="{{ config.repo_url }}" title="{{ lang.t('source.link.title') }}" class="md-button">
-            Go to GitHub
-          </a>
-        </div>
-      </div>
     </div>
 </section>
 
 <div class="top-hr">
     <div class="feature-item">
         <h2><span class="twemoji">
-        {% include ".icons/fontawesome/solid/brain.svg" %}
-        </span>Classifier</h2>
+                {% include ".icons/fontawesome/solid/brain.svg" %}
+            </span>Classifier</h2>
         <p>Classify the user's input into <i>commands</i> using a Naïve-Bayes or a K-Nearest Neighbors classifier.</p>
     </div>
     <div class="feature-item">
         <h2><span class="twemoji">
-        {% include ".icons/fontawesome/solid/cog.svg" %}
-        </span>Finite State Machine</h2>
+                {% include ".icons/fontawesome/solid/gear.svg" %}
+            </span>Finite State Machine</h2>
         <p>Control the conversation and send messages based on a flexible Finite State Machine.</p>
     </div>
     <div class="feature-item">
         <h2><span class="twemoji">
-        {% include ".icons/fontawesome/solid/plug.svg" %}
-        </span>Extensions</h2>
+                {% include ".icons/fontawesome/solid/plug.svg" %}
+            </span>Extensions</h2>
         <p>Integrate your bot with anything you like, writing pieces of code in Go or any language.</p>
     </div>
     <div class="feature-item">
         <h2><span class="twemoji">
-        {% include ".icons/fontawesome/solid/lightbulb.svg" %}
-        </span>More</h2>
+                {% include ".icons/fontawesome/solid/lightbulb.svg" %}
+            </span>More</h2>
         <p>Telegram, Twilio and Slack channels, Redis storage, CLI chat for debugging and more!</p>
     </div>
 </div>

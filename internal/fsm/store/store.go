@@ -2,6 +2,7 @@ package store
 
 import (
 	"strings"
+	"time"
 
 	"github.com/jaimeteb/chatto/fsm"
 	"github.com/jaimeteb/chatto/internal/fsm/store/cache"
@@ -10,6 +11,8 @@ import (
 	"github.com/jaimeteb/chatto/internal/fsm/store/sql"
 	log "github.com/sirupsen/logrus"
 )
+
+var defaultDuration = -1 * time.Second
 
 // Store interface for FSM Store modes
 type Store interface {
@@ -22,15 +25,8 @@ type Store interface {
 func New(cfg *config.StoreConfig) Store {
 	var machines Store
 
-	if cfg.TTL == 0 {
-		cfg.TTL = -1
-	}
-	if cfg.Purge == 0 {
-		if cfg.TTL != 0 {
-			cfg.Purge = cfg.TTL
-		} else {
-			cfg.Purge = -1
-		}
+	if cfg.Purge == defaultDuration && cfg.TTL != defaultDuration {
+		cfg.Purge = cfg.TTL
 	}
 
 	switch strings.ToLower(cfg.Type) {
