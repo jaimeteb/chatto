@@ -59,7 +59,7 @@ func chattoInit(cmd *cobra.Command, args []string) {
 	fmt.Println("Initial project files written successfully.")
 }
 
-var clfFile string = `classification:
+var clfFile = `classification:
   - command: "greet"
     texts:
       - "hey"
@@ -127,7 +127,7 @@ var clfFile string = `classification:
       - "no way"
 `
 
-var fsmFile string = `transitions:
+var fsmFile = `transitions:
   - from:
       - initial
     into: ask_mood
@@ -174,7 +174,7 @@ defaults:
   error: "An error occurred."
 `
 
-var extFile string = `package main
+var extFile = `package main
 
 import (
 	"log"
@@ -209,13 +209,13 @@ func main() {
 }
 `
 
-var botFile string = `extensions:
+var botFile = `extensions:
   my_extension:
     type: REST
     url: http://localhost:8770
 `
 
-var chnFile string = `telegram:
+var chnFile = `telegram:
   bot_key:
 
 twilio:

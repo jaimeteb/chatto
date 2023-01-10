@@ -18,10 +18,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.19
 # Disable module cache until https://github.com/golangci/golangci-lint-action/issues/135 is resolved
@@ -38,7 +38,7 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.37
+          version: v3.3.1
 
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           only-new-issues: true

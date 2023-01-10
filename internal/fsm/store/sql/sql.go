@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var userCol string = "user"
+var userCol = "user"
 
 // FSMORM models a Finite State Machine with a gorm.Model
 type FSMORM struct {

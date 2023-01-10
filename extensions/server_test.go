@@ -1,4 +1,4 @@
-// nolint:bodyclose
+//nolint:bodyclose
 package extensions_test
 
 import (
