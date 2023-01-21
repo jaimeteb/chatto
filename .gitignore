@@ -11,5 +11,7 @@ site/
 *.vec
 *.clf
 *.gob
+*.db
 
 dist/
+tmp/
