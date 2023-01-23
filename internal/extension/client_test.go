@@ -62,7 +62,7 @@ func TestExtensionREST(t *testing.T) {
 func TestExtensionRPCPokemon(t *testing.T) {
 	extensionPort := testutils.GetFreePort(t)
 
-	testutils.RunGoExtension(t, "../"+testutils.Examples03PokemonPath, extensionPort)
+	testutils.RunGoExtension(t, "../"+testutils.Examples02PokemonPath, extensionPort)
 
 	extPort, err := strconv.Atoi(extensionPort)
 	if err != nil {
@@ -102,9 +102,9 @@ func TestExtensionRPCPokemon(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `Name: pikachu 
-ID: 25.00 
-Height: 4.00 
+	want := `Name: pikachu
+ID: 25.00
+Height: 4.00
 Weight: 60.00`
 
 	if len(resp) == 1 && resp[0].Text != want {

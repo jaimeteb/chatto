@@ -24,7 +24,7 @@ func TestLoadConfig(t *testing.T) {
 	}{
 		{
 			name: "test loading config from valid path",
-			args: args{path: "../" + testutils.Examples05SimplePath},
+			args: args{path: "../" + testutils.Examples00TestPath},
 			want: &clf.Config{
 				Classification: dataset.DataSet{
 					{
@@ -39,6 +39,13 @@ func TestLoadConfig(t *testing.T) {
 						Texts: []string{
 							"turn off",
 							"off",
+						},
+					},
+					{
+						Command: "hello_universe",
+						Texts: []string{
+							"hello",
+							"universe",
 						},
 					},
 				},
@@ -58,7 +65,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		{
 			name:    "test loading config from invalid path",
-			args:    args{path: "../" + testutils.Examples00InvalidPath},
+			args:    args{path: "../" + testutils.ExamplesInvalidPath},
 			want:    nil,
 			wantErr: true,
 		},

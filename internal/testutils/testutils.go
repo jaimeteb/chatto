@@ -16,13 +16,11 @@ import (
 )
 
 var (
-	Examples00InvalidPath = "../examples/404/"
+	ExamplesInvalidPath   = "../examples/404/"
 	Examples00TestPath    = "../examples/00_test/"
 	Examples01MoodbotPath = "../examples/01_moodbot/"
-	Examples02MiscPath    = "../examples/02_misc/"
-	Examples03PokemonPath = "../examples/03_pokemon/"
-	Examples04TriviaPath  = "../examples/04_trivia/"
-	Examples05SimplePath  = "../examples/05_simple/"
+	Examples02PokemonPath = "../examples/02_pokemon/"
+	Examples03TriviaPath  = "../examples/03_trivia/"
 	TestWordVectors       = "../internal/testutils/testvec"
 )
 

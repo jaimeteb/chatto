@@ -100,13 +100,13 @@ func New(extCfg ConfigMap) (ServerMap, error) {
 		}
 	}
 
-	log.Info("Loaded extensions:")
-	for name := range extensionMap {
-		log.Infof("%s", name)
-	}
-
 	if len(extensionMap) == 0 {
 		log.Info("Using bot without extensions.")
+	} else {
+		log.Info("Loaded extensions:")
+		for name := range extensionMap {
+			log.Infof("%s", name)
+		}
 	}
 
 	return extensionMap, nil
