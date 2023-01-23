@@ -1,6 +1,6 @@
 # Trivia
 
-The [**Trivia Quiz**](https://github.com/jaimeteb/chatto/tree/master/examples/04_trivia) is a simple three-question quiz. At the end of the quiz you'll receive your score. You can exit the trivia at any time.
+The [**Trivia Quiz**](https://github.com/jaimeteb/chatto/tree/master/examples/03_trivia) is a simple three-question quiz. At the end of the quiz you'll receive your score. You can exit the trivia at any time.
 
 This example demonstrates how stored [slots](/finitestatemachine/#slots) can be used in the conversation. Also, this example provides a [Python extension server](/extensions/#other-languages).
 
@@ -22,13 +22,13 @@ To run this example:
 * Using Go extensions:
 
     ```bash
-    go run examples/04_trivia/ext/ext.go
+    go run examples/03_trivia/ext/ext.go
     ```
 
 * Using Python extensions:
 
     ```bash
-    python3 examples/04_trivia/ext/ext.py
+    python3 examples/03_trivia/ext/ext.py
     ```
 
     !!! note
@@ -41,5 +41,5 @@ To run this example:
 And in other terminal:
 
 ```bash
-chatto --path examples/04_trivia/
+chatto --path examples/03_trivia/
 ```
