@@ -12,6 +12,8 @@ import (
 	"github.com/jaimeteb/chatto/query"
 )
 
+const pokemonNotFound = "Pokémon not found, try with another input."
+
 func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.ExecuteExtensionResponse) {
 	m := req.FSM
 
@@ -37,7 +39,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 	}
 
 	if response.StatusCode == 404 {
-		message = "Pokémon not found, try with another input."
+		message = pokemonNotFound
 		intoState = req.Domain.StateTable["search_pokemon"]
 
 		return &extensions.ExecuteExtensionResponse{
@@ -53,7 +55,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 
 	body, readAllErr := io.ReadAll(response.Body)
 	if readAllErr != nil {
-		message = "Pokémon not found, try with another input."
+		message = pokemonNotFound
 		intoState = req.Domain.StateTable["search_pokemon"]
 
 		return &extensions.ExecuteExtensionResponse{
@@ -67,7 +69,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 
 	unmarshalErr := json.Unmarshal(body, &pokemonResp)
 	if unmarshalErr != nil {
-		message = "Pokémon not found, try with another input."
+		message = pokemonNotFound
 		intoState = req.Domain.StateTable["search_pokemon"]
 
 		return &extensions.ExecuteExtensionResponse{
@@ -83,7 +85,7 @@ func searchPokemon(req *extensions.ExecuteExtensionRequest) (res *extensions.Exe
 	pokemonID := pokemonResp["id"].(float64)
 	pokemonHeight := pokemonResp["height"].(float64)
 	pokemonWeight := pokemonResp["weight"].(float64)
-	message = fmt.Sprintf("Name: %s \nID: %.2f \nHeight: %.2f \nWeight: %.2f", pokemonName, pokemonID, pokemonHeight, pokemonWeight)
+	message = fmt.Sprintf("Name: %s\nID: %.2f\nHeight: %.2f\nWeight: %.2f", pokemonName, pokemonID, pokemonHeight, pokemonWeight)
 
 	return &extensions.ExecuteExtensionResponse{
 		FSM: &fsm.FSM{
