@@ -29,8 +29,7 @@ func NewClient(url string, port int, token string) *Client {
 		token: token,
 		http:  retryablehttp.NewClient(),
 	}
-
-	client.http.Logger = log.New()
+	client.http.Logger = nil
 
 	return client
 }
