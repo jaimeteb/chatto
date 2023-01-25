@@ -38,8 +38,6 @@ func NewStore(cfg *config.StoreConfig) (*Store, error) {
 		TLSConfig = &tls.Config{
 			MinVersion: tls.VersionTLS12,
 		}
-	} else {
-		TLSConfig = nil
 	}
 	RDB := redis.NewClient(&redis.Options{
 		Addr:      fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
