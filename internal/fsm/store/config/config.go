@@ -13,4 +13,5 @@ type StoreConfig struct {
 	Password string        `mapstructure:"password"`
 	Database string        `mapstructure:"database"`
 	RDBMS    string        `mapstructure:"rdbms"`
+	TLS      bool          `mapstructure:"tls"`
 }
