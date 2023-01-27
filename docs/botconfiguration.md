@@ -51,7 +51,7 @@ transitions:
     into: another_state
     command: bar
     extension:                    # this transition will execute the
-      server: my_rpc_server       # extension "bar_extension" from the 
+      server: my_rpc_server       # extension "bar_extension" from the
       name: bar_extension         # "my_bar_server" extension server
 ```
 
@@ -66,10 +66,10 @@ To configure the extensions, the following parameters are required for `RPC` and
     host: localhost
     port: 8770
     ```
-  
+
 * For type **`REST`**:
     * URL
-    
+
     ```yaml
     type: REST
     url: http://localhost:8770
@@ -100,8 +100,9 @@ In order to use Redis, provide the following values:
 
 * Host
 * Password
-* Port (will default to `6379`)
-* TTL (will default to `-1s`)
+* Port (defaults to `6379`)
+* TTL (defaults to `-1s`)
+* TLS (defaults to `false`)
 
 ```yaml
 store:
@@ -109,6 +110,7 @@ store:
   host: localhost
   password: pass
   ttl: 30m
+  tls: false
 ```
 
 ### SQL
@@ -118,8 +120,8 @@ The SQL Store allows you to save FSM objects in an SQL database. You must provid
 ```yaml
 store:
   type: SQL
-  ttl: 30m            # "ttl" and "purge" have the same function
-  purge: 1h           # as in the CACHE type store
+  ttl: 30m            # "ttl" and "purge" have the same function as in the CACHE type store
+  purge: 1h
   host: localhost
   port: 3306          # will default to 3306 for mysql and 5432 for postgresql
   user: user
@@ -157,7 +159,7 @@ conversation:
     reply_unknown: false
     reply_error: false
   existing:
-    reply_unsure: true 
+    reply_unsure: true
     reply_unknown: false     # the bot will not use the `unknown` default even in existing conversations
                              # reply_error is true by default
 ```
@@ -173,4 +175,3 @@ conversation:
     CHATTO_BOT_CONVERSATION_EXISTING_REPLY_UNKNOWN=true
     CHATTO_BOT_CONVERSATION_EXISTING_REPLY_ERROR=true
     ```
-  
