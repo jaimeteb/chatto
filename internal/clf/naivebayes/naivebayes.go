@@ -53,7 +53,7 @@ func NewClassifierFromFile(name string) (*Classifier, error) {
 	return classifier, err
 }
 
-// NewClassifier creates a KNN classifier with file data
+// NewClassifier creates a Naive Bayes classifier with file data
 func NewClassifier(params map[string]interface{}) *Classifier {
 	decParams := &Parameters{
 		TfIdf: false,

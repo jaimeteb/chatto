@@ -6,7 +6,7 @@ site_description: >-
   with configurations in YAML.
   The aim of this project is to create very
   simple text-based chatbots using a few
-  configuration files. 
+  configuration files.
 
 repo_name: jaimeteb/chatto
 repo_url: https://github.com/jaimeteb/chatto
@@ -56,6 +56,6 @@ nav:
   - Examples:
     - Mood Bot: examples/moodbot.md
     - Pokemon Search: examples/pokemon.md
-    - Miscellaneous Bot: examples/misc.md
+    # - Miscellaneous Bot: examples/misc.md
     - Trivia: examples/trivia.md
   - Changelog: changelog.md

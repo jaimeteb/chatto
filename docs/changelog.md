@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.9.0
+
+* Bump Go version to `1.19`.
+* Remove some examples.
+* Add `test` command, which generates a confusion matrix and classification report of the classifier.
+* Add TLS option for REDIS store:
+
+	```yaml
+	# bot.yml
+
+	store:
+		type: REDIS
+		host: localhost
+		password: pass
+		tls: true
+	```
+
+---
+
 ## v0.8.5
 
 * Use `time.Duration` for channel delay.
@@ -103,7 +122,7 @@ model:
 			into: another_state
 			command: bar
 			extension:                    # this transition will execute the
-			  server: my_rpc_server       # extension "bar_extension" from the 
+			  server: my_rpc_server       # extension "bar_extension" from the
 			  name: bar_extension         # "my_bar_server" extension server
 		```
 
@@ -113,7 +132,7 @@ model:
 * Automatically detect commands and states from transitions.
 * Make environment variables more k8s-friendly:
 	* For **bot.yml** variables have the `CHATTO_BOT` prefix.
-	* For **chn.yml** variables have the `CHATTO_CHN` prefix.	
+	* For **chn.yml** variables have the `CHATTO_CHN` prefix.
 * Add example Kubernetes deployment.
 * Auto-reload **fsm.yml** and **clf.yml** files on change.
 
@@ -237,7 +256,7 @@ model:
 * Add image support
 
 	Messages can be either simple strings, or objects formed by an *image* URL and/or *text*.
-	
+
 	Example on **fsm.yml**:
 
 	```yaml
@@ -422,4 +441,3 @@ Values for **chn.yml** can be loaded from environment variables, for example: ``
 * Implemented extensions (Golang plugin build mode)
 * Implemented slot saving
 * Updated fsm.yml structure
-

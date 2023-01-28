@@ -40,7 +40,7 @@ You can choose a K-Nearest Neighbors (KNN) classifier which uses the average of 
 
 ```yaml
 model:
-  classifier: knn 
+  classifier: knn
   parameters:
     k: 5            # by default k is set to 1
 ```
@@ -53,13 +53,13 @@ Your `model` object for KNN would look like this:
 
 ```yaml
 model:
-  classifier: knn 
+  classifier: knn
   parameters:
-    k: 5                                                
+    k: 5
   word_vectors:
     file_name: ./vectors/wiki.en.vec    # where the word vectors file is locatedd
     truncate: 0.01                      # only 1% of the words will be used
-    skip_oov: true                      
+    skip_oov: true
 ```
 
 ## Model save & load
@@ -71,7 +71,7 @@ For example, you could firstly:
 ```yaml
 model:
   classifier: naive_bayes
-  directory: ./my_model/    
+  directory: ./my_model/
   save: true                # the trained model will be saved to ./my_model/
 ```
 
@@ -80,7 +80,7 @@ And then:
 ```yaml
 model:
   classifier: naive_bayes
-  directory: ./my_model/    
+  directory: ./my_model/
   load: true               # the saved model will be laoded from ./my_model/
 ```
 
@@ -91,7 +91,7 @@ Both `save` and `load` will default to `false`, in which case the classifier wil
 
 ## Pipeline
 
-You can optionally configure the pipeline steps by adding the `pipeline` object to the **clf.yml** file: 
+You can optionally configure the pipeline steps by adding the `pipeline` object to the **clf.yml** file:
 
 ```yaml
 pipeline:
@@ -105,3 +105,33 @@ Currenty, the pipeline steps are:
 1. Removal of symbols (default `true`)
 2. Conversion into lowercase (default `true`)
 3. Classification threshold (default `0.1`)
+
+## Test
+
+You can generate a classification report and confusion matrix from the trained classifier by running the `test` command:
+
+```bash
+chatto test --path ./your/data
+```
+
+The output of this command will look something like this:
+
+```log
+INFO[0000] ---- Confusion matrix ----
+INFO[0000]       greet good  bad   yes   no
+INFO[0000] greet 13    0     0     0     0
+INFO[0000] good  0     14    0     0     0
+INFO[0000] bad   0     0     14    0     0
+INFO[0000] yes   0     0     0     5     0
+INFO[0000] no    0     0     0     0     5
+INFO[0000] ---- Classification report ----
+INFO[0000]              Precision  Recall     F1-Score   Support
+INFO[0000] greet        1.0000     1.0000     1.0000     13
+INFO[0000] good         1.0000     1.0000     1.0000     14
+INFO[0000] bad          1.0000     1.0000     1.0000     14
+INFO[0000] yes          1.0000     1.0000     1.0000     5
+INFO[0000] no           1.0000     1.0000     1.0000     5
+INFO[0000] Accuracy                           1.0000     51
+INFO[0000] Macro Avg    1.0000     1.0000     1.0000     51
+INFO[0000] Weighted Avg 1.0000     1.0000     1.0000     51
+```

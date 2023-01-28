@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"strconv"
 	"time"
@@ -32,10 +33,17 @@ func NewStore(cfg *config.StoreConfig) (*Store, error) {
 	if cfg.Port == "" {
 		cfg.Port = "6379"
 	}
+	var TLSConfig *tls.Config
+	if cfg.TLS {
+		TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+	}
 	RDB := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
-		Password: cfg.Password,
-		DB:       0,
+		Addr:      fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		Password:  cfg.Password,
+		DB:        0,
+		TLSConfig: TLSConfig,
 	})
 	_, err := RDB.Ping(context.Background()).Result()
 	if err != nil {

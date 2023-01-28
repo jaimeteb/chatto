@@ -21,7 +21,7 @@ func TestLoadConfig(t *testing.T) {
 	}{
 		{
 			name: "test loading a valid path",
-			args: args{path: "../" + testutils.Examples05SimplePath},
+			args: args{path: "../" + testutils.Examples00TestPath},
 			want: &fsmint.Config{
 				Transitions: []fsm.Transition{
 					{
@@ -45,6 +45,15 @@ func TestLoadConfig(t *testing.T) {
 							},
 						},
 					},
+					{
+						From:    []string{"any"},
+						Into:    "initial",
+						Command: "hello_universe",
+						Extension: fsm.Extension{
+							Server: "test",
+							Name:   "any",
+						},
+					},
 				},
 				Defaults: fsm.Defaults{
 					Unknown: "Can't do that.",
@@ -56,7 +65,7 @@ func TestLoadConfig(t *testing.T) {
 		},
 		{
 			name:    "test loading a invalid path",
-			args:    args{path: "../" + testutils.Examples00InvalidPath},
+			args:    args{path: "../" + testutils.ExamplesInvalidPath},
 			want:    nil,
 			wantErr: true,
 		},

@@ -49,12 +49,12 @@ def validate_ans_2(data: dict) -> dict:
 def score(data: dict) -> dict:
     if data.get("fsm").get("slots").get("answer_3") not in ["1", "2", "3"]:
         return jsonify(wrong_option(data))
-    
+
     slots = data.get("fsm").get("slots", {})
     answer_1 = slots.get("answer_1")
     answer_2 = slots.get("answer_2")
     answer_3 = slots.get("answer_3")
-    
+
     score = 0
     score = score + 1 if answer_1 == "2" else score
     score = score + 1 if answer_2 == "1" else score

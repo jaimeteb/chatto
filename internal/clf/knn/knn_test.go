@@ -2,8 +2,10 @@ package knn_test
 
 import (
 	"path"
+	"reflect"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jaimeteb/chatto/internal/clf"
 	"github.com/jaimeteb/chatto/internal/clf/knn"
 	"github.com/jaimeteb/chatto/internal/clf/wordvectors"
@@ -76,6 +78,35 @@ func TestClassifier(t *testing.T) {
 			}
 		})
 	}
+	t.Cleanup(func() {
+		testutils.RemoveFiles("gob")
+	})
+}
+
+func TestSaveAndLoad(t *testing.T) {
+	classifConfig, err := clf.LoadConfig("../../"+testutils.Examples00TestPath, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	classifOld := knn.NewClassifier(wordvectors.Config{
+		WordVectorsFile: path.Join("../../", testutils.TestWordVectors),
+		Truncate:        0.1,
+	}, map[string]interface{}{"k": 1})
+	classifOld.Learn(classifConfig.Classification, &classifConfig.Pipeline)
+	if err = classifOld.Save("./"); err != nil {
+		t.Error(err)
+	}
+
+	classifNew, err := knn.Load("./")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(classifOld, classifNew) {
+		t.Errorf("Classifier saved %v, Classifier loaded %v", spew.Sprint(classifOld), spew.Sprint(classifNew))
+	}
+
 	t.Cleanup(func() {
 		testutils.RemoveFiles("gob")
 	})

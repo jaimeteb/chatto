@@ -10,11 +10,11 @@ classification:
 
   - command: end
     texts:
-      - "end"  
-      - "exit"  
-      - "stop"  
-      - "end the quiz"  
-      - "end trivia"  
+      - "end"
+      - "exit"
+      - "stop"
+      - "end the quiz"
+      - "end trivia"
 
 pipeline:
   remove_symbols: false

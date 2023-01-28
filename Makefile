@@ -25,3 +25,6 @@ release:
 
 docs:
 	mkdocs build --clean
+
+cover:
+	go tool cover -html=coverage.txt -o tmp/coverage.html

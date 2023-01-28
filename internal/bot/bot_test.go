@@ -126,8 +126,7 @@ func TestBot_Extensions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	extensionPort := testutils.GetFreePort(t)
-
+	extensionPort := "8770"
 	testutils.RunGoExtension(t, "../"+testutils.Examples00TestPath, extensionPort)
 
 	bc, err := bot.LoadConfig("../"+testutils.Examples00TestPath, botPort)
@@ -135,7 +134,7 @@ func TestBot_Extensions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if ext, ok := bc.Extensions["test"]; ok {
+	if ext, ok := bc.Extensions["any"]; ok {
 		ext.URL = fmt.Sprintf("http://127.0.0.1:%s", extensionPort)
 	}
 
@@ -366,7 +365,7 @@ func TestBot_Run(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	bc, err := bot.LoadConfig("../"+testutils.Examples05SimplePath, botPort)
+	bc, err := bot.LoadConfig("../"+testutils.Examples00TestPath, botPort)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -389,11 +388,16 @@ func newTestBot(t *testing.T) (*bot.Bot, *mockchannels.MockChannel, *mockchannel
 	})
 
 	botConfig := &bot.Config{
-		Name:       "chatto",
-		Extensions: map[string]extension.Config{},
-		Store:      config.StoreConfig{},
-		Port:       0,
-		Path:       "../" + testutils.Examples05SimplePath,
+		Name: "chatto",
+		Extensions: map[string]extension.Config{
+			"test": {
+				Type: "REST",
+				URL:  "http://localhost:8770",
+			},
+		},
+		Store: config.StoreConfig{},
+		Port:  0,
+		Path:  "../" + testutils.Examples00TestPath,
 		Conversation: bot.Conversation{
 			New: bot.ConversationConfig{
 				ReplyUnsure:  true,
