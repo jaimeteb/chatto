@@ -28,12 +28,12 @@ The inspiration for this project originally came from [Flottbot](https://github.
     * [The **fsm.yml** file](#yourfirstbotfsm)
     * [Run your bot](#yourfirstbotrun)
     * [Interact with your bot](#yourfirstbotinteract)
-* [Usage](#usage)  
+* [Usage](#usage)
     * [CLI](#usagecli)
     * [Docker Compose](#usagecompose)
     * [Kubernetes](#usagekubernetes)
     * [Import](#usageimport)
-* [Examples](#examples)  
+* [Examples](#examples)
 
 <a name="install"></a>
 ## Installation
@@ -359,6 +359,5 @@ I have provided some config files under *examples*. Clone the repository and run
 More about these examples in the [**Documentation**](https://chatto.jaimeteb.com/examples/moodbot)
 
 1. [**Mood Bot**](/examples/01_moodbot) - A chatto version of [Rasa's Mood Bot](https://github.com/RasaHQ/rasa/tree/master/examples/moodbot) Greet the bot to start the conversation.
-3. [**Pokemon Search**](/examples/03_pokemon) - Search for Pokémon by name or number.
-2. [**Miscellaneous Bot**](/examples/02_misc) - Weather forecast, random jokes and quotes, and more!
-4. [**Trivia Quiz**](/examples/04_trivia) - Type *start* to take a quick trivia quiz.
+2. [**Pokemon Search**](/examples/02_pokemon) - Search for Pokémon by name or number.
+3. [**Trivia Quiz**](/examples/03_trivia) - Type *start* to take a quick trivia quiz.
