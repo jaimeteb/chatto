@@ -28,15 +28,20 @@ type Bot struct {
 
 // Answer takes a user input and executes a transition on the FSM if possible
 func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
-	isExistingConversation := b.Store.Exists(receiveMsg.Conversation())
+	sender := receiveMsg.Conversation()
+
+	isExistingConversation := b.Store.Exists(sender)
 
 	if !isExistingConversation {
-		b.Store.Set(receiveMsg.Conversation(), fsm.NewFSM())
+		b.Store.Set(sender, fsm.NewFSM())
+		log.Debugf("FSM | New conversation with sender %s", sender)
+	} else {
+		log.Debugf("FSM | Existing conversation with sender %s", sender)
 	}
 
 	cmd, _ := b.Classifier.Model.Predict(receiveMsg.Question.Text, b.Classifier.Pipeline)
 
-	machine := b.Store.Get(receiveMsg.Conversation())
+	machine := b.Store.Get(sender)
 
 	previousState := machine.State
 
@@ -79,7 +84,7 @@ func (b *Bot) Answer(receiveMsg *messages.Receive) ([]query.Answer, error) {
 		}
 	}
 
-	b.Store.Set(receiveMsg.Conversation(), machine)
+	b.Store.Set(sender, machine)
 
 	return answers, nil
 }
