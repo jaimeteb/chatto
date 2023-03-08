@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.1
+
+* Enable CORS on REST handler
+* Add debug log sender
+
+---
+
 ## v0.9.0
 
 * Bump Go version to `1.19`.

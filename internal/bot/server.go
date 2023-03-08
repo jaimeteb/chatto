@@ -28,7 +28,16 @@ type Prediction struct {
 }
 
 func (b *Bot) restChannelHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	b.ChannelHandler(w, r, b.Channels.REST)
+}
+
+func (b *Bot) restChannelPreflight(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (b *Bot) telegramChannelHandler(w http.ResponseWriter, r *http.Request) {
@@ -240,6 +249,7 @@ func (b *Bot) RegisterRoutes() {
 	// Channel channels
 	if b.Channels.REST != nil {
 		r.HandleFunc("/channels/rest", b.restChannelHandler).Methods("POST")
+		r.HandleFunc("/channels/rest", b.restChannelPreflight).Methods("OPTIONS")
 	}
 
 	if b.Channels.Telegram != nil {
