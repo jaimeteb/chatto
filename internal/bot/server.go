@@ -222,9 +222,6 @@ func (b *Bot) authorize(r *http.Request) error {
 
 // Run starts the bot which is a long running process
 func (b *Bot) Run() {
-	log.Info(smileyFace)
-	log.Info("Bot started...")
-
 	// Start event listeners
 	b.slackChannelEvents()
 
@@ -234,6 +231,9 @@ func (b *Bot) Run() {
 		Handler:           b.Router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+
+	log.Info(smileyFace)
+	log.Infof("Bot server listening on port %d ...", b.Config.Port)
 	log.Fatal(server.ListenAndServe())
 }
 
