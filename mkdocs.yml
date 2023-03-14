@@ -59,3 +59,4 @@ nav:
     # - Miscellaneous Bot: examples/misc.md
     - Trivia: examples/trivia.md
   - Changelog: changelog.md
+  - Demo: demo.md
