@@ -36,13 +36,14 @@ type Auth struct {
 
 // Config struct models the bot.yml configuration file
 type Config struct {
-	Name         string                  `mapstructure:"bot_name"`
-	Extensions   extension.ConfigMap     `mapstructure:"extensions"`
-	Store        storeconfig.StoreConfig `mapstructure:"store"`
-	Port         int                     `mapstructure:"port"`
-	Path         string
-	Conversation Conversation `mapstructure:"conversation"`
-	Auth         Auth         `mapstructure:"auth"`
+	Name           string                  `mapstructure:"bot_name"`
+	Extensions     extension.ConfigMap     `mapstructure:"extensions"`
+	Store          storeconfig.StoreConfig `mapstructure:"store"`
+	Port           int                     `mapstructure:"port"`
+	Path           string
+	Conversation   Conversation `mapstructure:"conversation"`
+	Auth           Auth         `mapstructure:"auth"`
+	EnableRESTCORS bool         `mapstructure:"enable_rest_cors"`
 }
 
 // ShouldReplyUnsure depending on the conversational settings lets
@@ -92,6 +93,7 @@ func LoadConfig(path string, port int) (*Config, error) {
 	config.SetDefault("conversation.existing.reply_error", true)
 	config.SetDefault("store.ttl", "-1s")
 	config.SetDefault("store.purge", "-1s")
+	config.SetDefault("store.enable_rest_cors", false)
 
 	if err := config.ReadInConfig(); err != nil {
 		switch err.(type) {

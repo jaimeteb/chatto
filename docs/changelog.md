@@ -1,9 +1,17 @@
 # Changelog
 
+## v0.9.2
+
+* Log server port.
+* Make REST CORS optional.
+* Add demo to docs.
+
+---
+
 ## v0.9.1
 
-* Enable CORS on REST handler
-* Add debug log sender
+* Enable CORS on REST handler.
+* Add debug log sender.
 
 ---
 

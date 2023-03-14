@@ -28,15 +28,19 @@ type Prediction struct {
 }
 
 func (b *Bot) restChannelHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	if b.Config.EnableRESTCORS {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	}
 	b.ChannelHandler(w, r, b.Channels.REST)
 }
 
 func (b *Bot) restChannelPreflight(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	if b.Config.EnableRESTCORS {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -222,9 +226,6 @@ func (b *Bot) authorize(r *http.Request) error {
 
 // Run starts the bot which is a long running process
 func (b *Bot) Run() {
-	log.Info(smileyFace)
-	log.Info("Bot started...")
-
 	// Start event listeners
 	b.slackChannelEvents()
 
@@ -234,6 +235,9 @@ func (b *Bot) Run() {
 		Handler:           b.Router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+
+	log.Info(smileyFace)
+	log.Infof("Bot server listening on port %d ...", b.Config.Port)
 	log.Fatal(server.ListenAndServe())
 }
 

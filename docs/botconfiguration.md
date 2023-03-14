@@ -175,3 +175,11 @@ conversation:
     CHATTO_BOT_CONVERSATION_EXISTING_REPLY_UNKNOWN=true
     CHATTO_BOT_CONVERSATION_EXISTING_REPLY_ERROR=true
     ```
+
+## REST CORS
+
+For browser-based chatbot integrations you might need to add CORS to the REST endpoint. Enable CORS on the REST endpoint by adding the following to the `bot.yml` file:
+
+```yaml
+enable_rest_cors: true
+```
